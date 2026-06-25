@@ -114,6 +114,66 @@ export default function PageMedecin() {
 
   const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
 
+  function renderCell(cell) {
+    if(!cell) return null;
+    const p = enSalle.find(x=>x.emplacement===cell.id);
+    const c = COULEURS[cell.id]||'#9ca3af';
+    const bgVide = BG_VIDE[cell.id]||'#f9fafb';
+    const attente = p?.statut==='attente_medecin';
+    const anomalie = p&&hasAnomalie(p);
+    const isSelected = sel?.id===p?.id;
+    return (
+      <div key={cell.id} onClick={()=>{
+        if(!p) return;
+        setSel(isSelected?null:p);
+        if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
+      }} style={{
+        background: p ? '#fff' : bgVide,
+        border: '2px solid '+(isSelected?c:p?c:c+'55'),
+        borderRadius:10,
+        cursor:p?'pointer':'default',
+        minHeight:100, transition:'all 0.15s',
+        boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',
+        position:'relative', overflow:'hidden',
+        minWidth:120,
+      }}>
+        <div style={{padding:'8px 10px 4px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span style={{fontWeight:800,fontSize:14,color:c}}>{cell.label}</span>
+          <div style={{display:'flex',gap:4,alignItems:'center'}}>
+            {p&&anomalie&&<span style={{fontSize:11,color:'#ef4444',fontWeight:700}}>(!)</span>}
+            {p&&<div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/>}
+          </div>
+        </div>
+        {p ? (
+          <div style={{padding:'4px 10px 8px'}}>
+            <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2}}>{p.nom} {p.prenom}</div>
+            <div style={{display:'flex',gap:4,marginTop:2}}>
+              <span style={{color:'#6b7280',fontSize:11}}>{p.age} ans</span>
+              {p.ipp&&<span style={{color:'#9ca3af',fontSize:11}}>IPP {p.ipp}</span>}
+            </div>
+            <div style={{color:'#374151',fontSize:11,marginTop:3,fontWeight:500}}>{p.motifPrincipal}</div>
+            <div style={{display:'flex',gap:4,marginTop:4,flexWrap:'wrap'}}>
+              {p.sat&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.sat,'sat')?'#ef4444':'#6b7280',background:isAnormal(p.sat,'sat')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>SpO2 {p.sat}%</span>}
+              {p.fc&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.fc,'fc')?'#ef4444':'#6b7280',background:isAnormal(p.fc,'fc')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>FC {p.fc}</span>}
+              {p.temp&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.temp,'temp')?'#ef4444':'#6b7280',background:isAnormal(p.temp,'temp')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>T {p.temp}</span>}
+            </div>
+            <div style={{marginTop:4,fontSize:10,color:'#9ca3af',fontWeight:600}}>{duree(p.arrivee)}</div>
+            {attente&&<div style={{position:'absolute',bottom:5,right:6,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:4,padding:'1px 5px',fontSize:9,fontWeight:700,color:'#d97706'}}>ATTEND</div>}
+          </div>
+        ) : (
+          <div style={{padding:'4px 10px 8px',display:'flex',flexDirection:'column',justifyContent:'space-between',flex:1,minHeight:60}}>
+            <span style={{color:c,opacity:0.35,fontSize:11}}>{cell.nom}</span>
+            <button
+              onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
+              style={{width:24,height:24,borderRadius:'50%',background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',alignSelf:'flex-end',cursor:'pointer',opacity:0.4}}
+              title="Ajouter un patient"
+            >+</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{minHeight:'100vh',background:'#f3f4f6',display:'flex',flexDirection:'column'}}>
 
@@ -142,83 +202,43 @@ export default function PageMedecin() {
           <div style={{width:sel?420:'100%',flexShrink:0,padding:'1.5rem',overflowY:'auto',transition:'width 0.25s'}}>
 
             {/* PLAN */}
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {PLAN.map((row,ri)=>(
-                <div key={ri} style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8}}>
-                  {row.map((cell,ci)=>{
-                    if(!cell) return <div key={ci} style={{borderRadius:12,border:'2px dashed #e5e7eb',minHeight:110,background:'transparent'}}/>;
+            <div style={{display:'flex',gap:10,alignItems:'stretch'}}>
 
-                    const p = enSalle.find(x=>x.emplacement===cell.id);
-                    const c = COULEURS[cell.id]||'#9ca3af';
-                    const bgVide = BG_VIDE[cell.id]||'#f9fafb';
-                    const attente = p?.statut==='attente_medecin';
-                    const anomalie = p&&hasAnomalie(p);
-                    const isSelected = sel?.id===p?.id;
-
-                    return (
-                      <div key={ci} onClick={()=>{
-                        if(!p) return;
-                        setSel(isSelected?null:p);
-                        if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
-                      }} style={{
-                        background: p ? '#fff' : bgVide,
-                        border: '2px solid '+(isSelected?c:p?c:c+'55'),
-                        borderRadius:12,
-                        cursor:p?'pointer':'default',
-                        minHeight:110, transition:'all 0.15s',
-                        boxShadow:isSelected?'0 0 0 3px '+c+'33':'none',
-                        position:'relative', overflow:'hidden'
-                      }}>
-
-                        <div style={{padding:'8px 10px 4px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                          <span style={{fontWeight:800,fontSize:14,color:c}}>{cell.label}</span>
-                          <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                            {p&&anomalie&&<span style={{fontSize:11,color:'#ef4444',fontWeight:700}}>(!)</span>}
-                            {p&&<div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/>}
-                          </div>
-                        </div>
-
-                        {p ? (
-                          <div style={{padding:'8px 10px'}}>
-                            <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2}}>
-                              {p.nom} {p.prenom}
-                            </div>
-                            <div style={{display:'flex',gap:6,marginTop:3,flexWrap:'wrap'}}>
-                              <span style={{color:'#6b7280',fontSize:11}}>{p.age} ans</span>
-                              {p.ipp&&<span style={{color:'#9ca3af',fontSize:11}}>IPP {p.ipp}</span>}
-                            </div>
-                            <div style={{color:'#374151',fontSize:11,marginTop:4,fontWeight:500}}>{p.motifPrincipal}</div>
-                            <div style={{display:'flex',gap:4,marginTop:5,flexWrap:'wrap'}}>
-                              {p.sat&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.sat,'sat')?'#ef4444':'#6b7280',background:isAnormal(p.sat,'sat')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>SpO2 {p.sat}%</span>}
-                              {p.fc&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.fc,'fc')?'#ef4444':'#6b7280',background:isAnormal(p.fc,'fc')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>FC {p.fc}</span>}
-                              {p.temp&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.temp,'temp')?'#ef4444':'#6b7280',background:isAnormal(p.temp,'temp')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>T {p.temp}</span>}
-                            </div>
-                            <div style={{marginTop:5,fontSize:10,color:'#9ca3af',fontWeight:600}}>{duree(p.arrivee)}</div>
-                            {attente&&<div style={{position:'absolute',bottom:6,right:8,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:4,padding:'1px 6px',fontSize:9,fontWeight:700,color:'#d97706'}}>ATTEND</div>}
-                          </div>
-                        ) : (
-                          <div style={{padding:'8px 10px',display:'flex',flexDirection:'column',justifyContent:'space-between',minHeight:70}}>
-                            <span style={{color:c,opacity:0.4,fontSize:11}}>{cell.nom}</span>
-                            <button
-                              onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
-                              style={{
-                                width:26,height:26,borderRadius:'50%',
-                                background:'transparent',border:'1.5px dashed '+c,
-                                color:c,fontSize:18,display:'flex',
-                                alignItems:'center',justifyContent:'center',
-                                alignSelf:'flex-end',cursor:'pointer',opacity:0.5
-                              }}
-                              title="Ajouter un patient ici"
-                            >+</button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              {/* Salle Pansement */}
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                <div style={{fontSize:10,fontWeight:600,color:'#f59e0b',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Pansement</div>
+                <div style={{border:'2px solid #f59e0b44',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                  {[PLAN[0][0]].map(cell => renderCell(cell))}
+                  <div style={{flex:1}}/>
+                  <div style={{flex:1}}/>
                 </div>
-              ))}
-            </div>
+              </div>
 
+              {/* Salle 2 */}
+              <div style={{display:'flex',flexDirection:'column',gap:6,flex:2}}>
+                <div style={{fontSize:10,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Salle 2</div>
+                <div style={{border:'2px solid #9ca3af44',borderRadius:14,padding:6,flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                  {[PLAN[1][1],PLAN[1][2],PLAN[2][1],PLAN[2][2]].map(cell => renderCell(cell))}
+                </div>
+              </div>
+
+              {/* Observation */}
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                <div style={{fontSize:10,fontWeight:600,color:'#16a34a',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Observation</div>
+                <div style={{border:'2px solid #16a34a44',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                  {[PLAN[1][0],PLAN[2][0]].map(cell => renderCell(cell))}
+                </div>
+              </div>
+
+              {/* Dechocage */}
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                <div style={{fontSize:10,fontWeight:600,color:'#ef4444',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Dechocage</div>
+                <div style={{border:'2px solid #ef444444',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                  {[PLAN[1][3],PLAN[2][3]].map(cell => renderCell(cell))}
+                </div>
+              </div>
+
+            </div>
 
           </div>
 
