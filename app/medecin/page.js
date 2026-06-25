@@ -219,15 +219,7 @@ export default function PageMedecin() {
               ))}
             </div>
 
-            {/* LEGENDE */}
-            <div style={{display:'flex',gap:16,marginTop:12,flexWrap:'wrap'}}>
-              {[['#ef4444','Dechocage'],['#9ca3af','Lits'],['#16a34a','Fauteuils/Obs'],['#f59e0b','Pansement']].map(([c,l])=>(
-                <div key={l} style={{display:'flex',alignItems:'center',gap:5}}>
-                  <div style={{width:8,height:8,borderRadius:2,background:c}}/>
-                  <span style={{color:'#9ca3af',fontSize:11}}>{l}</span>
-                </div>
-              ))}
-            </div>
+
           </div>
 
           {/* FICHE PATIENT */}
@@ -353,9 +345,9 @@ export default function PageMedecin() {
             {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
           </div>
           {preau.length===0?(
-            <div style={{textAlign:'center',color:'#d1d5db',fontSize:12,padding:'2rem 0'}}>
-              <div style={{fontSize:28,marginBottom:6}}>--</div>
-              Aucun patient
+            <div style={{textAlign:'center',color:'#d1d5db',padding:'2rem 0'}}>
+              <div style={{fontSize:40,marginBottom:8}}>🌙</div>
+              <div style={{fontSize:12}}>Aucun patient</div>
             </div>
           ):(
             preau.map(p=>(
