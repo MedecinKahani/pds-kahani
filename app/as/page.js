@@ -79,11 +79,11 @@ function StatCard({ label, value, unit, couleur, icon }) {
 }
 
 const SYMPTOMES = [
+  { id: 'coma', label: 'Coma / ACR', icon: '🚨' },
+  { id: 'detresse_respi', label: 'Detresse respi', icon: '😮' },
+  { id: 'asthme', label: 'Asthme', icon: '💨' },
   { id: 'douleur', label: 'Douleur', icon: '😣' },
   { id: 'fievre', label: 'Fievre', icon: '🌡️' },
-  { id: 'coma', label: 'Coma / Inconscience', icon: '🚨' },
-  { id: 'detresse_respi', label: 'Detresse respiratoire', icon: '😮' },
-  { id: 'asthme', label: 'Asthme', icon: '💨' },
   { id: 'vertige', label: 'Vertige / Malaise', icon: '💫' },
   { id: 'plaie', label: 'Plaie / Traumatisme', icon: '🩹' },
   { id: 'autre', label: 'Autre', icon: '?' },
@@ -123,7 +123,7 @@ export default function PageAS() {
     medicaments_today: '', medicaments_detail: '',
     fc: '', sat: '', tas: '', tad: '', temp: '', poids: '', taille: '',
     symptome: '', symptome_autre: '', signe_lutte: '', respire: '', dextro: '', hemocue: '',
-    douleur_zones: [], douleur_eva: 5,
+    douleur_zones: [], douleur_eva: 5, nausee: '', tache_corps: '', fievre_jours: '', bu_resultat: '', bhcg_resultat: '',
     fievre_depuis: '',
     plaie_vaccin: '', quicktest: '',
     ecg_fait: false, bu_fait: false, bhcg_fait: false,
@@ -232,7 +232,7 @@ export default function PageAS() {
     if (d.ok) {
       setPatients(d.patients);
       setVue('liste');
-      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',dextro:'',hemocue:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
+      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',dextro:'',hemocue:'',douleur_zones:[],douleur_eva:5,nausee:'',tache_corps:'',fievre_jours:'',bu_resultat:'',bhcg_resultat:'',fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
 
@@ -544,6 +544,36 @@ export default function PageAS() {
 
                                     {/* PANNEAU DROIT */}
                   <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
+                    {/* Alerte tete */}
+                    {form.douleur_zones.includes('tete')&&(
+                      <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px',marginBottom:6}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:12,marginBottom:8}}>Douleur tete — evaluer urgence</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                          <div>
+                            <label style={{fontSize:11,color:'#374151',fontWeight:600,display:'block',marginBottom:4}}>Nausees ou vomissements ?</label>
+                            <div style={{display:'flex',gap:6}}>
+                              {['Oui','Non'].map(v=>(
+                                <button key={v} onClick={()=>set('nausee',v)} style={{flex:1,padding:'6px',borderRadius:6,background:form.nausee===v?(v==='Oui'?'#ef4444':'#16a34a'):'#fff',color:form.nausee===v?'#fff':'#374151',border:'1px solid '+(form.nausee===v?(v==='Oui'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>{v}</button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label style={{fontSize:11,color:'#374151',fontWeight:600,display:'block',marginBottom:4}}>Nouvelle tache sur la peau ?</label>
+                            <div style={{display:'flex',gap:6}}>
+                              {['Oui','Non'].map(v=>(
+                                <button key={v} onClick={()=>set('tache_corps',v)} style={{flex:1,padding:'6px',borderRadius:6,background:form.tache_corps===v?(v==='Oui'?'#ef4444':'#16a34a'):'#fff',color:form.tache_corps===v?'#fff':'#374151',border:'1px solid '+(form.tache_corps===v?(v==='Oui'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>{v}</button>
+                              ))}
+                            </div>
+                          </div>
+                          {(form.nausee==='Oui'||form.tache_corps==='Oui')&&(
+                            <div style={{background:'#7f1d1d',borderRadius:8,padding:'8px 10px',marginTop:4}}>
+                              <div style={{color:'#fff',fontWeight:800,fontSize:13}}>URGENCE — Brancard 1 + alerter medecin</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Alerte bras gauche */}
                     {(form.douleur_zones.includes('bras_g'))&&(
                       <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
@@ -567,14 +597,33 @@ export default function PageAS() {
                     )}
 
                     {/* Alerte abdo femme */}
-                    {form.douleur_zones.includes('abdomen')&&form.sexe==='F'&&(
+                    {form.douleur_zones.includes('abdomen')&&form.sexe==='F'&&age>=12&&(
                       <div style={{background:'#f5f3ff',border:'1px solid #ddd6fe',borderRadius:8,padding:'10px 12px'}}>
                         <div style={{color:'#7c3aed',fontWeight:700,fontSize:13}}>Douleur abdo — Femme</div>
-                        <div style={{color:'#8b5cf6',fontSize:12,marginTop:3}}>Donner pot a urine pour BU et bHCG</div>
-                        <div style={{display:'flex',gap:6,marginTop:6}}>
-                          <button onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bu_fait?'✓ BU':'BU'}</button>
-                          <button onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bhcg_fait?'✓ bHCG':'bHCG'}</button>
+                        <div style={{color:'#8b5cf6',fontSize:12,marginTop:3}}>Donner pot a urine pour BU et bHCG urinaire</div>
+                        <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
+                          <button onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bu_fait?'✓ BU fait':'BU'}</button>
+                          <button onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bhcg_fait?'✓ bHCG fait':'bHCG'}</button>
                         </div>
+                        {form.bu_fait&&<div style={{marginTop:6}}>
+                          <input value={form.bu_resultat||''} onChange={e=>set('bu_resultat',e.target.value)}
+                            placeholder="Resultat BU : ex nitrites+, leucocytes++..." style={{...inp,fontSize:12,marginTop:4}}/>
+                        </div>}
+                        {form.bhcg_fait&&<div style={{marginTop:6}}>
+                          <div style={{display:'flex',gap:6}}>
+                            {['Negatif','Positif'].map(r=>(
+                              <button key={r} onClick={()=>set('bhcg_resultat',r)} style={{flex:1,padding:'6px',borderRadius:6,background:form.bhcg_resultat===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.bhcg_resultat===r?'#fff':'#374151',border:'1px solid '+(form.bhcg_resultat===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                                bHCG {r}
+                              </button>
+                            ))}
+                          </div>
+                          {form.bhcg_resultat==='Positif'&&<div style={{color:'#ef4444',fontWeight:700,fontSize:12,marginTop:4}}>bHCG + — Prevenir medecin immediatement</div>}
+                        </div>}
+                      </div>
+                    )}
+                    {form.douleur_zones.includes('abdomen')&&form.sexe==='F'&&age<12&&age!==null&&(
+                      <div style={{background:'#f5f3ff',border:'1px solid #ddd6fe',borderRadius:8,padding:'8px 12px'}}>
+                        <div style={{color:'#7c3aed',fontSize:12}}>Douleur abdo — enfant — prevenir medecin</div>
                       </div>
                     )}
 
@@ -620,6 +669,7 @@ export default function PageAS() {
             {/* FIEVRE */}
             {form.symptome==='fievre'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                {(form.fievre_depuis==='Plus de 3 jours'||form.fievre_depuis==='2-3 jours')&&(
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
                   <div>
                     <label style={lbl}>TDR Paludisme</label>
@@ -644,6 +694,12 @@ export default function PageAS() {
                     {form.tdr_dengue==='Positif'&&<div style={{color:'#f59e0b',fontSize:11,marginTop:4,fontWeight:600}}>Dengue + — Prevenir medecin</div>}
                   </div>
                 </div>
+                )}
+                {(form.fievre_depuis==='Quelques heures'||form.fievre_depuis==='1 jour')&&(
+                  <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 12px',marginBottom:10}}>
+                    <div style={{color:'#16a34a',fontSize:12}}>Fievre recente — TDR non indique avant 3 jours</div>
+                  </div>
+                )}
                 <label style={lbl}>Fievre depuis ?</label>
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                   {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
@@ -748,6 +804,114 @@ export default function PageAS() {
                         {form.drp?'✓ DRP realise':'DRP a realiser'}
                       </button>
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* VERTIGE */}
+            {form.symptome==='vertige'&&(
+              <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
+                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13,marginBottom:10}}>Vertige / Malaise — Realiser dextro et hemocue</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Dextro (g/L)</label>
+                    <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
+                      placeholder="--" style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
+                    {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE — Brancard 1 + alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie — Alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
+                    <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
+                      placeholder="--" style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE — Brancard 1 + alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie — Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee — Prevenir medecin</div>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PLAIE */}
+            {form.symptome==='plaie'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Carnet de vaccination</label>
+                <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
+                  {[
+                    ['ok','Carnet present - vaccin lisible (1ere ou derniere page)','#16a34a','✓'],
+                    ['illisible','Carnet present mais illisible / incomplet','#f59e0b','⚠️'],
+                    ['absent','Pas de carnet','#ef4444','✗'],
+                  ].map(([v,l,c,ic])=>(
+                    <button key={v} onClick={()=>{set('plaie_vaccin',v);if(v!=='ok')set('quicktest','');}} style={{padding:'12px 16px',borderRadius:10,fontSize:13,background:form.plaie_vaccin===v?c+'15':'#f9fafb',color:form.plaie_vaccin===v?c:'#374151',border:'2px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:600,textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
+                      <span style={{fontSize:16}}>{ic}</span>{l}
+                    </button>
+                  ))}
+                </div>
+                {(form.plaie_vaccin==='illisible'||form.plaie_vaccin==='absent')&&(
+                  <div style={{background:'#fffbeb',border:'2px solid #f59e0b',borderRadius:10,padding:'12px 14px'}}>
+                    <div style={{color:'#d97706',fontWeight:700,fontSize:13,marginBottom:8}}>Quick Test Tetanos - A realiser maintenant</div>
+                    <div style={{display:'flex',gap:8}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('quicktest',r)} style={{flex:1,padding:'10px',borderRadius:8,background:form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1.5px solid '+(form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                          {r==='Negatif'?'✓ Negatif':'✗ Positif'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ASTHME */}
+            {form.symptome==='asthme'&&(
+              <div style={{marginTop:16,borderRadius:10,overflow:'hidden',border:'1px solid #e5e7eb'}}>
+
+                {/* Option 1 : grave */}
+                <div style={{background:'#fef2f2',padding:'14px',borderBottom:'2px solid #e5e7eb'}}>
+                  <div style={{fontWeight:700,color:'#dc2626',fontSize:13,marginBottom:6}}>
+                    Desat et/ou n'arrive pas a parler / tres essouffle
+                  </div>
+                  <div style={{background:'#fff',borderRadius:8,padding:'10px 12px',fontSize:12,color:'#374151',lineHeight:1.9}}>
+                    <div style={{fontWeight:700,color:'#ef4444',marginBottom:4}}>Installer en F1 + scope + O2 + appeler IDE</div>
+                    <div style={{fontWeight:600,marginBottom:2}}>Nebulisation sous O2 :</div>
+                    {parseFloat(form.poids||99)>=16?(
+                      <div>SALBUTAMOL <b>5 mg</b> + ATROVENT <b>0.5 mg</b></div>
+                    ):(
+                      <div>SALBUTAMOL <b>2.5 mg</b> + ATROVENT <b>0.25 mg</b></div>
+                    )}
+                    {!form.poids&&<div style={{color:'#9ca3af',fontSize:11}}>Renseignez le poids pour la posologie exacte</div>}
+                    <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>Poids : {form.poids?form.poids+'kg — '+(parseFloat(form.poids)>=16?'>16kg':' <16kg'):'non renseigne'}</div>
+                  </div>
+                </div>
+
+                {/* Option 2 : modere */}
+                <div style={{background:'#f0fdf4',padding:'14px'}}>
+                  <div style={{fontWeight:700,color:'#16a34a',fontSize:13,marginBottom:6}}>
+                    Saturation normale, respire et parle normalement
+                  </div>
+                  <div style={{background:'#fff',borderRadius:8,padding:'10px 12px',fontSize:12,color:'#374151',lineHeight:1.9}}>
+                    <div style={{fontWeight:700,color:'#16a34a',marginBottom:4}}>Installer en O1 fauteuil</div>
+                    <div style={{fontWeight:600,marginBottom:2}}>Nebulisation sous AIR :</div>
+                    {parseFloat(form.poids||99)>=16?(
+                      <div>SALBUTAMOL <b>5 mg</b> + ATROVENT <b>0.5 mg</b></div>
+                    ):(
+                      <div>SALBUTAMOL <b>2.5 mg</b> + ATROVENT <b>0.25 mg</b></div>
+                    )}
+                    {!form.poids&&<div style={{color:'#9ca3af',fontSize:11}}>Renseignez le poids pour la posologie exacte</div>}
+                    <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>Poids : {form.poids?form.poids+'kg — '+(parseFloat(form.poids)>=16?'>16kg':'<16kg'):'non renseigne'}</div>
+                    <div style={{marginTop:4,color:'#16a34a',fontWeight:600}}>Allumer la video explicative sur la tele salle observation</div>
+                  </div>
+                </div>
+
+                {/* DRP enfant < 2 ans */}
+                {age!==null&&age<2&&(
+                  <div style={{background:'#eff6ff',borderTop:'1px solid #bfdbfe',padding:'10px 14px'}}>
+                    <div style={{color:'#1d4ed8',fontWeight:700,fontSize:12}}>Enfant &lt; 2 ans — DRP recommande</div>
+                    <button onClick={()=>set('drp',!form.drp)} style={{marginTop:6,padding:'6px 14px',borderRadius:6,background:form.drp?'#3b82f6':'#fff',color:form.drp?'#fff':'#374151',border:'1px solid '+(form.drp?'#3b82f6':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                      {form.drp?'✓ DRP realise':'DRP a realiser'}
+                    </button>
                   </div>
                 )}
               </div>
