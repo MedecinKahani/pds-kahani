@@ -211,17 +211,33 @@ export default function PageMedecin() {
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s'}}>
 
-            {/* GRILLE 3 lignes x 4 colonnes */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-
-              {/* Ligne 0 : P1 + 3 postes */}
+            {/* Ligne 0 : P1 + postes */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:8}}>
               {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
+            </div>
 
-              {/* Ligne 1 : O1 L2 F1 B1 */}
-              {LIGNE1.map(cell => renderCase(cell))}
+            {/* Lignes 1+2 : cases avec contours par salle */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr 1fr',gap:6}}>
 
-              {/* Ligne 2 : O2 F2 L1 B2 */}
-              {LIGNE2.map(cell => renderCase(cell))}
+              {/* Observation */}
+              <div style={{border:'1.5px solid #16a34a30',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
+                {renderCase(LIGNE1[0])}
+                {renderCase(LIGNE2[0])}
+              </div>
+
+              {/* Salle 2 */}
+              <div style={{border:'1.5px solid #9ca3af30',borderRadius:14,padding:5,display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                {renderCase(LIGNE1[1])}
+                {renderCase(LIGNE1[2])}
+                {renderCase(LIGNE2[1])}
+                {renderCase(LIGNE2[2])}
+              </div>
+
+              {/* Dechocage */}
+              <div style={{border:'1.5px solid #ef444430',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
+                {renderCase(LIGNE1[3])}
+                {renderCase(LIGNE2[3])}
+              </div>
 
             </div>
           </div>
