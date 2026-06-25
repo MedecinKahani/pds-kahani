@@ -140,7 +140,6 @@ export default function PageAS() {
     const s = sessionStorage.getItem('pds_user');
     if (!s) { router.push('/login'); return; }
     const u = JSON.parse(s);
-    if (u.role !== 'as') { router.push('/'); return; }
     setUser(u);
     load();
     const iv = setInterval(load, 15000);
@@ -220,7 +219,9 @@ export default function PageAS() {
     const d = await r.json();
     if (d.ok) {
       setPatients(d.patients);
-      setVue('liste');
+      const rolePages={medecin:'/medecin',ide:'/ide',as:'/as',cadre:'/medecin',chef:'/medecin'};
+      const sess=JSON.parse(sessionStorage.getItem('pds_user')||'{}');
+      router.push(rolePages[sess.role]||'/medecin');
       setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
