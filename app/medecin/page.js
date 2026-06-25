@@ -208,7 +208,7 @@ export default function PageMedecin() {
   }
 
   return (
-    <div style={{minHeight:'100vh',background:'#f3f4f6',display:'flex',flexDirection:'column'}}>
+    <div style={{height:'100vh',background:'#f3f4f6',display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
       <nav style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'0 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',height:56,flexShrink:0}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
@@ -227,10 +227,10 @@ export default function PageMedecin() {
         </div>
       </nav>
 
-      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+      <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
 
         {/* CENTRE : grille + fiche */}
-        <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s'}}>
 
@@ -409,7 +409,7 @@ export default function PageMedecin() {
         </div>
 
         {/* PREAU colonne droite */}
-        <div style={{width:220,flexShrink:0,background:'#fff',borderLeft:'1px solid #e5e7eb',padding:'1rem',overflowY:'auto',display:'flex',flexDirection:'column'}}>
+        <div style={{width:220,flexShrink:0,background:'#fff',borderLeft:'1px solid #e5e7eb',padding:'1rem',overflowY:'auto',display:'flex',flexDirection:'column',minHeight:0}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingBottom:10,borderBottom:'1px solid #f3f4f6'}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#e5e7eb'}}/>
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Preau</span>
