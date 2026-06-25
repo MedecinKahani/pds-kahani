@@ -149,7 +149,7 @@ export default function PageMedecin() {
                     (cell.id==='_as' && sessionRole==='as');
     return (
       <div key={cell.id} style={{
-        height:'100%', borderRadius:10,
+        flex:1, borderRadius:10,
         background:'#fff', border:'1.5px solid '+(showNom?cell.color+'55':'#e5e7eb'),
         display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center', gap:5,
@@ -180,7 +180,7 @@ export default function PageMedecin() {
         setSel(isSelected?null:p);
         if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
       }} style={{
-        height:'100%',
+        flex:1,
         background: p ? '#fff' : bgVide,
         border: '2px solid '+(isSelected?c:p?c:c+'66'),
         borderRadius:10,
@@ -266,26 +266,45 @@ export default function PageMedecin() {
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
 
-            {/* GRILLE UNIQUE avec contours JS */}
-            <div style={{position:'relative', flex:1, minHeight:0}}>
-              {/* SVG contours mesurés par JS */}
-              <svg style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:5,overflow:'visible'}}>
-                {rects.map((r,i)=>(
-                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h}
-                    rx="12" fill="none" stroke={r.stroke}
-                    strokeWidth="2" strokeOpacity={r.op}/>
-                ))}
-              </svg>
-              <div ref={gridRef} style={{
-                display:'grid',
-                gridTemplateColumns:'repeat(4,1fr)',
-                gridTemplateRows:'repeat(3,1fr)',
-                gap:8, height:'100%'
-              }}>
-                {LIGNE0.map(cell => <div key={cell.id} className="grid-cell" style={{height:'100%'}}>{cell.poste ? renderPoste(cell) : renderCase(cell)}</div>)}
-                {LIGNE1.map(cell => <div key={cell.id} className="grid-cell" style={{height:'100%'}}>{renderCase(cell)}</div>)}
-                {LIGNE2.map(cell => <div key={cell.id} className="grid-cell" style={{height:'100%'}}>{renderCase(cell)}</div>)}
+            {/* GRILLE - layout en colonnes avec wrappers de salle */}
+            <div style={{display:'flex', gap:6, flex:1, minHeight:0}}>
+
+              {/* Col 1 : P1 seul + Obs en dessous */}
+              <div style={{display:'flex', flexDirection:'column', gap:6, flex:1}}>
+                <div style={{flex:1, border:'2px solid #f59e0b88', borderRadius:12, padding:4}}>
+                  {renderCase(LIGNE0[0])}
+                </div>
+                <div style={{flex:2, border:'2px solid #16a34a88', borderRadius:12, padding:4, display:'flex', flexDirection:'column', gap:4}}>
+                  {renderCase(LIGNE1[0])}
+                  {renderCase(LIGNE2[0])}
+                </div>
               </div>
+
+              {/* Col 2+3 : postes en haut + Salle 2 en dessous */}
+              <div style={{display:'flex', flexDirection:'column', gap:6, flex:2}}>
+                <div style={{flex:1, display:'grid', gridTemplateColumns:'1fr 1fr', gap:4}}>
+                  {renderPoste(LIGNE0[1])}
+                  {renderPoste(LIGNE0[2])}
+                </div>
+                <div style={{flex:2, border:'2px solid #9ca3af88', borderRadius:12, padding:4, display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr', gap:4}}>
+                  {renderCase(LIGNE1[1])}
+                  {renderCase(LIGNE1[2])}
+                  {renderCase(LIGNE2[2])}
+                  {renderCase(LIGNE2[1])}
+                </div>
+              </div>
+
+              {/* Col 4 : AS en haut + Decho en dessous */}
+              <div style={{display:'flex', flexDirection:'column', gap:6, flex:1}}>
+                <div style={{flex:1}}>
+                  {renderPoste(LIGNE0[3])}
+                </div>
+                <div style={{flex:2, border:'2px solid #ef444488', borderRadius:12, padding:4, display:'flex', flexDirection:'column', gap:4}}>
+                  {renderCase(LIGNE1[3])}
+                  {renderCase(LIGNE2[3])}
+                </div>
+              </div>
+
             </div>
 
           </div>
