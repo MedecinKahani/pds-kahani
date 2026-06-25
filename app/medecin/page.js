@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 const NORMES = {
@@ -64,6 +64,8 @@ export default function PageMedecin() {
   const [rx, setRx] = useState('');
   const [diag, setDiag] = useState('');
   const [orient, setOrient] = useState('');
+  const gridRef = useRef(null);
+  const [rects, setRects] = useState([]);
 
   const load = useCallback(async () => {
     const r = await fetch('/api/patients');
@@ -103,6 +105,36 @@ export default function PageMedecin() {
     setSel(null); setDiag(''); setOrient(''); load();
   }
 
+  useEffect(() => {
+    function measure() {
+      const g = gridRef.current;
+      if (!g) return;
+      const cells = g.querySelectorAll(':scope > .grid-cell');
+      if (cells.length < 12) return;
+      const gb = g.getBoundingClientRect();
+      function rel(el) {
+        const b = el.getBoundingClientRect();
+        return {x:b.left-gb.left, y:b.top-gb.top, w:b.width, h:b.height};
+      }
+      // P1=cell0, O1=cell4, O2=cell8, L2=cell5, F1=cell6, F2=cell9, L1=cell10, B1=cell7, B2=cell11
+      const c = Array.from(cells).map(rel);
+      const pad = 4;
+      setRects([
+        // P1 seul
+        {x:c[0].x-pad, y:c[0].y-pad, w:c[0].w+pad*2, h:c[0].h+pad*2, stroke:'#f59e0b', op:0.7},
+        // Obs: O1+O2
+        {x:c[4].x-pad, y:c[4].y-pad, w:c[4].w+pad*2, h:c[8].y+c[8].h-c[4].y+pad*2, stroke:'#16a34a', op:0.6},
+        // Salle2: L2+F1+F2+L1
+        {x:c[5].x-pad, y:c[5].y-pad, w:c[6].x+c[6].w-c[5].x+pad*2, h:c[9].y+c[9].h-c[5].y+pad*2, stroke:'#9ca3af', op:0.6},
+        // Decho: B1+B2
+        {x:c[7].x-pad, y:c[7].y-pad, w:c[7].w+pad*2, h:c[11].y+c[11].h-c[7].y+pad*2, stroke:'#ef4444', op:0.6},
+      ]);
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [user]);
+
   if(!user) return null;
 
   const preau = patients.filter(p=>p.statut==='preau');
@@ -117,7 +149,7 @@ export default function PageMedecin() {
                     (cell.id==='_as' && sessionRole==='as');
     return (
       <div key={cell.id} style={{
-        flex:1, borderRadius:10,
+        height:'100%', borderRadius:10,
         background:'#fff', border:'1.5px solid '+(showNom?cell.color+'55':'#e5e7eb'),
         display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center', gap:5,
@@ -148,7 +180,7 @@ export default function PageMedecin() {
         setSel(isSelected?null:p);
         if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
       }} style={{
-        flex:1,
+        height:'100%',
         background: p ? '#fff' : bgVide,
         border: '2px solid '+(isSelected?c:p?c:c+'66'),
         borderRadius:10,
@@ -234,37 +266,26 @@ export default function PageMedecin() {
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
 
-            {/* GRILLE UNIQUE - toutes cases strictement identiques */}
-            <div id="salle-grid" style={{
-              display:'grid',
-              gridTemplateColumns:'repeat(4,1fr)',
-              gridTemplateRows:'repeat(3,1fr)',
-              gap:8, flex:1, minHeight:0, position:'relative'
-            }}>
-              {/* SVG contours salles par dessus */}
+            {/* GRILLE UNIQUE avec contours JS */}
+            <div style={{position:'relative', flex:1, minHeight:0}}>
+              {/* SVG contours mesurés par JS */}
               <svg style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:5,overflow:'visible'}}>
-                {/* Formule : col width = (100%-3*8)/4 = (W-24)/4, row height = (100%-2*8)/3 = (H-16)/3 */}
-                {/* P1 : col0 row0 */}
-                <rect x="0" y="0"
-                  width="calc((100% - 24px) / 4)" height="calc((100% - 16px) / 3)"
-                  rx="12" fill="none" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.6"/>
-                {/* Obs : col0 rows1+2 */}
-                <rect x="0" y="calc((100% - 16px) / 3 + 8px)"
-                  width="calc((100% - 24px) / 4)" height="calc((100% - 16px) / 3 * 2 + 8px)"
-                  rx="12" fill="none" stroke="#16a34a" strokeWidth="2" strokeOpacity="0.5"/>
-                {/* Salle2 : cols1+2 rows1+2 */}
-                <rect x="calc((100% - 24px) / 4 + 8px)" y="calc((100% - 16px) / 3 + 8px)"
-                  width="calc((100% - 24px) / 4 * 2 + 8px)" height="calc((100% - 16px) / 3 * 2 + 8px)"
-                  rx="12" fill="none" stroke="#9ca3af" strokeWidth="2" strokeOpacity="0.5"/>
-                {/* Decho : col3 rows1+2 */}
-                <rect x="calc((100% - 24px) / 4 * 3 + 24px)" y="calc((100% - 16px) / 3 + 8px)"
-                  width="calc((100% - 24px) / 4)" height="calc((100% - 16px) / 3 * 2 + 8px)"
-                  rx="12" fill="none" stroke="#ef4444" strokeWidth="2" strokeOpacity="0.5"/>
+                {rects.map((r,i)=>(
+                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h}
+                    rx="12" fill="none" stroke={r.stroke}
+                    strokeWidth="2" strokeOpacity={r.op}/>
+                ))}
               </svg>
-
-              {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
-              {LIGNE1.map(cell => renderCase(cell))}
-              {LIGNE2.map(cell => renderCase(cell))}
+              <div ref={gridRef} style={{
+                display:'grid',
+                gridTemplateColumns:'repeat(4,1fr)',
+                gridTemplateRows:'repeat(3,1fr)',
+                gap:8, height:'100%'
+              }}>
+                {LIGNE0.map(cell => <div key={cell.id} className="grid-cell" style={{height:'100%'}}>{cell.poste ? renderPoste(cell) : renderCase(cell)}</div>)}
+                {LIGNE1.map(cell => <div key={cell.id} className="grid-cell" style={{height:'100%'}}>{renderCase(cell)}</div>)}
+                {LIGNE2.map(cell => <div key={cell.id} className="grid-cell" style={{height:'100%'}}>{renderCase(cell)}</div>)}
+              </div>
             </div>
 
           </div>
