@@ -117,7 +117,7 @@ export default function PageMedecin() {
                     (cell.id==='_as' && sessionRole==='as');
     return (
       <div key={cell.id} style={{
-        height:120, borderRadius:10,
+        flex:1, borderRadius:10,
         background:'#fff', border:'1.5px solid '+(showNom?cell.color+'55':'#e5e7eb'),
         display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center', gap:5,
@@ -148,7 +148,7 @@ export default function PageMedecin() {
         setSel(isSelected?null:p);
         if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
       }} style={{
-        height:120,
+        flex:1,
         background: p ? '#fff' : bgVide,
         border: '2px solid '+(isSelected?c:p?c:c+'66'),
         borderRadius:10,
@@ -232,18 +232,18 @@ export default function PageMedecin() {
         {/* CENTRE : grille + fiche */}
         <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
 
-          <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s'}}>
+          <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
 
             {/* Ligne 0 : P1 + postes */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:8}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:8,flexShrink:0}}>
               {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
             </div>
 
             {/* Lignes 1+2 : cases avec contours par salle */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr 1fr',gap:6}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr 1fr',gap:6,flex:1,minHeight:0}}>
 
               {/* Observation */}
-              <div style={{border:'2px solid #16a34a55',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
+              <div style={{border:'2px solid #16a34a55',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6,minHeight:0}}>
                 {renderCase(LIGNE1[0])}
                 {renderCase(LIGNE2[0])}
               </div>
@@ -257,7 +257,7 @@ export default function PageMedecin() {
               </div>
 
               {/* Dechocage */}
-              <div style={{border:'2px solid #ef444455',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
+              <div style={{border:'2px solid #ef444455',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6,minHeight:0}}>
                 {renderCase(LIGNE1[3])}
                 {renderCase(LIGNE2[3])}
               </div>
