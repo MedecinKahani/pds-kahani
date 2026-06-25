@@ -194,7 +194,7 @@ export default function PageMedecin() {
           </div>
         ):(
           <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <button onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+id);}}
+            <button onClick={e=>{e.stopPropagation();router.push('/nouveau-patient?emplacement='+id);}}
               onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderStyle='solid';e.currentTarget.style.background=c+'18';}}
               onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
               style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
@@ -333,7 +333,7 @@ export default function PageMedecin() {
               </div>
             ))}
             {[...Array(Math.max(4-preau.length,1))].map((_,i)=>(
-              <div key={'e'+i} onClick={()=>router.push('/as')} style={{flexShrink:0,minHeight:72,borderRadius:10,border:'1.5px dashed #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
+              <div key={'e'+i} onClick={()=>router.push('/nouveau-patient')} style={{flexShrink:0,minHeight:72,borderRadius:10,border:'1.5px dashed #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#0d9488'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
                 <div style={{width:28,height:28,borderRadius:7,border:'1.5px dashed #d1d5db',display:'flex',alignItems:'center',justifyContent:'center',color:'#d1d5db',fontSize:18}}>+</div>
