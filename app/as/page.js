@@ -107,6 +107,7 @@ function dureePresence(ts) {
   return m < 60 ? m + 'min' : 'H' + Math.floor(m / 60) + (m % 60 > 0 ? 'h' + (m % 60) : '');
 }
 
+// v2
 export default function PageAS() {
   const router = useRouter();
   const [user, setUser] = useState(null);
