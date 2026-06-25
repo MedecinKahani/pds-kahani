@@ -129,8 +129,7 @@ export default function PageMedecin() {
 
       <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
-        {/* PRÉAU — colonne droite fixe */}
-        <div style={{width:260,flexShrink:0,background:'#fff',borderRight:'1px solid #e5e7eb',padding:'1rem',overflowY:'auto',display:'flex',flexDirection:'column',gap:0}}>
+        {/* PLAN + FICHE */}
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingBottom:10,borderBottom:'1px solid #f3f4f6'}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#d1d5db'}}/>
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Préau</span>
@@ -162,9 +161,8 @@ export default function PageMedecin() {
           )}
         </div>
 
-        {/* PLAN + FICHE */}
         <div style={{display:'flex',flex:1,overflow:'hidden'}}>
-        <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.5rem',overflowY:'auto',transition:'width 0.25s'}}>
+        <div style={{width:sel?420:'100%',flexShrink:0,padding:'1.5rem',overflowY:'auto',transition:'width 0.25s'}}>
 
           {/* POSTE */}
           <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'10px 16px',marginBottom:'1rem',display:'flex',alignItems:'center',gap:20,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
@@ -234,7 +232,23 @@ export default function PageMedecin() {
                           {attente&&<div style={{position:'absolute',top:8,right:8,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:4,padding:'1px 5px',fontSize:9,fontWeight:700,color:'#d97706'}}>ATTEND</div>}
                         </>
                       ):(
-                        <div style={{color:'#d1d5db',fontSize:11,marginTop:2}}>{cell.nom}{cell.o2?' · O₂':''}</div>
+                        <div style={{height:'100%',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+                          <div style={{color:'#d1d5db',fontSize:11}}>{cell.nom}{cell.o2?' · O₂':''}</div>
+                          <button
+                            onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
+                            style={{
+                              width:28,height:28,borderRadius:'50%',
+                              background:'#f3f4f6',border:'1.5px dashed #d1d5db',
+                              color:'#9ca3af',fontSize:18,display:'flex',
+                              alignItems:'center',justifyContent:'center',
+                              alignSelf:'flex-end',cursor:'pointer',
+                              transition:'all 0.15s'
+                            }}
+                            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';e.currentTarget.style.borderColor='#0d9488';}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='#f3f4f6';e.currentTarget.style.color='#9ca3af';e.currentTarget.style.borderColor='#d1d5db';}}
+                            title="Ajouter un patient ici"
+                          >+</button>
+                        </div>
                       )}
                     </div>
                   );
@@ -381,6 +395,37 @@ export default function PageMedecin() {
           </div>
         )}
         </div>
+
+        {/* PRÉAU — colonne droite fixe */}
+        <div style={{width:240,flexShrink:0,background:'#fff',borderLeft:'1px solid #e5e7eb',padding:'1rem',overflowY:'auto',display:'flex',flexDirection:'column'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingBottom:10,borderBottom:'1px solid #f3f4f6'}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#d1d5db'}}/>
+            <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Préau</span>
+            {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
+          </div>
+          {preau.length===0?(
+            <div style={{textAlign:'center',color:'#d1d5db',fontSize:12,padding:'2rem 0'}}>
+              <div style={{fontSize:28,marginBottom:6}}>🌙</div>
+              Aucun patient
+            </div>
+          ):(
+            preau.map(p=>(
+              <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'12px',marginBottom:8}}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom}</div>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.age} ans · {p.motifPrincipal}</div>
+                <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>{duree(p.arrivee)}</div>
+                {p.sat&&<div style={{color:parseFloat(p.sat)<94?'#ef4444':'#6b7280',fontSize:11,marginTop:2}}>SpO2 {p.sat}%</div>}
+                <button onClick={async()=>{
+                  await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
+                  setSel(p);load();
+                }} style={{width:'100%',marginTop:10,padding:'7px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600}}>
+                  Faire rentrer →
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
         </div>
       </div>
     </div>
