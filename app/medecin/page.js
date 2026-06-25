@@ -109,15 +109,22 @@ export default function PageMedecin() {
   const enSalle = patients.filter(p=>p.statut!=='preau');
 
   function renderPoste(cell) {
+    const isMedecin = cell.id === '_doc';
     return (
       <div key={cell.id} style={{
         height:120, borderRadius:10,
-        background:'#fff', border:'1.5px solid #e5e7eb',
+        background:'#fff', border:'1.5px solid '+(isMedecin?'#0d948844':'#e5e7eb'),
         display:'flex', flexDirection:'column',
-        alignItems:'center', justifyContent:'center', gap:6
+        alignItems:'center', justifyContent:'center', gap:6,
+        padding:'0 8px'
       }}>
-        <div style={{width:10,height:10,borderRadius:'50%',background:cell.color}}/>
-        <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{cell.label}</span>
+        <div style={{width:10,height:10,borderRadius:'50%',background:cell.color, flexShrink:0}}/>
+        <span style={{fontSize:12,fontWeight:600,color:'#374151',textAlign:'center'}}>{cell.label}</span>
+        {isMedecin && (
+          <span style={{fontSize:11,color:'#0d9488',fontWeight:500,textAlign:'center',lineHeight:1.3}}>
+            Dr {user.nom}
+          </span>
+        )}
       </div>
     );
   }
