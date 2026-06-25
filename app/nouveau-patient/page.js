@@ -848,6 +848,169 @@ export default function PageAS() {
                 )}
               </div>
             )}
+
+            {/* VERTIGE */}
+            {form.symptome==='vertige'&&(
+              <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
+                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13,marginBottom:10}}>Vertige / Malaise — Realiser dextro et hemocue</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Dextro (g/L)</label>
+                    <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)} placeholder="--"
+                      style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
+                    {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE — Brancard 1 + alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie — Alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
+                    <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)} placeholder="--"
+                      style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE — Brancard 1 + alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie — Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee — Prevenir medecin</div>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PLAIE */}
+            {form.symptome==='plaie'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Carnet de vaccination</label>
+                <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
+                  {[
+                    ['ok','Carnet lisible — vaccin a jour','#16a34a','✓'],
+                    ['illisible','Carnet illisible / incomplet','#f59e0b','⚠️'],
+                    ['absent','Pas de carnet','#ef4444','✗'],
+                  ].map(([v,l,c,ic])=>(
+                    <button key={v} onClick={()=>{set('plaie_vaccin',v);if(v!=='ok')set('quicktest','');}} style={{padding:'12px 16px',borderRadius:10,fontSize:13,background:form.plaie_vaccin===v?c+'15':'#f9fafb',color:form.plaie_vaccin===v?c:'#374151',border:'2px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:600,textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
+                      <span style={{fontSize:16}}>{ic}</span>{l}
+                    </button>
+                  ))}
+                </div>
+                {(form.plaie_vaccin==='illisible'||form.plaie_vaccin==='absent')&&(
+                  <div style={{background:'#fffbeb',border:'2px solid #f59e0b',borderRadius:10,padding:'12px 14px'}}>
+                    <div style={{color:'#d97706',fontWeight:700,fontSize:13,marginBottom:8}}>Quick Test Tetanos — A realiser maintenant</div>
+                    <div style={{display:'flex',gap:8}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('quicktest',r)} style={{flex:1,padding:'10px',borderRadius:8,background:form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1.5px solid '+(form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                          {r==='Negatif'?'✓ Negatif':'✗ Positif'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* FIEVRE */}
+            {form.symptome==='fievre'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Fievre depuis ?</label>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+                  {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
+                    <button key={d} onClick={()=>set('fievre_depuis',d)} style={{padding:'8px 14px',borderRadius:99,fontSize:12,background:form.fievre_depuis===d?'#0d9488':'#fff',color:form.fievre_depuis===d?'#fff':'#374151',border:'1px solid '+(form.fievre_depuis===d?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
+                      {d}
+                    </button>
+                  ))}
+                </div>
+                {(form.fievre_depuis==='2-3 jours'||form.fievre_depuis==='Plus de 3 jours')&&(
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                    <div>
+                      <label style={lbl}>TDR Paludisme</label>
+                      <div style={{display:'flex',gap:6}}>
+                        {['Negatif','Positif'].map(r=>(
+                          <button key={r} onClick={()=>set('tdr_palu',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.tdr_palu===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                            {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                          </button>
+                        ))}
+                      </div>
+                      {form.tdr_palu==='Positif'&&<div style={{color:'#ef4444',fontSize:11,marginTop:4,fontWeight:600}}>Paludisme + — Prevenir medecin</div>}
+                    </div>
+                    <div>
+                      <label style={lbl}>TDR Dengue</label>
+                      <div style={{display:'flex',gap:6}}>
+                        {['Negatif','Positif'].map(r=>(
+                          <button key={r} onClick={()=>set('tdr_dengue',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#fff',color:form.tdr_dengue===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                            {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                          </button>
+                        ))}
+                      </div>
+                      {form.tdr_dengue==='Positif'&&<div style={{color:'#f59e0b',fontSize:11,marginTop:4,fontWeight:600}}>Dengue + — Prevenir medecin</div>}
+                    </div>
+                  </div>
+                )}
+                {(form.fievre_depuis==='Quelques heures'||form.fievre_depuis==='1 jour')&&(
+                  <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 12px',marginTop:8}}>
+                    <div style={{color:'#16a34a',fontSize:12}}>Fievre recente — TDR non indique avant 3 jours</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AUTRE */}
+            {form.symptome==='autre'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Decrivez le motif de consultation</label>
+                <textarea value={form.symptome_autre||''} onChange={e=>set('symptome_autre',e.target.value)}
+                  placeholder="Ex: eruption cutanee, douleur dentaire, probleme administratif..."
+                  rows={3} style={{...inp,resize:'vertical',marginBottom:10}}/>
+                {form.symptome_autre&&(
+                  (cfcCol==='red'||csatCol==='red'||ctasCol==='red'||ctadCol==='red'||ctempCol==='red'||
+                   cfcCol==='orange'||csatCol==='orange'||ctasCol==='orange')?(
+                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Constante anormale — Prevenir le medecin</div>
+                      <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Installer en Lit 1 ou Lit 2 et alerter le medecin</div>
+                    </div>
+                  ):(
+                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Constantes normales</div>
+                      <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Faire patienter dehors</div>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* PLACEMENT SUGGERE */}
+          {placement&&(
+            <div style={{background:placement.urgence?'#fef2f2':'#f0fdfa',border:'2px solid '+(placement.urgence?'#ef4444':'#0d9488'),borderRadius:12,padding:'1rem 1.25rem',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:placement.urgence?'#dc2626':'#0d9488',textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>
+                {placement.urgence?'Placement urgent':'Placement suggere'}
+              </div>
+              <div style={{fontWeight:700,fontSize:16,color:'#111827'}}>{placement.label}</div>
+              {placement.msg&&<div style={{color:'#6b7280',fontSize:13,marginTop:6}}>{placement.msg}</div>}
+            </div>
+          )}
+
+          {/* NOTES */}
+          <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'1.25rem',marginBottom:16}}>
+            <label style={lbl}>Notes pour l'equipe (optionnel)</label>
+            <textarea value={form.notes} onChange={e=>set('notes',e.target.value)} placeholder="Observations particulieres..." rows={2}
+              style={{...inp,resize:'vertical',fontFamily:'system-ui'}}/>
+          </div>
+
+          <button onClick={creerPatient} disabled={!form.nom||!form.sexe||!form.symptome}
+            style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
+            Enregistrer le patient
+          </button>
+        </div>
+      )}
+
+      {/* MODALE VUE ENSEMBLE */}
+      {showVue&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',flexDirection:'column'}}>
+          <div style={{background:'#fff',flex:1,margin:'60px 20px 20px',borderRadius:16,overflow:'hidden',display:'flex',flexDirection:'column',boxShadow:'0 24px 48px rgba(0,0,0,0.3)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
+              <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
+              <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>×</button>
+            </div>
+            <iframe src="/medecin" style={{flex:1,border:'none',width:'100%'}}/>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
