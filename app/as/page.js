@@ -74,6 +74,8 @@ function StatCard({ label, value, unit, couleur, icon }) {
           <div style={{ fontSize: 16, color: '#d1d5db' }}>--</div>
         )}
       </div>
+    </div>
+  );
 }
 
 const SYMPTOMES = [
