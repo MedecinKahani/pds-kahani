@@ -82,11 +82,11 @@ const SYMPTOMES = [
   { id: 'douleur', label: 'Douleur', icon: '😣' },
   { id: 'fievre', label: 'Fievre', icon: '🌡️' },
   { id: 'coma', label: 'Coma / Inconscience', icon: '🚨' },
-  { id: 'detresse_respi', label: 'Detresse respiratoire', icon: '😮‍💨' },
+  { id: 'detresse_respi', label: 'Detresse respiratoire', icon: '😮' },
   { id: 'asthme', label: 'Asthme', icon: '💨' },
   { id: 'vertige', label: 'Vertige / Malaise', icon: '💫' },
   { id: 'plaie', label: 'Plaie / Traumatisme', icon: '🩹' },
-  { id: 'autre', label: 'Autre', icon: '❓' },
+  { id: 'autre', label: 'Autre', icon: '?' },
 ];
 
 const ZONES_CORPS = [
@@ -120,7 +120,7 @@ export default function PageAS() {
     allergie: '', allergie_detail: '',
     medicaments_today: '', medicaments_detail: '',
     fc: '', sat: '', tas: '', tad: '', temp: '', poids: '', taille: '',
-    symptome: '',
+    symptome: '', symptome_autre: '', signe_lutte: '', respire: '',
     douleur_zones: [], douleur_eva: 5,
     fievre_depuis: '',
     plaie_vaccin: '', quicktest: '',
@@ -168,14 +168,23 @@ export default function PageAS() {
     const emps = patients.map(p => p.emplacement);
     const libre = id => !emps.includes(id);
 
-    if (s === 'coma' || (s === 'detresse_respi' && sat < 90) || (s === 'douleur' && form.douleur_zones.includes('thorax'))) {
+    if (s === 'coma' || (s === 'douleur' && form.douleur_zones.includes('thorax'))) {
       return { place: 'brancard1', label: 'B1 - Brancard 1', urgence: true, msg: null };
     }
+    if (s === 'detresse_respi') {
+      if (sat < 95 || form.signe_lutte === true) {
+        const place = libre('brancard1') ? 'brancard1' : 'brancard2';
+        return { place, label: place==='brancard1'?'B1 - Brancard 1':'B2 - Brancard 2', urgence: true, msg: 'Position demi-assise. ALERTER MEDECIN.' };
+      }
+      const place = libre('fauteuil1') ? 'fauteuil1' : libre('fauteuil2') ? 'fauteuil2' : 'obs1';
+      return { place, label: 'Fauteuil - Position demi-assise', urgence: false, msg: 'Installer en position demi-assise. Surveillance saturation.' };
+    }
     if (s === 'asthme') {
-      if (sat >= 95) {
-        return { place: 'obs2', label: 'O2 - Fauteuil observation', urgence: false, msg: 'Installer en fauteuil observation. Aerosol sur AIR : Ventoline + Atrovent (1 seule fois), puis 2x Ventoline. Reevaluation saturation + clinique apres chaque aerosol.' };
+      if (sat >= 95 && form.signe_lutte !== true) {
+        return { place: 'obs1', label: 'O1 - Observation', urgence: false, msg: 'Aerosol sur AIR : Ventoline + Atrovent x1, puis 2x Ventoline. Reevaluation apres chaque aerosol.' };
       } else {
-        return { place: 'fauteuil1', label: 'F1 - Fauteuil 1', urgence: true, msg: 'Installer en fauteuil 1. Aerosol sur O2 5L : Ventoline + Atrovent (1 seule fois), puis 2x Ventoline. Scope a mettre en place. Reevaluation apres chaque aerosol.' };
+        const place = libre('fauteuil1') ? 'fauteuil1' : 'fauteuil2';
+        return { place, label: place==='fauteuil1'?'F1 - Fauteuil 1':'F2 - Fauteuil 2', urgence: true, msg: 'Scope + O2 5L. Aerosol sous O2 : Ventoline + Atrovent x1, puis 2x Ventoline. Surveillance saturation.' };
       }
     }
     if (s === 'plaie') {
@@ -221,7 +230,7 @@ export default function PageAS() {
     if (d.ok) {
       setPatients(d.patients);
       setVue('liste');
-      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
+      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
 
@@ -454,19 +463,59 @@ export default function PageAS() {
             {/* DOULEUR */}
             {form.symptome==='douleur'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ?</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
-                  {ZONES_CORPS.map(z=>{
-                    const sel=form.douleur_zones.includes(z.id);
-                    return(
-                      <button key={z.id} onClick={()=>{
-                        const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
-                        set('douleur_zones',zones);
-                      }} style={{padding:'6px 12px',borderRadius:99,fontSize:12,fontWeight:500,background:sel?'#0d9488':'#fff',color:sel?'#fff':'#374151',border:'1px solid '+(sel?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
-                        {z.label}
-                      </button>
-                    );
-                  })}
+                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ? (cliquez sur le schema)</div>
+                <div style={{display:'flex',gap:16,alignItems:'flex-start',marginBottom:12}}>
+                  {/* Schema corporel SVG */}
+                  <svg width="120" height="260" viewBox="0 0 120 260" style={{flexShrink:0}}>
+                    {[
+                      {id:'tete',label:'Tete',x:40,y:5,w:40,h:35,rx:18},
+                      {id:'cou',label:'Cou',x:50,y:42,w:20,h:15,rx:5},
+                      {id:'thorax',label:'Thorax',x:25,y:59,w:70,h:55,rx:8},
+                      {id:'abdomen',label:'Abdomen',x:25,y:116,w:70,h:45,rx:8},
+                      {id:'bras_g',label:'Bras G',x:5,y:59,w:18,h:70,rx:6},
+                      {id:'bras_d',label:'Bras D',x:97,y:59,w:18,h:70,rx:6},
+                      {id:'oge',label:'OGE',x:40,y:163,w:40,h:20,rx:5},
+                      {id:'jambe_g',label:'Jambe G',x:25,y:185,w:30,h:70,rx:6},
+                      {id:'jambe_d',label:'Jambe D',x:65,y:185,w:30,h:70,rx:6},
+                    ].map(z=>{
+                      const sel=form.douleur_zones.includes(z.id);
+                      return(
+                        <g key={z.id} onClick={()=>{
+                          const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                          set('douleur_zones',zones);
+                        }} style={{cursor:'pointer'}}>
+                          <rect x={z.x} y={z.y} width={z.w} height={z.h} rx={z.rx}
+                            fill={sel?'#0d9488':'#e5e7eb'} stroke={sel?'#0f766e':'#d1d5db'} strokeWidth="1.5"/>
+                          <text x={z.x+z.w/2} y={z.y+z.h/2+1} textAnchor="middle" dominantBaseline="middle"
+                            fontSize="7" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>{z.label}</text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  {/* Zones selectionnees + oreilles + bouche */}
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:11,color:'#6b7280',marginBottom:6}}>Zones supplementaires :</div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                      {['oreille_g','oreille_d','bouche','dos'].map(z=>{
+                        const labels={oreille_g:'Oreille G',oreille_d:'Oreille D',bouche:'Bouche/Gorge',dos:'Dos'};
+                        const sel=form.douleur_zones.includes(z);
+                        return(
+                          <button key={z} onClick={()=>{
+                            const zones=sel?form.douleur_zones.filter(x=>x!==z):[...form.douleur_zones,z];
+                            set('douleur_zones',zones);
+                          }} style={{padding:'5px 10px',borderRadius:99,fontSize:11,background:sel?'#0d9488':'#fff',color:sel?'#fff':'#374151',border:'1px solid '+(sel?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
+                            {labels[z]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {form.douleur_zones.length>0&&(
+                      <div style={{marginTop:8,padding:'8px 10px',background:'#f0fdfa',borderRadius:8,border:'1px solid #99f6e4'}}>
+                        <div style={{fontSize:10,color:'#0d9488',fontWeight:600,marginBottom:3}}>Localisation :</div>
+                        <div style={{fontSize:11,color:'#374151'}}>{form.douleur_zones.join(', ')}</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {form.douleur_zones.includes('thorax')&&(
@@ -518,6 +567,80 @@ export default function PageAS() {
               </div>
             )}
 
+            {/* COMA */}
+            {form.symptome==='coma'&&(
+              <div style={{marginTop:16,padding:14,background:'#7f1d1d',borderRadius:10,border:'2px solid #ef4444'}}>
+                <div style={{color:'#fff',fontWeight:800,fontSize:15,marginBottom:10}}>URGENCE VITALE</div>
+                <div style={{color:'#fef2f2',fontSize:13,marginBottom:12,fontWeight:600}}>Le patient respire-t-il ?</div>
+                <div style={{display:'flex',gap:8,marginBottom:12}}>
+                  <button onClick={()=>set('respire','non')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='non'?'#ef4444':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='non'?'#ef4444':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
+                    NON - Ne respire pas
+                  </button>
+                  <button onClick={()=>set('respire','oui')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
+                    OUI - Respire
+                  </button>
+                </div>
+                {form.respire==='non'&&(
+                  <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
+                      <div style={{fontWeight:700,marginBottom:4}}>Actions immediates :</div>
+                      <div>1. Allonger le patient sur le dos</div>
+                      <div>2. Appeler le medecin et l'infirmier</div>
+                      <div>3. Commencer le massage cardiaque</div>
+                    </div>
+                  </div>
+                )}
+                {form.respire==='oui'&&(
+                  <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
+                      <div style={{fontWeight:700,marginBottom:4}}>Actions immediates :</div>
+                      <div>1. Prevenir le medecin</div>
+                      <div>2. Realiser un dextro et un hemocue</div>
+                      <div>3. Installer en brancard 1</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* DETRESSE RESPIRATOIRE */}
+            {form.symptome==='detresse_respi'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer la gravite</div>
+                <div style={{marginBottom:10}}>
+                  <label style={lbl}>Signe de lutte (tirage, n'arrive pas a parler) ?</label>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#f9fafb',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      Oui - Signe de lutte
+                    </button>
+                    <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#f9fafb',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      Non - Pas de lutte
+                    </button>
+                  </div>
+                </div>
+                {form.sat&&(
+                  <div style={{marginTop:8}}>
+                    {(parseFloat(form.sat)<95||form.signe_lutte===true)?(
+                      <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Detresse severe - ALERTER MEDECIN</div>
+                        <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Installer en Brancard 1 (ou B2 si B1 occupe) en position demi-assise</div>
+                      </div>
+                    ):(
+                      <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Detresse moderee</div>
+                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Installer en Fauteuil 1 ou 2 en position demi-assise</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {!form.sat&&(
+                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginTop:8}}>
+                    <div style={{color:'#d97706',fontSize:12}}>Renseignez la saturation pour voir la recommandation</div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* VERTIGE */}
             {form.symptome==='vertige'&&(
               <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
@@ -557,38 +680,69 @@ export default function PageAS() {
             )}
 
             {/* ASTHME */}
-            {form.symptome==='asthme'&&form.sat&&(
-              <div style={{marginTop:16,padding:14,background:parseFloat(form.sat)<95?'#fef2f2':'#f0fdf4',borderRadius:10,border:'1px solid '+(parseFloat(form.sat)<95?'#fecaca':'#bbf7d0')}}>
-                {parseFloat(form.sat)<95?(
-                  <>
-                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Saturation basse - Fauteuil 1 avec O2</div>
-                    <div style={{color:'#ef4444',fontSize:12,marginTop:6}}>
-                      <div>Installer en F1 · O2 5L/min · Scope</div>
-                      <div style={{marginTop:6,fontWeight:600}}>Protocol aerosol :</div>
-                      <div>1er : Ventoline + Atrovent</div>
-                      <div>2e et 3e : Ventoline seule</div>
-                      <div>Reevaluation saturation + clinique apres chaque aerosol</div>
-                      <div style={{marginTop:6,fontWeight:600}}>Posologie Ventoline : {age&&age<16&&parseFloat(form.poids||99)<16?'2.5 mL':'5 mL'}</div>
-                      <div>Posologie Atrovent : {age&&parseFloat(form.poids||99)<16?'0.25 mg (1 fois)':'0.5 mg (1 fois)'}</div>
+            {form.symptome==='asthme'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer l'asthme</div>
+                <div style={{marginBottom:10}}>
+                  <label style={lbl}>Signe de lutte (tirage, n'arrive pas a parler) ?</label>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'9px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#f9fafb',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:12,cursor:'pointer'}}>
+                      Signe de lutte
+                    </button>
+                    <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'9px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#f9fafb',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:12,cursor:'pointer'}}>
+                      Pas de lutte
+                    </button>
+                  </div>
+                </div>
+                {form.sat?(
+                  (parseFloat(form.sat)<95||form.signe_lutte===true)?(
+                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Asthme severe - Fauteuil 1 + O2</div>
+                      <div style={{color:'#ef4444',fontSize:12,marginTop:6,lineHeight:1.7}}>
+                        <div>Installer en F1 · O2 5L/min · Scope obligatoire</div>
+                        <div>Surveillance saturation en continu</div>
+                        <div style={{fontWeight:700,marginTop:4}}>Aerosols :</div>
+                        <div>1er : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL + Atrovent {parseFloat(form.poids||99)<16?'0.25':'0.5'}mg sous O2</div>
+                        <div>2e et 3e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL sous O2</div>
+                        <div>Reevaluation apres chaque aerosol</div>
+                      </div>
                     </div>
-                  </>
+                  ):(
+                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Asthme modere - Observation 1 + AIR</div>
+                      <div style={{color:'#15803d',fontSize:12,marginTop:6,lineHeight:1.7}}>
+                        <div>Installer en O1 · Aerosol sur AIR</div>
+                        <div style={{fontWeight:700,marginTop:4}}>Aerosols :</div>
+                        <div>1er : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL + Atrovent {parseFloat(form.poids||99)<16?'0.25':'0.5'}mg sur AIR</div>
+                        <div>2e et 3e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL sur AIR</div>
+                        <div>Reevaluation apres chaque aerosol</div>
+                      </div>
+                    </div>
+                  )
                 ):(
-                  <>
-                    <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Saturation correcte - Fauteuil observation</div>
-                    <div style={{color:'#15803d',fontSize:12,marginTop:6}}>
-                      <div>Installer en O2 · Aerosol sur AIR</div>
-                      <div style={{marginTop:4,fontWeight:600}}>Protocol aerosol :</div>
-                      <div>1er : Ventoline + Atrovent</div>
-                      <div>2e et 3e : Ventoline seule</div>
-                      <div>Reevaluation apres chaque aerosol</div>
-                      <div style={{marginTop:4,fontWeight:600}}>Posologie Ventoline : {age&&parseFloat(form.poids||99)<16?'2.5 mL':'5 mL'}</div>
-                      <div>Posologie Atrovent : {age&&parseFloat(form.poids||99)<16?'0.25 mg (1 fois)':'0.5 mg (1 fois)'}</div>
-                    </div>
-                  </>
+                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px'}}>
+                    <div style={{color:'#d97706',fontSize:12}}>Renseignez la saturation pour voir la recommandation</div>
+                  </div>
                 )}
               </div>
             )}
           </div>
+
+            {/* AUTRE */}
+            {form.symptome==='autre'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Decrivez le symptome</label>
+                <textarea value={form.symptome_autre||''} onChange={e=>set('symptome_autre',e.target.value)}
+                  placeholder="Decrivez le motif de consultation..."
+                  rows={3} style={{...inp,resize:'vertical'}}/>
+                {(cfcCol==='red'||csatCol==='red'||ctasCol==='red'||ctadCol==='red'||ctempCol==='red')&&(
+                  <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px',marginTop:8}}>
+                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Constante anormale detectee</div>
+                    <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Prevenir le medecin avant d'installer le patient</div>
+                  </div>
+                )}
+              </div>
+            )}
 
           {/* PLACEMENT SUGGERE */}
           {placement && (
