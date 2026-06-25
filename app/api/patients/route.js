@@ -4,12 +4,22 @@ function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 }
 
-export async function GET() {
+export async function GET(req) {
   try {
-    const keys = await kv.keys('patient:*');
-    if (!keys.length) return Response.json({ patients: [] });
-    const patients = await Promise.all(keys.map(k => kv.hgetall(k)));
-    const sorted = patients.filter(Boolean).sort((a, b) => (a.arrivee || 0) - (b.arrivee || 0));
+    const { searchParams } = new URL(req.url);
+    const all = searchParams.get('all');
+
+    const activeKeys = await kv.keys('patient:*');
+    const active = activeKeys.length ? await Promise.all(activeKeys.map(k => kv.hgetall(k))) : [];
+
+    if (all) {
+      const archiveKeys = await kv.keys('archive:*');
+      const archives = archiveKeys.length ? await Promise.all(archiveKeys.map(k => kv.hgetall(k))) : [];
+      const tous = [...active, ...archives].filter(Boolean).sort((a,b)=>(a.arrivee||0)-(b.arrivee||0));
+      return Response.json({ patients: tous });
+    }
+
+    const sorted = active.filter(Boolean).sort((a, b) => (a.arrivee || 0) - (b.arrivee || 0));
     return Response.json({ patients: sorted });
   } catch (e) {
     return Response.json({ error: 'Erreur serveur' }, { status: 500 });
