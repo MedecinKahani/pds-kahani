@@ -132,10 +132,10 @@ export default function PageMedecin() {
         border: '2px solid '+(isSelected?c:p?c:c+'55'),
         borderRadius:10,
         cursor:p?'pointer':'default',
-        minHeight:100, transition:'all 0.15s',
+        height:120, transition:'all 0.15s',
         boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',
         position:'relative', overflow:'hidden',
-        minWidth:120,
+        display:'flex', flexDirection:'column',
       }}>
         <div style={{padding:'8px 10px 4px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <span style={{fontWeight:800,fontSize:14,color:c}}>{cell.label}</span>
@@ -202,45 +202,72 @@ export default function PageMedecin() {
           <div style={{width:sel?420:'100%',flexShrink:0,padding:'1.5rem',overflowY:'auto',transition:'width 0.25s'}}>
 
             {/* PLAN */}
-            <div style={{display:'flex',gap:10,alignItems:'stretch',minHeight:280}}>
+            <div style={{display:'flex',gap:10,alignItems:'stretch'}}>
 
-              {/* Pansement */}
-              <div style={{display:'flex',flexDirection:'column',gap:6,width:160,flexShrink:0}}>
-                <div style={{fontSize:10,fontWeight:600,color:'#f59e0b',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Pansement</div>
-                <div style={{border:'2px solid #f59e0b55',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
-                  {renderCell(PLAN[0][0])}
+              {/* Colonne gauche : Pansement + Observation */}
+              <div style={{display:'flex',flexDirection:'column',gap:10,flexShrink:0}}>
+
+                {/* Pansement */}
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <div style={{fontSize:10,fontWeight:600,color:'#f59e0b',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Pansement</div>
+                  <div style={{border:'2px solid #f59e0b55',borderRadius:14,padding:6}}>
+                    {renderCell(PLAN[0][0])}
+                  </div>
                 </div>
+
+                {/* Observation */}
+                <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
+                  <div style={{fontSize:10,fontWeight:600,color:'#16a34a',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Observation</div>
+                  <div style={{border:'2px solid #16a34a44',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                    {renderCell(PLAN[1][0])}
+                    {renderCell(PLAN[2][0])}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Salle 2 */}
-              <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
-                <div style={{fontSize:10,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Salle 2</div>
-                <div style={{border:'2px solid #9ca3af44',borderRadius:14,padding:6,flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:6}}>
-                  {renderCell(PLAN[1][1])}
-                  {renderCell(PLAN[1][2])}
-                  {renderCell(PLAN[2][2])}
-                  {renderCell(PLAN[2][1])}
+              {/* Colonne droite : postes + salle 2 + dechocage */}
+              <div style={{display:'flex',flexDirection:'column',gap:10,flex:1}}>
+
+                {/* Postes */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+                  {[
+                    {role:'IDE', color:'#6b7280'},
+                    {role:'Medecin', color:'#0d9488'},
+                    {role:'AS', color:'#f59e0b'},
+                  ].map(({role,color})=>(
+                    <div key={role} style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'8px 12px',display:'flex',alignItems:'center',gap:8}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:color,flexShrink:0}}/>
+                      <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{role}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Salle 2 + Dechocage */}
+                <div style={{display:'flex',gap:10,flex:1}}>
+
+                  {/* Salle 2 */}
+                  <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
+                    <div style={{fontSize:10,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Salle 2</div>
+                    <div style={{border:'2px solid #9ca3af44',borderRadius:14,padding:6,flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:6}}>
+                      {renderCell(PLAN[1][1])}
+                      {renderCell(PLAN[1][2])}
+                      {renderCell(PLAN[2][2])}
+                      {renderCell(PLAN[2][1])}
+                    </div>
+                  </div>
+
+                  {/* Dechocage */}
+                  <div style={{display:'flex',flexDirection:'column',gap:6,flexShrink:0}}>
+                    <div style={{fontSize:10,fontWeight:600,color:'#ef4444',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Dechocage</div>
+                    <div style={{border:'2px solid #ef444444',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                      {renderCell(PLAN[1][3])}
+                      {renderCell(PLAN[2][3])}
+                    </div>
+                  </div>
+
                 </div>
               </div>
-
-              {/* Observation */}
-              <div style={{display:'flex',flexDirection:'column',gap:6,width:160,flexShrink:0}}>
-                <div style={{fontSize:10,fontWeight:600,color:'#16a34a',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Observation</div>
-                <div style={{border:'2px solid #16a34a44',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
-                  {renderCell(PLAN[1][0])}
-                  {renderCell(PLAN[2][0])}
-                </div>
-              </div>
-
-              {/* Dechocage */}
-              <div style={{display:'flex',flexDirection:'column',gap:6,width:160,flexShrink:0}}>
-                <div style={{fontSize:10,fontWeight:600,color:'#ef4444',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Dechocage</div>
-                <div style={{border:'2px solid #ef444444',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
-                  {renderCell(PLAN[1][3])}
-                  {renderCell(PLAN[2][3])}
-                </div>
-              </div>
-
             </div>
 
           </div>
