@@ -155,14 +155,8 @@ export default function PageMedecin() {
               minHeight:0,
               position:'relative',
             }}>
-              {/* Encadrés de salle - span sur 2 rangées */}
-              {/* P1 seul - col1 row1 */}
-              <div style={{position:'absolute',pointerEvents:'none',
-                gridColumn:'1',gridRow:'1',
-                inset:0,border:'2px solid #f59e0b99',borderRadius:12,zIndex:1}}/>
-
               {/* Cases ligne 0 */}
-              <div style={{gridColumn:1,gridRow:1,padding:4,display:'flex',position:'relative',zIndex:2}}>
+              <div style={{gridColumn:1,gridRow:1,display:'flex'}}>
                 <Case id="pansement" label="P1"/>
               </div>
               <div style={{gridColumn:2,gridRow:1,display:'flex'}}>
