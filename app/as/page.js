@@ -244,7 +244,7 @@ export default function PageAS() {
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
-          <button onClick={() => router.push('/medecin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => window.open('/vue-ensemble', '_blank')} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
           <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
         </div>
       </nav>
@@ -365,9 +365,14 @@ export default function PageAS() {
                 <div style={{fontSize:10,color:'#9ca3af',marginBottom:6,display:'flex',alignItems:'center',gap:4,textTransform:'uppercase',letterSpacing:0.5}}>
                   <span>💉</span><span>PAM</span>
                 </div>
-                {form.tas && form.tad ? (
-                  <div style={{fontSize:20,fontWeight:700,color:'#0d9488'}}>{Math.round(parseFloat(form.tad) + (parseFloat(form.tas) - parseFloat(form.tad)) / 3)} <span style={{fontSize:13,fontWeight:400,color:'#9ca3af'}}>mmHg</span></div>
-                ) : <div style={{fontSize:16,color:'#d1d5db'}}>--</div>}
+                {form.tas && form.tad ? (() => {
+                  const pam = Math.round(parseFloat(form.tad) + (parseFloat(form.tas) - parseFloat(form.tad)) / 3);
+                  const critique = pam < 65;
+                  return <>
+                    <div style={{fontSize:20,fontWeight:700,color:critique?'#ef4444':'#0d9488'}}>{pam} <span style={{fontSize:13,fontWeight:400,color:'#9ca3af'}}>mmHg</span></div>
+                    {critique && <div style={{fontSize:9,color:'#ef4444',fontWeight:700,marginTop:2}}>CHOC - ALERTER MEDECIN</div>}
+                  </>;
+                })() : <div style={{fontSize:16,color:'#d1d5db'}}>--</div>}
                 <div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>TAD + (TAS-TAD)/3</div>
               </div>
             </div>
