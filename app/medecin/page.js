@@ -161,7 +161,7 @@ export default function PageMedecin() {
 
               {/* Col 2+3 : Postes + Salle 2 */}
               <div style={{display:'flex',flexDirection:'column',gap:16,flex:1}}>
-                <div style={{display:'flex',gap:8,flexShrink:0,flex:1}}>
+                <div style={{display:'flex',gap:8,flex:1}}>
                   <Poste id="_ide" label="IDE" color="#6b7280"/>
                   <Poste id="_doc" label="Medecin" color="#0d9488"/>
                   <Poste id="_as" label="AS" color="#f59e0b"/>
@@ -178,7 +178,7 @@ export default function PageMedecin() {
                 </Salle>
               </div>
 
-              {/* Col 4 : Dechocage */}
+              {/* Col 4 : espace vide + Dechocage */}
               <div style={{display:'flex',flexDirection:'column',gap:16,width:'25%',flexShrink:0}}>
                 <div style={{flex:1}}/>
                 <Salle color="#ef4444" label="Dechocage" style={{flex:2}}>
