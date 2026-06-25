@@ -79,13 +79,13 @@ function StatCard({ label, value, unit, couleur, icon }) {
 }
 
 const SYMPTOMES = [
-  { id: 'coma', label: 'Coma / ACR', icon: '🚨' },
+  { id: 'coma', label: 'Coma / Inconscience', icon: '🚨' },
   { id: 'detresse_respi', label: 'Detresse respi', icon: '😮' },
   { id: 'asthme', label: 'Asthme', icon: '💨' },
   { id: 'douleur', label: 'Douleur', icon: '😣' },
   { id: 'fievre', label: 'Fievre', icon: '🌡️' },
   { id: 'vertige', label: 'Vertige / Malaise', icon: '💫' },
-  { id: 'plaie', label: 'Plaie / Traumatisme', icon: '🩹' },
+  { id: 'plaie', label: 'Plaie', icon: '🩹' },
   { id: 'autre', label: 'Autre', icon: '?' },
 ];
 
@@ -495,8 +495,6 @@ export default function PageAS() {
                                 fill={sel?(rouge?'#ef4444':'#0d9488'):'#e2e8f0'}
                                 stroke={sel?(rouge?'#b91c1c':'#0f766e'):'#94a3b8'}
                                 strokeWidth="1.5" strokeLinejoin="round"/>
-                              <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle"
-                                fontSize="8" fill={sel?'#fff':'#475569'} fontWeight={sel?'700':'500'}>{z.label}</text>
                             </g>
                           );
                         })}
@@ -530,8 +528,6 @@ export default function PageAS() {
                                 fill={sel?'#f59e0b':'#cbd5e1'}
                                 stroke={sel?'#d97706':'#94a3b8'}
                                 strokeWidth="1.5" strokeLinejoin="round"/>
-                              <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle"
-                                fontSize="7" fill={sel?'#fff':'#475569'} fontWeight={sel?'700':'500'}>{z.label}</text>
                             </g>
                           );
                         })}
@@ -626,20 +622,7 @@ export default function PageAS() {
                       </div>
                     )}
 
-                    {/* Zones selectionnees */}
-                    {form.douleur_zones.length>0&&(
-                      <div style={{background:'#f0fdfa',borderRadius:8,border:'1px solid #99f6e4',padding:'8px'}}>
-                        <div style={{fontSize:10,color:'#0d9488',fontWeight:700,marginBottom:4}}>Selectionnees :</div>
-                        <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
-                          {form.douleur_zones.map(z=>(
-                            <span key={z} style={{background:'#fff',border:'1px solid #99f6e4',color:'#0d9488',fontSize:10,padding:'2px 7px',borderRadius:99,display:'flex',alignItems:'center',gap:3}}>
-                              {z.replace(/_/g,' ')}
-                              <button onClick={()=>set('douleur_zones',form.douleur_zones.filter(x=>x!==z))} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:12,lineHeight:1,padding:0}}>×</button>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+
 
                     {/* Intensite */}
                     <div>
@@ -899,51 +882,6 @@ export default function PageAS() {
                         </button>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* FIEVRE */}
-            {form.symptome==='fievre'&&(
-              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <label style={lbl}>Fievre depuis ?</label>
-                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
-                  {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
-                    <button key={d} onClick={()=>set('fievre_depuis',d)} style={{padding:'8px 14px',borderRadius:99,fontSize:12,background:form.fievre_depuis===d?'#0d9488':'#fff',color:form.fievre_depuis===d?'#fff':'#374151',border:'1px solid '+(form.fievre_depuis===d?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
-                      {d}
-                    </button>
-                  ))}
-                </div>
-                {(form.fievre_depuis==='2-3 jours'||form.fievre_depuis==='Plus de 3 jours')&&(
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-                    <div>
-                      <label style={lbl}>TDR Paludisme</label>
-                      <div style={{display:'flex',gap:6}}>
-                        {['Negatif','Positif'].map(r=>(
-                          <button key={r} onClick={()=>set('tdr_palu',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.tdr_palu===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                            {r==='Positif'?'✗ Positif':'✓ Negatif'}
-                          </button>
-                        ))}
-                      </div>
-                      {form.tdr_palu==='Positif'&&<div style={{color:'#ef4444',fontSize:11,marginTop:4,fontWeight:600}}>Paludisme + — Prevenir medecin</div>}
-                    </div>
-                    <div>
-                      <label style={lbl}>TDR Dengue</label>
-                      <div style={{display:'flex',gap:6}}>
-                        {['Negatif','Positif'].map(r=>(
-                          <button key={r} onClick={()=>set('tdr_dengue',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#fff',color:form.tdr_dengue===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                            {r==='Positif'?'✗ Positif':'✓ Negatif'}
-                          </button>
-                        ))}
-                      </div>
-                      {form.tdr_dengue==='Positif'&&<div style={{color:'#f59e0b',fontSize:11,marginTop:4,fontWeight:600}}>Dengue + — Prevenir medecin</div>}
-                    </div>
-                  </div>
-                )}
-                {(form.fievre_depuis==='Quelques heures'||form.fievre_depuis==='1 jour')&&(
-                  <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 12px',marginTop:8}}>
-                    <div style={{color:'#16a34a',fontSize:12}}>Fievre recente — TDR non indique avant 3 jours</div>
                   </div>
                 )}
               </div>
