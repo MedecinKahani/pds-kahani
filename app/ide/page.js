@@ -11,7 +11,7 @@ function safeJSON(val, fallback=[]) {
   if(typeof val === 'object') return val;
   return fallback;
 }
-import FichePatient from './fiche';
+import FichePatient from '../medecin/fiche';
 import { useRouter } from 'next/navigation';
 
 const NORMES = { sat:[94,100], fc:[50,100], ta_sys:[90,150], ta_dia:[60,95], temp:[36,38.4], dextro:[0.7,2.0] };
