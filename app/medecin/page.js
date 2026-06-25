@@ -1,11 +1,15 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 
-function safeJSON(val) {
-  if(!val) return [];
-  if(typeof val === 'string') { try { return JSON.parse(val); } catch(e) { return []; } }
+function safeJSON(val, fallback=[]) {
+  if(!val) return fallback;
+  if(typeof val === 'string') {
+    if(val.includes('[object')) return fallback;
+    try { return JSON.parse(val); } catch(e) { return fallback; }
+  }
   if(Array.isArray(val)) return val;
-  return [];
+  if(typeof val === 'object') return val;
+  return fallback;
 }
 import FichePatient from './fiche';
 import { useRouter } from 'next/navigation';
