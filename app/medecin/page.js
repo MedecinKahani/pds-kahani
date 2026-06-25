@@ -302,7 +302,6 @@ export default function PageMedecin() {
             </div>
           </div>
 
-          )}
         </div>
 
         {/* EN ATTENTE */}
