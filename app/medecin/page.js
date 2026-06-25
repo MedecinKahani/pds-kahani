@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 const NORMES = { sat:[94,100], fc:[50,100], ta_sys:[90,150], ta_dia:[60,95], temp:[36,38.4], dextro:[0.7,2.0] };
@@ -7,33 +7,19 @@ function isAnormal(val,k){const v=parseFloat(val);if(isNaN(v))return false;const
 function hasAnomalie(p){return['sat','fc','ta_sys','ta_dia','temp'].some(k=>p[k]&&isAnormal(p[k],k));}
 function duree(ts){const m=Math.floor((Date.now()-parseInt(ts))/60000);return m<60?m+'min':'H'+Math.floor(m/60)+(m%60>0?'h'+(m%60):'');}
 
-const COULEURS = {pansement:'#f59e0b',obs1:'#9ca3af',obs2:'#16a34a',lit1:'#9ca3af',lit2:'#9ca3af',fauteuil1:'#16a34a',fauteuil2:'#16a34a',brancard1:'#ef4444',brancard2:'#ef4444'};
-const BG_VIDE = {pansement:'#fffbeb',obs1:'#f9fafb',obs2:'#f0fdf4',lit1:'#f9fafb',lit2:'#f9fafb',fauteuil1:'#f0fdf4',fauteuil2:'#f0fdf4',brancard1:'#fef2f2',brancard2:'#fef2f2'};
 const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
 
-// Groupes de salles pour les contours
-const GROUPES = [
-  {ids:['pansement'],                            color:'#f59e0b', label:'Pansement'},
-  {ids:['obs1','obs2'],                          color:'#16a34a', label:'Observation'},
-  {ids:['lit2','fauteuil1','fauteuil2','lit1'],  color:'#6b7280', label:'Salle 2'},
-  {ids:['brancard1','brancard2'],                color:'#ef4444', label:'Dechocage'},
-];
-
-// Ordre des cases dans le grid 4x3
-const CASES = [
-  {id:'pansement',label:'P1',nom:'Pansement'},
-  {id:'_ide',poste:true,label:'IDE',color:'#6b7280'},
-  {id:'_doc',poste:true,label:'Medecin',color:'#0d9488'},
-  {id:'_as',poste:true,label:'AS',color:'#f59e0b'},
-  {id:'obs1',label:'O1',nom:'Observation 1'},
-  {id:'lit2',label:'L2',nom:'Lit 2'},
-  {id:'fauteuil1',label:'F1',nom:'Fauteuil 1'},
-  {id:'brancard1',label:'B1',nom:'Brancard 1'},
-  {id:'obs2',label:'O2',nom:'Observation 2'},
-  {id:'fauteuil2',label:'F2',nom:'Fauteuil 2'},
-  {id:'lit1',label:'L1',nom:'Lit 1'},
-  {id:'brancard2',label:'B2',nom:'Brancard 2'},
-];
+// Couleurs par case
+const C = {
+  pansement:'#f59e0b', obs1:'#9ca3af', obs2:'#16a34a',
+  lit1:'#9ca3af', lit2:'#9ca3af', fauteuil1:'#16a34a', fauteuil2:'#16a34a',
+  brancard1:'#ef4444', brancard2:'#ef4444'
+};
+const BG = {
+  pansement:'#fffbeb', obs1:'#f9fafb', obs2:'#f0fdf4',
+  lit1:'#f9fafb', lit2:'#f9fafb', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
+  brancard1:'#fef2f2', brancard2:'#fef2f2'
+};
 
 export default function PageMedecin() {
   const router = useRouter();
@@ -43,8 +29,6 @@ export default function PageMedecin() {
   const [rx,setRx] = useState('');
   const [diag,setDiag] = useState('');
   const [orient,setOrient] = useState('');
-  const [svgRects,setSvgRects] = useState([]);
-  const gridRef = useRef(null);
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
@@ -54,46 +38,15 @@ export default function PageMedecin() {
     if(sel){const u=ps.find(p=>p.id===sel.id);if(u)setSel(u);}
   },[sel?.id]);
 
-  function measureGroups(){
-    const grid=gridRef.current;
-    if(!grid)return;
-    const gb=grid.getBoundingClientRect();
-    const pad=8;
-    const newRects=[];
-    for(const groupe of GROUPES){
-      const cells=groupe.ids.map(id=>grid.querySelector('[data-id="'+id+'"]')).filter(Boolean);
-      if(!cells.length)continue;
-      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-      for(const cell of cells){
-        const b=cell.getBoundingClientRect();
-        minX=Math.min(minX,b.left-gb.left);
-        minY=Math.min(minY,b.top-gb.top);
-        maxX=Math.max(maxX,b.right-gb.left);
-        maxY=Math.max(maxY,b.bottom-gb.top);
-      }
-      newRects.push({x:minX-pad,y:minY-pad,w:maxX-minX+pad*2,h:maxY-minY+pad*2,color:groupe.color});
-    }
-    setSvgRects(newRects);
-  }
-
   useEffect(()=>{
     const s=sessionStorage.getItem('pds_user');
     if(!s){router.push('/login');return;}
     const u=JSON.parse(s);
     if(u.role!=='medecin'){router.push('/');return;}
-    setUser(u);
-    load();
+    setUser(u);load();
     const iv=setInterval(load,8000);
     return()=>clearInterval(iv);
   },[]);
-
-  useEffect(()=>{
-    if(!user)return;
-    // Mesurer après le rendu
-    const t=setTimeout(measureGroups,100);
-    window.addEventListener('resize',measureGroups);
-    return()=>{clearTimeout(t);window.removeEventListener('resize',measureGroups);};
-  },[user,sel]);
 
   async function patch(id,data){
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id,patch:data})});
@@ -116,35 +69,23 @@ export default function PageMedecin() {
   const preau=patients.filter(p=>p.statut==='preau');
   const enSalle=patients.filter(p=>p.statut!=='preau');
 
-  function renderPoste(cell){
-    const showNom=(cell.id==='_doc'&&user.role==='medecin')||(cell.id==='_ide'&&user.role==='ide')||(cell.id==='_as'&&user.role==='as');
-    return(
-      <div style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:5,padding:'8px',width:'100%',height:'100%',boxSizing:'border-box'}}>
-        <div style={{width:9,height:9,borderRadius:'50%',background:cell.color}}/>
-        <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{cell.label}</span>
-        {showNom&&<span style={{fontSize:11,color:cell.color,fontWeight:500,textAlign:'center'}}>{cell.id==='_doc'?'Dr '+user.nom:user.nom}</span>}
-      </div>
-    );
-  }
-
-  function renderCase(cell){
-    const p=enSalle.find(x=>x.emplacement===cell.id);
-    const c=COULEURS[cell.id]||'#9ca3af';
-    const bgVide=BG_VIDE[cell.id]||'#f9fafb';
+  function Case({id,label}){
+    const p=enSalle.find(x=>x.emplacement===id);
+    const c=C[id]||'#9ca3af';
     const attente=p?.statut==='attente_medecin';
     const anomalie=p&&hasAnomalie(p);
     const isSelected=sel?.id===p?.id;
     return(
-      <div data-id={cell.id} onClick={()=>{if(!p)return;setSel(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
-        style={{background:p?'#fff':bgVide,border:'1.5px solid '+(isSelected?c:'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'all 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',width:'100%',height:'100%',boxSizing:'border-box'}}>
+      <div onClick={()=>{if(!p)return;setSel(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
+        style={{background:p?'#fff':BG[id]||'#f9fafb',border:'1.5px solid '+(isSelected?c:'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'border-color 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',flex:1}}>
         <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <span style={{fontWeight:800,fontSize:13,color:c}}>{cell.label}</span>
+          <span style={{fontWeight:800,fontSize:13,color:c}}>{label}</span>
           {p&&<div style={{display:'flex',gap:3,alignItems:'center'}}>{anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}<div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/></div>}
         </div>
         {p?(
-          <div style={{padding:'0 9px 7px',overflow:'hidden'}}>
+          <div style={{padding:'0 9px 7px'}}>
             <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-            <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.age} ans{p.ipp?' - '+p.ipp:''}</div>
+            <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.age} ans{p.ipp?' · '+p.ipp:''}</div>
             <div style={{color:'#374151',fontSize:10,marginTop:2,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.motifPrincipal}</div>
             <div style={{display:'flex',gap:3,marginTop:4,flexWrap:'wrap'}}>
               {p.sat&&<span style={{fontSize:9,fontWeight:600,color:isAnormal(p.sat,'sat')?'#ef4444':'#6b7280',background:isAnormal(p.sat,'sat')?'#fef2f2':'#f3f4f6',padding:'1px 4px',borderRadius:3}}>SpO2 {p.sat}%</span>}
@@ -156,12 +97,33 @@ export default function PageMedecin() {
           </div>
         ):(
           <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <button onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
-              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'20';e.currentTarget.style.borderStyle='solid';}}
-              onMouseLeave={e=>{e.currentTarget.style.opacity='0.5';e.currentTarget.style.background='transparent';e.currentTarget.style.borderStyle='dashed';}}
-              style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.5,transition:'all 0.15s'}}>+</button>
+            <button onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+id);}}
+              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderStyle='solid';e.currentTarget.style.background=c+'18';}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.45';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
+              style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.45,transition:'all 0.15s'}}>+</button>
           </div>
         )}
+      </div>
+    );
+  }
+
+  function Poste({id,label,color}){
+    const showNom=(id==='_doc'&&user.role==='medecin')||(id==='_ide'&&user.role==='ide')||(id==='_as'&&user.role==='as');
+    return(
+      <div style={{flex:1,background:'#fff',border:'1.5px solid #e5e7eb',borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:5,padding:'8px'}}>
+        <div style={{width:9,height:9,borderRadius:'50%',background:color}}/>
+        <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{label}</span>
+        {showNom&&<span style={{fontSize:11,color:color,fontWeight:500,textAlign:'center'}}>{id==='_doc'?'Dr '+user.nom:user.nom}</span>}
+      </div>
+    );
+  }
+
+  // Salle = un bloc avec bordure colorée, titre discret, cases internes
+  function Salle({color, label, children, style={}}){
+    return(
+      <div style={{border:'2px solid '+color+'99',borderRadius:14,padding:6,display:'flex',flexDirection:'column',gap:6,...style}}>
+        <div style={{fontSize:9,fontWeight:700,color:color,textTransform:'uppercase',letterSpacing:1,textAlign:'center',opacity:0.7,lineHeight:1}}>{label}</div>
+        {children}
       </div>
     );
   }
@@ -181,28 +143,45 @@ export default function PageMedecin() {
 
       <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
         <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
-          <div style={{width:sel?420:'100%',flexShrink:0,padding:'1rem',overflow:'hidden',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
+          <div style={{width:sel?420:'100%',flexShrink:0,padding:'1rem',display:'flex',flexDirection:'column',minHeight:0,transition:'width 0.25s'}}>
 
-            {/* GRILLE + SVG contours */}
-            <div style={{flex:1,minHeight:0,position:'relative'}}>
-              {/* SVG contours de salle */}
-              <svg style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:10,overflow:'visible'}}>
-                {svgRects.map((r,i)=>(
-                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx="14"
-                    fill={r.color+'08'} stroke={r.color} strokeWidth="2.5" strokeOpacity="0.85"/>
-                ))}
-              </svg>
-
-              {/* Grid */}
-              <div ref={gridRef} style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gridTemplateRows:'repeat(3,1fr)',gap:10,height:'100%',padding:8}}>
-                {CASES.map(cell=>(
-                  <div key={cell.id} style={{minHeight:0}}>
-                    {cell.poste ? renderPoste(cell) : renderCase(cell)}
-                  </div>
-                ))}
+            {/* Ligne 0 : postes */}
+            <div style={{display:'flex',gap:8,marginBottom:16,flexShrink:0,height:80}}>
+              <Salle color="#f59e0b" label="Pansement" style={{width:'25%',flexShrink:0,flexDirection:'row',alignItems:'center'}}>
+                <Case id="pansement" label="P1"/>
+              </Salle>
+              <div style={{flex:1,display:'flex',gap:8}}>
+                <Poste id="_ide" label="IDE" color="#6b7280"/>
+                <Poste id="_doc" label="Medecin" color="#0d9488"/>
+                <Poste id="_as" label="AS" color="#f59e0b"/>
               </div>
             </div>
 
+            {/* Lignes 1+2 : salles */}
+            <div style={{display:'flex',gap:16,flex:1,minHeight:0}}>
+
+              <Salle color="#16a34a" label="Observation" style={{width:'25%',flexShrink:0}}>
+                <Case id="obs1" label="O1"/>
+                <Case id="obs2" label="O2"/>
+              </Salle>
+
+              <Salle color="#9ca3af" label="Salle 2" style={{flex:1,display:'flex',flexDirection:'column'}}>
+                <div style={{display:'flex',gap:6,flex:1}}>
+                  <Case id="lit2" label="L2"/>
+                  <Case id="fauteuil1" label="F1"/>
+                </div>
+                <div style={{display:'flex',gap:6,flex:1}}>
+                  <Case id="fauteuil2" label="F2"/>
+                  <Case id="lit1" label="L1"/>
+                </div>
+              </Salle>
+
+              <Salle color="#ef4444" label="Dechocage" style={{width:'25%',flexShrink:0}}>
+                <Case id="brancard1" label="B1"/>
+                <Case id="brancard2" label="B2"/>
+              </Salle>
+
+            </div>
           </div>
 
           {/* FICHE */}
@@ -214,7 +193,7 @@ export default function PageMedecin() {
                     <div style={{width:44,height:44,borderRadius:'50%',background:'#ccfbf1',border:'2px solid #5eead4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0,fontWeight:700,color:'#0d9488'}}>{sel.sexe==='F'?'F':'M'}</div>
                     <div>
                       <div style={{fontWeight:700,fontSize:16,color:'#111827'}}>{sel.nom} {sel.prenom}</div>
-                      <div style={{fontSize:12,color:'#6b7280',marginTop:3}}>{sel.age} ans - {sel.sexe==='F'?'Femme':'Homme'}</div>
+                      <div style={{fontSize:12,color:'#6b7280',marginTop:3}}>{sel.age} ans · {sel.sexe==='F'?'Femme':'Homme'}</div>
                       {sel.ipp&&<div style={{fontSize:11,color:'#9ca3af',marginTop:1}}>IPP {sel.ipp}</div>}
                     </div>
                   </div>
@@ -296,8 +275,7 @@ export default function PageMedecin() {
               </div>
             ))}
             {[...Array(Math.max(4-preau.length,1))].map((_,i)=>(
-              <div key={'e'+i} onClick={()=>router.push('/as')}
-                style={{flexShrink:0,minHeight:72,borderRadius:10,border:'1.5px dashed #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
+              <div key={'e'+i} onClick={()=>router.push('/as')} style={{flexShrink:0,minHeight:72,borderRadius:10,border:'1.5px dashed #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#0d9488'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
                 <div style={{width:28,height:28,borderRadius:7,border:'1.5px dashed #d1d5db',display:'flex',alignItems:'center',justifyContent:'center',color:'#d1d5db',fontSize:18}}>+</div>
