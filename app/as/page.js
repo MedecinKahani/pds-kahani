@@ -74,20 +74,6 @@ function StatCard({ label, value, unit, couleur, icon }) {
           <div style={{ fontSize: 16, color: '#d1d5db' }}>--</div>
         )}
       </div>
-      {/* MODALE VUE ENSEMBLE */}
-      {showVue&&(
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',flexDirection:'column'}}>
-          <div style={{background:'#fff',flex:1,margin:'60px 20px 20px',borderRadius:16,overflow:'hidden',display:'flex',flexDirection:'column',boxShadow:'0 24px 48px rgba(0,0,0,0.3)'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
-              <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
-              <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>x</button>
-            </div>
-            <iframe src="/vue-ensemble" style={{flex:1,border:'none',width:'100%'}}/>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 const SYMPTOMES = [
@@ -125,7 +111,8 @@ export default function PageAS() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [patients, setPatients] = useState([]);
-  const [vue, setVue] = useState('liste'); // liste | nouveau
+  const [vue, setVue] = useState('liste');
+  const [showVue, setShowVue] = useState(false);
 
   const [form, setForm] = useState({
     sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
