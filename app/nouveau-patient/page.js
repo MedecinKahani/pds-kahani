@@ -82,11 +82,11 @@ const SYMPTOMES = [
   { id: 'douleur', label: 'Douleur', icon: '😣' },
   { id: 'fievre', label: 'Fievre', icon: '🌡️' },
   { id: 'coma', label: 'Coma / Inconscience', icon: '🚨' },
-  { id: 'detresse_respi', label: 'Detresse respiratoire', icon: '😮‍💨' },
+  { id: 'detresse_respi', label: 'Detresse respiratoire', icon: '😮' },
   { id: 'asthme', label: 'Asthme', icon: '💨' },
   { id: 'vertige', label: 'Vertige / Malaise', icon: '💫' },
   { id: 'plaie', label: 'Plaie / Traumatisme', icon: '🩹' },
-  { id: 'autre', label: 'Autre', icon: '❓' },
+  { id: 'autre', label: 'Autre', icon: '?' },
 ];
 
 const ZONES_CORPS = [
@@ -109,18 +109,20 @@ function dureePresence(ts) {
   return m < 60 ? m + 'min' : 'H' + Math.floor(m / 60) + (m % 60 > 0 ? 'h' + (m % 60) : '');
 }
 
+// v2
 export default function PageAS() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [patients, setPatients] = useState([]);
   const [vue, setVue] = useState('nouveau');
+  const [showVue, setShowVue] = useState(false);
 
   const [form, setForm] = useState({
     sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
     allergie: '', allergie_detail: '',
     medicaments_today: '', medicaments_detail: '',
     fc: '', sat: '', tas: '', tad: '', temp: '', poids: '', taille: '',
-    symptome: '',
+    symptome: '', symptome_autre: '', signe_lutte: '', respire: '', dextro: '', hemocue: '',
     douleur_zones: [], douleur_eva: 5,
     fievre_depuis: '',
     plaie_vaccin: '', quicktest: '',
@@ -167,14 +169,23 @@ export default function PageAS() {
     const emps = patients.map(p => p.emplacement);
     const libre = id => !emps.includes(id);
 
-    if (s === 'coma' || (s === 'detresse_respi' && sat < 90) || (s === 'douleur' && form.douleur_zones.includes('thorax'))) {
+    if (s === 'coma' || (s === 'douleur' && form.douleur_zones.includes('thorax'))) {
       return { place: 'brancard1', label: 'B1 - Brancard 1', urgence: true, msg: null };
     }
+    if (s === 'detresse_respi') {
+      if (sat < 95 || form.signe_lutte === true) {
+        const place = libre('brancard1') ? 'brancard1' : 'brancard2';
+        return { place, label: place==='brancard1'?'B1 - Brancard 1':'B2 - Brancard 2', urgence: true, msg: 'Position demi-assise. ALERTER MEDECIN.' };
+      }
+      const place = libre('fauteuil1') ? 'fauteuil1' : libre('fauteuil2') ? 'fauteuil2' : 'obs1';
+      return { place, label: 'Fauteuil - Position demi-assise', urgence: false, msg: 'Installer en position demi-assise. Surveillance saturation.' };
+    }
     if (s === 'asthme') {
-      if (sat >= 95) {
-        return { place: 'obs2', label: 'O2 - Fauteuil observation', urgence: false, msg: 'Installer en fauteuil observation. Aerosol sur AIR : Ventoline + Atrovent (1 seule fois), puis 2x Ventoline. Reevaluation saturation + clinique apres chaque aerosol.' };
+      if (sat >= 95 && form.signe_lutte !== true) {
+        return { place: 'obs1', label: 'O1 - Observation', urgence: false, msg: 'Aerosol sur AIR : Ventoline + Atrovent x1, puis 2x Ventoline. Reevaluation apres chaque aerosol.' };
       } else {
-        return { place: 'fauteuil1', label: 'F1 - Fauteuil 1', urgence: true, msg: 'Installer en fauteuil 1. Aerosol sur O2 5L : Ventoline + Atrovent (1 seule fois), puis 2x Ventoline. Scope a mettre en place. Reevaluation apres chaque aerosol.' };
+        const place = libre('fauteuil1') ? 'fauteuil1' : 'fauteuil2';
+        return { place, label: place==='fauteuil1'?'F1 - Fauteuil 1':'F2 - Fauteuil 2', urgence: true, msg: 'Scope + O2 5L. Aerosol sous O2 : Ventoline + Atrovent x1, puis 2x Ventoline. Surveillance saturation.' };
       }
     }
     if (s === 'plaie') {
@@ -219,10 +230,8 @@ export default function PageAS() {
     const d = await r.json();
     if (d.ok) {
       setPatients(d.patients);
-      const rolePages={medecin:'/medecin',ide:'/ide',as:'/as',cadre:'/medecin',chef:'/medecin'};
-      const sess=JSON.parse(sessionStorage.getItem('pds_user')||'{}');
-      router.push(rolePages[sess.role]||'/medecin');
-      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
+      setVue('liste');
+      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',dextro:'',hemocue:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
 
@@ -245,7 +254,8 @@ export default function PageAS() {
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
-          <button onClick={() => window.open('/vue-ensemble', '_blank')} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
           <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
         </div>
       </nav>
@@ -295,7 +305,7 @@ export default function PageAS() {
 
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
             <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Nouveau patient</h2>
-            <button onClick={() => {const rolePages={medecin:'/medecin',ide:'/ide',as:'/as'};router.push(rolePages[user?.role]||'/medecin');}} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</button>
+            <button onClick={() => setVue('liste')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</button>
           </div>
 
           {/* IDENTITE */}
@@ -455,51 +465,148 @@ export default function PageAS() {
             {/* DOULEUR */}
             {form.symptome==='douleur'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ?</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
-                  {ZONES_CORPS.map(z=>{
-                    const sel=form.douleur_zones.includes(z.id);
-                    return(
-                      <button key={z.id} onClick={()=>{
-                        const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
-                        set('douleur_zones',zones);
-                      }} style={{padding:'6px 12px',borderRadius:99,fontSize:12,fontWeight:500,background:sel?'#0d9488':'#fff',color:sel?'#fff':'#374151',border:'1px solid '+(sel?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
-                        {z.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ? (cliquez — selection multiple)</div>
 
-                {form.douleur_zones.includes('thorax')&&(
-                  <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px',marginBottom:10}}>
-                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Douleur thoracique - Action immediate</div>
-                    <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Allonger le patient et preparer l'ECG. Prevenir le medecin.</div>
-                    <button onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:8,padding:'6px 14px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                      {form.ecg_fait?'✓ ECG realise':'Marquer ECG realise'}
-                    </button>
+                <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:10}}>
+                  {/* SVG FACE */}
+                  <div style={{textAlign:'center',flexShrink:0}}>
+                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>FACE</div>
+                    <svg width="100" height="260" viewBox="0 0 100 260" style={{display:'block'}}>
+                      {[
+                        {id:'tete',      cx:50, cy:20, rx:22, ry:20, label:'Tete'},
+                        {id:'cou',       cx:50, cy:48, rx:10, ry:8,  label:'Cou'},
+                        {id:'thorax',    cx:50, cy:82, rx:30, ry:26, label:'Thorax'},
+                        {id:'bras_g',    cx:86, cy:90, rx:10, ry:28, label:'Bras G'},
+                        {id:'bras_d',    cx:14, cy:90, rx:10, ry:28, label:'Bras D'},
+                        {id:'abdomen',   cx:50, cy:128,rx:28, ry:20, label:'Abdomen'},
+                        {id:'bassin',    cx:50, cy:160,rx:24, ry:14, label:'Bassin'},
+                        {id:'cuisse_g',  cx:63, cy:200,rx:14, ry:28, label:'Cuisse G'},
+                        {id:'cuisse_d',  cx:37, cy:200,rx:14, ry:28, label:'Cuisse D'},
+                        {id:'jambe_g',   cx:63, cy:244,rx:11, ry:20, label:'Jambe G'},
+                        {id:'jambe_d',   cx:37, cy:244,rx:11, ry:20, label:'Jambe D'},
+                      ].map(z=>{
+                        const sel=form.douleur_zones.includes(z.id);
+                        const rouge=z.id==='bras_g';
+                        return(
+                          <g key={z.id} onClick={()=>{
+                            const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                            set('douleur_zones',zones);
+                          }} style={{cursor:'pointer'}}>
+                            <ellipse cx={z.cx} cy={z.cy} rx={z.rx} ry={z.ry}
+                              fill={sel?(rouge?'#ef4444':'#0d9488'):'#e5e7eb'}
+                              stroke={sel?(rouge?'#b91c1c':'#0f766e'):'#c4c4c4'} strokeWidth="1"/>
+                            <text x={z.cx} y={z.cy} textAnchor="middle" dominantBaseline="middle"
+                              fontSize="6" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>{z.label}</text>
+                          </g>
+                        );
+                      })}
+                    </svg>
                   </div>
-                )}
 
-                {form.douleur_zones.includes('abdomen')&&form.sexe==='F'&&(
-                  <div style={{background:'#f5f3ff',border:'1px solid #ddd6fe',borderRadius:8,padding:'10px 12px',marginBottom:10}}>
-                    <div style={{color:'#7c3aed',fontWeight:700,fontSize:13}}>Douleur abdominale chez une femme</div>
-                    <div style={{color:'#8b5cf6',fontSize:12,marginTop:4}}>Donner un pot a urine pour BU et bHCG urinaire.</div>
-                    <div style={{display:'flex',gap:8,marginTop:8}}>
-                      <button onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'6px 14px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                        {form.bu_fait?'✓ BU faite':'BU'}
-                      </button>
-                      <button onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'6px 14px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                        {form.bhcg_fait?'✓ bHCG fait':'bHCG'}
-                      </button>
+                  {/* SVG DOS */}
+                  <div style={{textAlign:'center',flexShrink:0}}>
+                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>DOS</div>
+                    <svg width="100" height="260" viewBox="0 0 100 260" style={{display:'block'}}>
+                      {[
+                        {id:'tete_dos',     cx:50, cy:20, rx:22, ry:20, label:'Tete'},
+                        {id:'nuque',        cx:50, cy:48, rx:10, ry:8,  label:'Nuque'},
+                        {id:'dos_haut',     cx:50, cy:82, rx:30, ry:26, label:'Dos haut'},
+                        {id:'bras_g_dos',   cx:86, cy:90, rx:10, ry:28, label:'Bras G'},
+                        {id:'bras_d_dos',   cx:14, cy:90, rx:10, ry:28, label:'Bras D'},
+                        {id:'dos_bas',      cx:50, cy:128,rx:28, ry:20, label:'Dos bas'},
+                        {id:'fesses',       cx:50, cy:160,rx:24, ry:14, label:'Fesses'},
+                        {id:'cuisse_g_dos', cx:63, cy:200,rx:14, ry:28, label:'Cuisse G'},
+                        {id:'cuisse_d_dos', cx:37, cy:200,rx:14, ry:28, label:'Cuisse D'},
+                        {id:'mollet_g',     cx:63, cy:244,rx:11, ry:20, label:'Mollet G'},
+                        {id:'mollet_d',     cx:37, cy:244,rx:11, ry:20, label:'Mollet D'},
+                      ].map(z=>{
+                        const sel=form.douleur_zones.includes(z.id);
+                        return(
+                          <g key={z.id} onClick={()=>{
+                            const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                            set('douleur_zones',zones);
+                          }} style={{cursor:'pointer'}}>
+                            <ellipse cx={z.cx} cy={z.cy} rx={z.rx} ry={z.ry}
+                              fill={sel?'#8b5cf6':'#e5e7eb'}
+                              stroke={sel?'#6d28d9':'#c4c4c4'} strokeWidth="1"/>
+                            <text x={z.cx} y={z.cy} textAnchor="middle" dominantBaseline="middle"
+                              fontSize="6" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>{z.label}</text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+
+                  {/* PANNEAU DROIT */}
+                  <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
+                    {/* Alerte bras gauche */}
+                    {(form.douleur_zones.includes('bras_g'))&&(
+                      <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Bras gauche — Faire ECG</div>
+                        <div style={{color:'#ef4444',fontSize:12,marginTop:3}}>Allonger + appeler medecin immediatement</div>
+                        <button onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {form.ecg_fait?'✓ ECG realise':'Marquer ECG realise'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Alerte thorax */}
+                    {form.douleur_zones.includes('thorax')&&(
+                      <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Douleur thoracique</div>
+                        <div style={{color:'#ef4444',fontSize:12,marginTop:3}}>Allonger + ECG + prevenir medecin</div>
+                        <button onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {form.ecg_fait?'✓ ECG realise':'ECG a faire'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Alerte abdo femme */}
+                    {form.douleur_zones.includes('abdomen')&&form.sexe==='F'&&(
+                      <div style={{background:'#f5f3ff',border:'1px solid #ddd6fe',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#7c3aed',fontWeight:700,fontSize:13}}>Douleur abdo — Femme</div>
+                        <div style={{color:'#8b5cf6',fontSize:12,marginTop:3}}>Donner pot a urine pour BU et bHCG</div>
+                        <div style={{display:'flex',gap:6,marginTop:6}}>
+                          <button onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bu_fait?'✓ BU':'BU'}</button>
+                          <button onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bhcg_fait?'✓ bHCG':'bHCG'}</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Zones selectionnees */}
+                    {form.douleur_zones.length>0&&(
+                      <div style={{background:'#f0fdfa',borderRadius:8,border:'1px solid #99f6e4',padding:'8px'}}>
+                        <div style={{fontSize:10,color:'#0d9488',fontWeight:700,marginBottom:4}}>Selectionnees :</div>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
+                          {form.douleur_zones.map(z=>(
+                            <span key={z} style={{background:'#fff',border:'1px solid #99f6e4',color:'#0d9488',fontSize:10,padding:'2px 7px',borderRadius:99,display:'flex',alignItems:'center',gap:3}}>
+                              {z.replace(/_/g,' ')}
+                              <button onClick={()=>set('douleur_zones',form.douleur_zones.filter(x=>x!==z))} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:12,lineHeight:1,padding:0}}>×</button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Intensite */}
+                    <div>
+                      <label style={lbl}>Intensite de la douleur</label>
+                      <div style={{display:'flex',gap:8}}>
+                        {[
+                          {id:3, label:'Legere', color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0'},
+                          {id:6, label:'Moyenne', color:'#f59e0b', bg:'#fffbeb', border:'#fde68a'},
+                          {id:9, label:'Intense', color:'#ef4444', bg:'#fef2f2', border:'#fecaca'},
+                        ].map(o=>(
+                          <button key={o.id} onClick={()=>set('douleur_eva',o.id)} style={{
+                            flex:1, padding:'12px 8px', borderRadius:10, cursor:'pointer',
+                            background:form.douleur_eva===o.id?o.color:o.bg,
+                            color:form.douleur_eva===o.id?'#fff':o.color,
+                            border:'2px solid '+(form.douleur_eva===o.id?o.color:o.border),
+                            fontWeight:700, fontSize:14,
+                          }}>{o.label}</button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                <div style={{marginTop:8}}>
-                  <label style={lbl}>Intensite (EVA 0-10)</label>
-                  <div style={{display:'flex',alignItems:'center',gap:12}}>
-                    <input type="range" min="0" max="10" value={form.douleur_eva} onChange={e=>set('douleur_eva',parseInt(e.target.value))} style={{flex:1,accentColor:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}/>
-                    <span style={{fontSize:24,fontWeight:700,minWidth:28,textAlign:'center',color:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}>{form.douleur_eva}</span>
                   </div>
                 </div>
               </div>
@@ -508,6 +615,30 @@ export default function PageAS() {
             {/* FIEVRE */}
             {form.symptome==='fievre'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
+                  <div>
+                    <label style={lbl}>TDR Paludisme</label>
+                    <div style={{display:'flex',gap:6}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('tdr_palu',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.tdr_palu===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                        </button>
+                      ))}
+                    </div>
+                    {form.tdr_palu==='Positif'&&<div style={{color:'#ef4444',fontSize:11,marginTop:4,fontWeight:600}}>Paludisme + — Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={lbl}>TDR Dengue</label>
+                    <div style={{display:'flex',gap:6}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('tdr_dengue',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#fff',color:form.tdr_dengue===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                        </button>
+                      ))}
+                    </div>
+                    {form.tdr_dengue==='Positif'&&<div style={{color:'#f59e0b',fontSize:11,marginTop:4,fontWeight:600}}>Dengue + — Prevenir medecin</div>}
+                  </div>
+                </div>
                 <label style={lbl}>Fievre depuis ?</label>
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                   {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
@@ -519,11 +650,128 @@ export default function PageAS() {
               </div>
             )}
 
+            {/* COMA */}
+            {form.symptome==='coma'&&(
+              <div style={{marginTop:16,padding:14,background:'#7f1d1d',borderRadius:10,border:'2px solid #ef4444'}}>
+                <div style={{color:'#fff',fontWeight:800,fontSize:15,marginBottom:10}}>URGENCE VITALE</div>
+                <div style={{color:'#fef2f2',fontSize:13,marginBottom:12,fontWeight:600}}>Le patient respire-t-il ?</div>
+                <div style={{display:'flex',gap:8,marginBottom:12}}>
+                  <button onClick={()=>set('respire','non')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='non'?'#ef4444':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='non'?'#ef4444':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
+                    NON - Ne respire pas
+                  </button>
+                  <button onClick={()=>set('respire','oui')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
+                    OUI - Respire
+                  </button>
+                </div>
+                {form.respire==='non'&&(
+                  <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
+                      <div style={{fontWeight:700,marginBottom:4}}>Actions immediates :</div>
+                      <div>1. Allonger le patient sur le dos</div>
+                      <div>2. Appeler le medecin et l'infirmier</div>
+                      <div>3. Commencer le massage cardiaque</div>
+                    </div>
+                  </div>
+                )}
+                {form.respire==='oui'&&(
+                  <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
+                      <div style={{fontWeight:700,marginBottom:4}}>Actions immediates :</div>
+                      <div>1. Prevenir le medecin</div>
+                      <div>2. Installer en brancard 1</div>
+                      <div>3. Realiser un dextro et un hemocue</div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:10}}>
+                      <div>
+                        <div style={{color:'rgba(255,255,255,0.7)',fontSize:10,marginBottom:3}}>Dextro (g/L)</div>
+                        <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
+                          placeholder="Ex: 1.0" style={{width:'100%',padding:'6px 8px',borderRadius:6,border:'1px solid rgba(255,255,255,0.3)',background:'rgba(255,255,255,0.1)',color:'#fff',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                        {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#fca5a5',fontSize:10,marginTop:2,fontWeight:700}}>HYPOGLYCEMIE SEVERE</div>}
+                      </div>
+                      <div>
+                        <div style={{color:'rgba(255,255,255,0.7)',fontSize:10,marginBottom:3}}>Hemocue (g/dL)</div>
+                        <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
+                          placeholder="Ex: 12.0" style={{width:'100%',padding:'6px 8px',borderRadius:6,border:'1px solid rgba(255,255,255,0.3)',background:'rgba(255,255,255,0.1)',color:'#fff',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                        {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#fca5a5',fontSize:10,marginTop:2,fontWeight:700}}>ANEMIE SEVERE</div>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* DETRESSE RESPIRATOIRE */}
+            {form.symptome==='detresse_respi'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer la gravite</div>
+                <div style={{marginBottom:10}}>
+                  <label style={lbl}>Signe de lutte (tirage, n'arrive pas a parler) ?</label>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#f9fafb',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      Oui - Signe de lutte
+                    </button>
+                    <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#f9fafb',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      Non - Pas de lutte
+                    </button>
+                  </div>
+                </div>
+                {form.sat&&(
+                  <div style={{marginTop:8}}>
+                    {(parseFloat(form.sat)<95||form.signe_lutte===true)?(
+                      <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Detresse severe - ALERTER MEDECIN</div>
+                        <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Installer en Brancard 1 (ou B2 si B1 occupe) en position demi-assise</div>
+                      </div>
+                    ):(
+                      <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Detresse moderee</div>
+                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Installer en Fauteuil 1 ou 2 en position demi-assise</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {!form.sat&&(
+                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginTop:8}}>
+                    <div style={{color:'#d97706',fontSize:12}}>Renseignez la saturation pour voir la recommandation</div>
+                  </div>
+                )}
+                {age!==null&&age<2&&(
+                  <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'10px 12px',marginTop:8}}>
+                    <div style={{color:'#1d4ed8',fontWeight:700,fontSize:12}}>Enfant &lt; 2 ans — DRP recommande</div>
+                    <div style={{display:'flex',gap:8,marginTop:6}}>
+                      <button onClick={()=>set('drp',!form.drp)} style={{padding:'6px 14px',borderRadius:6,background:form.drp?'#3b82f6':'#fff',color:form.drp?'#fff':'#374151',border:'1px solid '+(form.drp?'#3b82f6':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        {form.drp?'✓ DRP realise':'DRP a realiser'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* VERTIGE */}
             {form.symptome==='vertige'&&(
               <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
-                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13}}>Vertige / Malaise - A realiser</div>
-                <div style={{color:'#3b82f6',fontSize:12,marginTop:4}}>Realiser un dextro et un hemocue.</div>
+                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13,marginBottom:10}}>Vertige / Malaise - Realiser dextro et hemocue</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Dextro (g/L)</label>
+                    <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
+                      placeholder="Ex: 1.0"
+                      style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
+                    {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE - Brancard 1 + alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie - Alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie - Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
+                    <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
+                      placeholder="Ex: 12.0"
+                      style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE - Brancard 1 + alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie - Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee - Prevenir medecin</div>}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -558,38 +806,88 @@ export default function PageAS() {
             )}
 
             {/* ASTHME */}
-            {form.symptome==='asthme'&&form.sat&&(
-              <div style={{marginTop:16,padding:14,background:parseFloat(form.sat)<95?'#fef2f2':'#f0fdf4',borderRadius:10,border:'1px solid '+(parseFloat(form.sat)<95?'#fecaca':'#bbf7d0')}}>
-                {parseFloat(form.sat)<95?(
-                  <>
-                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Saturation basse - Fauteuil 1 avec O2</div>
-                    <div style={{color:'#ef4444',fontSize:12,marginTop:6}}>
-                      <div>Installer en F1 · O2 5L/min · Scope</div>
-                      <div style={{marginTop:6,fontWeight:600}}>Protocol aerosol :</div>
-                      <div>1er : Ventoline + Atrovent</div>
-                      <div>2e et 3e : Ventoline seule</div>
-                      <div>Reevaluation saturation + clinique apres chaque aerosol</div>
-                      <div style={{marginTop:6,fontWeight:600}}>Posologie Ventoline : {age&&age<16&&parseFloat(form.poids||99)<16?'2.5 mL':'5 mL'}</div>
-                      <div>Posologie Atrovent : {age&&parseFloat(form.poids||99)<16?'0.25 mg (1 fois)':'0.5 mg (1 fois)'}</div>
+            {form.symptome==='asthme'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer l'asthme</div>
+                <div style={{background:'#f0fdf4',borderRadius:8,padding:'10px 12px',marginBottom:12,border:'1px solid #bbf7d0'}}>
+                  <div style={{fontWeight:700,color:'#15803d',fontSize:12,marginBottom:6}}>Protocole aerosol (3 aerosols)</div>
+                  <div style={{fontSize:11,color:'#166534',lineHeight:1.8}}>
+                    <div>1er : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL + Atrovent {parseFloat(form.poids||99)<16?'0.25':'0.5'}mg</div>
+                    <div>2e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL</div>
+                    <div>3e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL</div>
+                    <div style={{marginTop:4,fontWeight:600}}>Reevaluation saturation + clinique apres chaque aerosol</div>
+                    <div style={{marginTop:4,color:'#16a34a'}}>Sat OK → Observation sous AIR</div>
+                    <div style={{color:'#ef4444'}}>Sat basse ou lutte → F1 sous O2 5L + scope</div>
+                  </div>
+                </div>
+                <div style={{marginBottom:10}}>
+                  <label style={lbl}>Signe de lutte (tirage, n'arrive pas a parler) ?</label>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'9px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#f9fafb',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:12,cursor:'pointer'}}>
+                      Signe de lutte
+                    </button>
+                    <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'9px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#f9fafb',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:12,cursor:'pointer'}}>
+                      Pas de lutte
+                    </button>
+                  </div>
+                </div>
+                {form.sat?(
+                  (parseFloat(form.sat)<95||form.signe_lutte===true)?(
+                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Asthme severe - Fauteuil 1 + O2</div>
+                      <div style={{color:'#ef4444',fontSize:12,marginTop:6,lineHeight:1.7}}>
+                        <div>Installer en F1 · O2 5L/min · Scope obligatoire</div>
+                        <div>Surveillance saturation en continu</div>
+                        <div style={{fontWeight:700,marginTop:4}}>Aerosols :</div>
+                        <div>1er : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL + Atrovent {parseFloat(form.poids||99)<16?'0.25':'0.5'}mg sous O2</div>
+                        <div>2e et 3e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL sous O2</div>
+                        <div>Reevaluation apres chaque aerosol</div>
+                      </div>
                     </div>
-                  </>
+                  ):(
+                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Asthme modere - Observation 1 + AIR</div>
+                      <div style={{color:'#15803d',fontSize:12,marginTop:6,lineHeight:1.7}}>
+                        <div>Installer en O1 · Aerosol sur AIR</div>
+                        <div style={{fontWeight:700,marginTop:4}}>Aerosols :</div>
+                        <div>1er : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL + Atrovent {parseFloat(form.poids||99)<16?'0.25':'0.5'}mg sur AIR</div>
+                        <div>2e et 3e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL sur AIR</div>
+                        <div>Reevaluation apres chaque aerosol</div>
+                      </div>
+                    </div>
+                  )
                 ):(
-                  <>
-                    <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Saturation correcte - Fauteuil observation</div>
-                    <div style={{color:'#15803d',fontSize:12,marginTop:6}}>
-                      <div>Installer en O2 · Aerosol sur AIR</div>
-                      <div style={{marginTop:4,fontWeight:600}}>Protocol aerosol :</div>
-                      <div>1er : Ventoline + Atrovent</div>
-                      <div>2e et 3e : Ventoline seule</div>
-                      <div>Reevaluation apres chaque aerosol</div>
-                      <div style={{marginTop:4,fontWeight:600}}>Posologie Ventoline : {age&&parseFloat(form.poids||99)<16?'2.5 mL':'5 mL'}</div>
-                      <div>Posologie Atrovent : {age&&parseFloat(form.poids||99)<16?'0.25 mg (1 fois)':'0.5 mg (1 fois)'}</div>
-                    </div>
-                  </>
+                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px'}}>
+                    <div style={{color:'#d97706',fontSize:12}}>Renseignez la saturation pour voir la recommandation</div>
+                  </div>
                 )}
               </div>
             )}
           </div>
+
+            {/* AUTRE */}
+            {form.symptome==='autre'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Decrivez le motif de consultation</label>
+                <textarea value={form.symptome_autre||''} onChange={e=>set('symptome_autre',e.target.value)}
+                  placeholder="Ex: eruption cutanee, douleur dentaire, probleme administratif..."
+                  rows={3} style={{...inp,resize:'vertical',marginBottom:10}}/>
+                {form.symptome_autre&&(
+                  (cfcCol==='red'||csatCol==='red'||ctasCol==='red'||ctadCol==='red'||ctempCol==='red'||
+                   cfcCol==='orange'||csatCol==='orange'||ctasCol==='orange')?(
+                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Constante anormale — Prevenir le medecin</div>
+                      <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Installer en Lit 1 ou Lit 2 et alerter le medecin</div>
+                    </div>
+                  ):(
+                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Constantes normales</div>
+                      <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Faire patienter dehors (Preau)</div>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
 
           {/* PLACEMENT SUGGERE */}
           {placement && (
@@ -613,6 +911,18 @@ export default function PageAS() {
             style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
             Enregistrer le patient
           </button>
+        </div>
+      )}
+      {/* MODALE VUE ENSEMBLE */}
+      {showVue&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',flexDirection:'column'}}>
+          <div style={{background:'#fff',flex:1,margin:'60px 20px 20px',borderRadius:16,overflow:'hidden',display:'flex',flexDirection:'column',boxShadow:'0 24px 48px rgba(0,0,0,0.3)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
+              <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
+              <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>x</button>
+            </div>
+            <iframe src="/medecin" style={{flex:1,border:'none',width:'100%'}}/>
+          </div>
         </div>
       )}
     </div>
