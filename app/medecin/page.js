@@ -234,37 +234,37 @@ export default function PageMedecin() {
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
 
-            {/* Ligne 0 : P1 + postes - sans encadrement salle */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,flexShrink:0}}>
+            {/* GRILLE UNIQUE - toutes cases strictement identiques */}
+            <div id="salle-grid" style={{
+              display:'grid',
+              gridTemplateColumns:'repeat(4,1fr)',
+              gridTemplateRows:'repeat(3,1fr)',
+              gap:8, flex:1, minHeight:0, position:'relative'
+            }}>
+              {/* SVG contours salles par dessus */}
+              <svg style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:5,overflow:'visible'}}>
+                {/* Formule : col width = (100%-3*8)/4 = (W-24)/4, row height = (100%-2*8)/3 = (H-16)/3 */}
+                {/* P1 : col0 row0 */}
+                <rect x="0" y="0"
+                  width="calc((100% - 24px) / 4)" height="calc((100% - 16px) / 3)"
+                  rx="12" fill="none" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.6"/>
+                {/* Obs : col0 rows1+2 */}
+                <rect x="0" y="calc((100% - 16px) / 3 + 8px)"
+                  width="calc((100% - 24px) / 4)" height="calc((100% - 16px) / 3 * 2 + 8px)"
+                  rx="12" fill="none" stroke="#16a34a" strokeWidth="2" strokeOpacity="0.5"/>
+                {/* Salle2 : cols1+2 rows1+2 */}
+                <rect x="calc((100% - 24px) / 4 + 8px)" y="calc((100% - 16px) / 3 + 8px)"
+                  width="calc((100% - 24px) / 4 * 2 + 8px)" height="calc((100% - 16px) / 3 * 2 + 8px)"
+                  rx="12" fill="none" stroke="#9ca3af" strokeWidth="2" strokeOpacity="0.5"/>
+                {/* Decho : col3 rows1+2 */}
+                <rect x="calc((100% - 24px) / 4 * 3 + 24px)" y="calc((100% - 16px) / 3 + 8px)"
+                  width="calc((100% - 24px) / 4)" height="calc((100% - 16px) / 3 * 2 + 8px)"
+                  rx="12" fill="none" stroke="#ef4444" strokeWidth="2" strokeOpacity="0.5"/>
+              </svg>
+
               {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
-            </div>
-
-            {/* Lignes 1+2 : 4 colonnes groupées par salle */}
-            <div style={{display:'flex',gap:8,flex:1,minHeight:0,marginTop:8}}>
-
-              {/* Observation */}
-              <div style={{display:'flex',flexDirection:'column',gap:8,flex:1,
-                border:'2px solid #16a34a66',borderRadius:14,padding:6}}>
-                {renderCase(LIGNE1[0])}
-                {renderCase(LIGNE2[0])}
-              </div>
-
-              {/* Salle 2 */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,flex:2,
-                border:'2px solid #9ca3af66',borderRadius:14,padding:6}}>
-                {renderCase(LIGNE1[1])}
-                {renderCase(LIGNE1[2])}
-                {renderCase(LIGNE2[2])}
-                {renderCase(LIGNE2[1])}
-              </div>
-
-              {/* Dechocage */}
-              <div style={{display:'flex',flexDirection:'column',gap:8,flex:1,
-                border:'2px solid #ef444466',borderRadius:14,padding:6}}>
-                {renderCase(LIGNE1[3])}
-                {renderCase(LIGNE2[3])}
-              </div>
-
+              {LIGNE1.map(cell => renderCase(cell))}
+              {LIGNE2.map(cell => renderCase(cell))}
             </div>
 
           </div>
