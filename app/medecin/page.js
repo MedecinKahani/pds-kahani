@@ -24,10 +24,18 @@ function duree(ts) {
 
 const COULEURS = {
   brancard1:'#ef4444', brancard2:'#ef4444',
-  lit1:'#3b82f6', lit2:'#3b82f6',
-  fauteuil1:'#8b5cf6', fauteuil2:'#8b5cf6',
-  obs1:'#10b981', obs2:'#10b981',
-  pansement:'#f59e0b', consultation:'#6b7280'
+  lit1:'#9ca3af', lit2:'#9ca3af',
+  fauteuil1:'#16a34a', fauteuil2:'#16a34a',
+  obs1:'#16a34a', obs2:'#16a34a',
+  pansement:'#f59e0b',
+};
+
+const BG_VIDE = {
+  brancard1:'#fef2f2', brancard2:'#fef2f2',
+  lit1:'#f9fafb', lit2:'#f9fafb',
+  fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
+  obs1:'#f0fdf4', obs2:'#f0fdf4',
+  pansement:'#fffbeb',
 };
 
 const PLAN = [
@@ -38,7 +46,7 @@ const PLAN = [
     null,
   ],
   [
-    {id:'obs1', label:'O1', nom:'Observation 1'},
+    {id:'obs1', label:'O1', nom:'Observation 1', fauteuil:true},
     {id:'lit2', label:'L2', nom:'Lit 2'},
     {id:'fauteuil1', label:'F1', nom:'Fauteuil 1', o2:true},
     {id:'brancard1', label:'B1', nom:'Brancard 1', urgent:true},
@@ -185,10 +193,19 @@ export default function PageMedecin() {
                 {row.map((cell,ci)=>{
                   if(!cell) return <div key={ci} style={{borderRadius:12,border:'2px dashed #e5e7eb',minHeight:90,background:'transparent'}}/>;
                   const p = enSalle.find(x=>x.emplacement===cell.id);
-                  const c = COULEURS[cell.id]||'#6b7280';
+                  const c = COULEURS[cell.id]||'#9ca3af';
+                  const bgVide = BG_VIDE[cell.id]||'#f9fafb';
                   const attente = p?.statut==='attente_medecin';
                   const anomalie = p&&hasAnomalie(p);
                   const isSelected = sel?.id===p?.id;
+
+                  // durée en Hx
+                  function hx(ts) {
+                    const m = Math.floor((Date.now()-parseInt(ts))/60000);
+                    if(m<60) return m+'min';
+                    const h=Math.floor(m/60); const mn=m%60;
+                    return `H${h}`+(mn>0?`${mn}`:'');
+                  }
 
                   return (
                     <div key={ci} onClick={()=>{
@@ -196,56 +213,64 @@ export default function PageMedecin() {
                       setSel(isSelected?null:p);
                       if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
                     }} style={{
-                      background:p?'#fff':'#fafafa',
-                      border:`2px solid ${isSelected?c:p?c+'33':'#e5e7eb'}`,
-                      borderRadius:12, padding:'12px',
+                      background: p ? '#fff' : bgVide,
+                      border: `2px solid ${isSelected ? c : p ? c : c+'55'}`,
+                      borderRadius:12,
                       cursor:p?'pointer':'default',
-                      minHeight:90, transition:'all 0.15s',
-                      boxShadow:isSelected?`0 0 0 3px ${c}22`:p?'0 1px 3px rgba(0,0,0,0.06)':'none',
+                      minHeight:110, transition:'all 0.15s',
+                      boxShadow:isSelected?`0 0 0 3px ${c}33`:'none',
                       animation:attente?'pulse 2s infinite':'none',
-                      position:'relative'
+                      position:'relative', overflow:'hidden'
                     }}>
-                      <style>{`@keyframes pulse{0%,100%{box-shadow:0 0 0 2px #f59e0b33}50%{box-shadow:0 0 0 4px #f59e0b55}}`}</style>
+                      <style>{`@keyframes pulse{0%,100%{box-shadow:0 0 0 2px #f59e0b44}50%{box-shadow:0 0 0 5px #f59e0b22}}`}</style>
 
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
-                        <span style={{fontWeight:800,fontSize:15,color:p?c:'#d1d5db'}}>{cell.label}</span>
+                      {/* Bande couleur en haut */}
+                      <div style={{background:c,padding:'5px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <span style={{fontWeight:800,fontSize:13,color:'#fff',letterSpacing:0.5}}>{cell.label}</span>
                         {p&&(
                           <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                            {anomalie&&<span style={{fontSize:10,color:'#ef4444'}}>⚠️</span>}
-                            <div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/>
+                            {anomalie&&<span style={{fontSize:12}}>⚠️</span>}
+                            <div style={{width:7,height:7,borderRadius:'50%',background:attente?'#fef08a':'#fff',opacity:0.9}}/>
                           </div>
                         )}
+                        {!p&&<span style={{fontSize:10,color:'#fff',opacity:0.7}}>{cell.o2?'O₂':cell.fauteuil?'🪑':''}</span>}
                       </div>
 
                       {p?(
-                        <>
-                          <div style={{fontWeight:600,fontSize:12,color:'#111827',lineHeight:1.3}}>
+                        <div style={{padding:'8px 10px'}}>
+                          {/* Étiquette patient */}
+                          <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2}}>
                             {p.nom} {p.prenom}
                           </div>
-                          <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.motifPrincipal}</div>
-                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}>
-                            <span style={{fontSize:10,color:anomalie?'#ef4444':'#9ca3af'}}>
-                              {p.sat&&`SpO2 ${p.sat}%`}
-                            </span>
-                            <span style={{fontSize:10,color:'#9ca3af'}}>{duree(p.arrivee)}</span>
+                          <div style={{display:'flex',gap:6,marginTop:3,flexWrap:'wrap'}}>
+                            <span style={{color:'#6b7280',fontSize:11}}>{p.age} ans</span>
+                            {p.ipp&&<span style={{color:'#9ca3af',fontSize:11}}>· IPP {p.ipp}</span>}
                           </div>
-                          {attente&&<div style={{position:'absolute',top:8,right:8,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:4,padding:'1px 5px',fontSize:9,fontWeight:700,color:'#d97706'}}>ATTEND</div>}
-                        </>
+                          <div style={{color:'#374151',fontSize:11,marginTop:4,fontWeight:500}}>{p.motifPrincipal}</div>
+                          {/* Constantes */}
+                          <div style={{display:'flex',gap:6,marginTop:5,flexWrap:'wrap'}}>
+                            {p.sat&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.sat,'sat')?'#ef4444':'#6b7280',background:isAnormal(p.sat,'sat')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>SpO2 {p.sat}%</span>}
+                            {p.fc&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.fc,'fc')?'#ef4444':'#6b7280',background:isAnormal(p.fc,'fc')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>FC {p.fc}</span>}
+                            {p.temp&&<span style={{fontSize:10,fontWeight:600,color:isAnormal(p.temp,'temp')?'#ef4444':'#6b7280',background:isAnormal(p.temp,'temp')?'#fef2f2':'#f3f4f6',padding:'1px 5px',borderRadius:4}}>T° {p.temp}</span>}
+                          </div>
+                          <div style={{marginTop:5,fontSize:10,color:'#9ca3af',fontWeight:600}}>{hx(p.arrivee)}</div>
+                          {attente&&<div style={{position:'absolute',bottom:6,right:8,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:4,padding:'1px 6px',fontSize:9,fontWeight:700,color:'#d97706'}}>EN ATTENTE</div>}
+                        </div>
                       ):(
-                        <div style={{height:'100%',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
-                          <div style={{color:'#d1d5db',fontSize:11}}>{cell.nom}{cell.o2?' · O₂':''}</div>
+                        <div style={{padding:'8px 10px',display:'flex',flexDirection:'column',justifyContent:'space-between',minHeight:70}}>
+                          <span style={{color:c,opacity:0.4,fontSize:11}}>{cell.nom}</span>
                           <button
                             onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
                             style={{
-                              width:28,height:28,borderRadius:'50%',
-                              background:'#f3f4f6',border:'1.5px dashed #d1d5db',
-                              color:'#9ca3af',fontSize:18,display:'flex',
+                              width:26,height:26,borderRadius:'50%',
+                              background:'transparent',border:`1.5px dashed ${c}`,
+                              color:c,fontSize:18,display:'flex',
                               alignItems:'center',justifyContent:'center',
                               alignSelf:'flex-end',cursor:'pointer',
-                              transition:'all 0.15s'
+                              opacity:0.5,transition:'opacity 0.15s'
                             }}
-                            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';e.currentTarget.style.borderColor='#0d9488';}}
-                            onMouseLeave={e=>{e.currentTarget.style.background='#f3f4f6';e.currentTarget.style.color='#9ca3af';e.currentTarget.style.borderColor='#d1d5db';}}
+                            onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'22';}}
+                            onMouseLeave={e=>{e.currentTarget.style.opacity='0.5';e.currentTarget.style.background='transparent';}}
                             title="Ajouter un patient ici"
                           >+</button>
                         </div>
