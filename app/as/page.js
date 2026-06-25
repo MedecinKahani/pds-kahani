@@ -591,11 +591,16 @@ export default function PageAS() {
 
                     {/* EVA */}
                     <div>
-                      <label style={lbl}>EVA (0-10)</label>
-                      <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        <input type="range" min="0" max="10" value={form.douleur_eva} onChange={e=>set('douleur_eva',parseInt(e.target.value))}
-                          style={{flex:1,accentColor:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}/>
-                        <span style={{fontSize:22,fontWeight:800,minWidth:28,textAlign:'center',color:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}>{form.douleur_eva}</span>
+                      <label style={lbl}>Intensite douleur (EVA 0-10)</label>
+                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                        {[0,1,2,3,4,5,6,7,8,9,10].map(n=>(
+                          <button key={n} onClick={()=>set('douleur_eva',n)} style={{
+                            width:36,height:36,borderRadius:8,fontSize:14,fontWeight:700,cursor:'pointer',
+                            background:form.douleur_eva===n?(n>=7?'#ef4444':n>=4?'#f59e0b':'#16a34a'):'#f3f4f6',
+                            color:form.douleur_eva===n?'#fff':(n>=7?'#ef4444':n>=4?'#f59e0b':'#374151'),
+                            border:'1.5px solid '+(form.douleur_eva===n?(n>=7?'#ef4444':n>=4?'#f59e0b':'#16a34a'):'#e5e7eb')
+                          }}>{n}</button>
+                        ))}
                       </div>
                     </div>
                   </div>
