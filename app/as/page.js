@@ -616,6 +616,30 @@ export default function PageAS() {
             {/* FIEVRE */}
             {form.symptome==='fievre'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
+                  <div>
+                    <label style={lbl}>TDR Paludisme</label>
+                    <div style={{display:'flex',gap:6}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('tdr_palu',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.tdr_palu===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                        </button>
+                      ))}
+                    </div>
+                    {form.tdr_palu==='Positif'&&<div style={{color:'#ef4444',fontSize:11,marginTop:4,fontWeight:600}}>Paludisme + — Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={lbl}>TDR Dengue</label>
+                    <div style={{display:'flex',gap:6}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('tdr_dengue',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#fff',color:form.tdr_dengue===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                        </button>
+                      ))}
+                    </div>
+                    {form.tdr_dengue==='Positif'&&<div style={{color:'#f59e0b',fontSize:11,marginTop:4,fontWeight:600}}>Dengue + — Prevenir medecin</div>}
+                  </div>
+                </div>
                 <label style={lbl}>Fievre depuis ?</label>
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                   {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
@@ -710,6 +734,16 @@ export default function PageAS() {
                 {!form.sat&&(
                   <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginTop:8}}>
                     <div style={{color:'#d97706',fontSize:12}}>Renseignez la saturation pour voir la recommandation</div>
+                  </div>
+                )}
+                {age!==null&&age<2&&(
+                  <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'10px 12px',marginTop:8}}>
+                    <div style={{color:'#1d4ed8',fontWeight:700,fontSize:12}}>Enfant &lt; 2 ans — DRP recommande</div>
+                    <div style={{display:'flex',gap:8,marginTop:6}}>
+                      <button onClick={()=>set('drp',!form.drp)} style={{padding:'6px 14px',borderRadius:6,background:form.drp?'#3b82f6':'#fff',color:form.drp?'#fff':'#374151',border:'1px solid '+(form.drp?'#3b82f6':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        {form.drp?'✓ DRP realise':'DRP a realiser'}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
