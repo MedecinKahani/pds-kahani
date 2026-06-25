@@ -169,7 +169,7 @@ export default function PageMedecin() {
                   width:'100%',marginTop:10,padding:'7px',borderRadius:8,
                   background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600
                 }}>
-                  Faire rentrer ->
+                  Faire rentrer &rarr;
                 </button>
               </div>
             ))
@@ -443,7 +443,7 @@ export default function PageMedecin() {
                   await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
                   setSel(p);load();
                 }} style={{width:'100%',marginTop:10,padding:'7px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600}}>
-                  Faire rentrer ->
+                  Faire rentrer &rarr;
                 </button>
               </div>
             ))
