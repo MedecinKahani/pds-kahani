@@ -3,7 +3,10 @@ import { useState } from 'react';
 
 function safeJSON(val, fallback=[]) {
   if(!val) return fallback;
-  if(typeof val === 'string') { try { return JSON.parse(val); } catch(e) { return fallback; } }
+  if(typeof val === 'string') {
+    if(val.includes('[object')) return fallback;
+    try { return JSON.parse(val); } catch(e) { return fallback; }
+  }
   if(Array.isArray(val)) return val;
   if(typeof val === 'object') return val;
   return fallback;
@@ -79,11 +82,7 @@ export default function FichePatient({patient, onClose, onUpdate, user}) {
   const enfant = poids < 16;
 
   const [onglet, setOnglet] = useState('anamnese');
-  const [prescriptions, setPrescriptions] = useState(()=>{
-    if(!p.prescriptions) return [];
-    if(typeof p.prescriptions === 'string') return JSON.parse(p.prescriptions);
-    return p.prescriptions;
-  });
+  const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions));
   const [newRx, setNewRx] = useState('');
   const [section, setSection] = useState(null);
   const [showRecap, setShowRecap] = useState(false);
@@ -95,15 +94,11 @@ export default function FichePatient({patient, onClose, onUpdate, user}) {
 
   // Onglets data
   const [anamnese, setAnamnese] = useState(p.anamnese||'');
-  const [examData, setExamData] = useState(()=>{ const d=p.exam_data; if(!d) return {
+  const [examData, setExamData] = useState(safeJSON(p.exam_data, {
     etat_general:'', neuro_ok:false, neuro_texte:'', cardio_ok:false, cardio_texte:'',
     respi_ok:false, respi_texte:'', abdo_ok:false, abdo_texte:'',
-  }; return typeof d==='string'?JSON.parse(d):d; });
-  const [constPost, setConstPost] = useState(()=>{
-    const d=p.constantes_post;
-    if(!d) return {sat:'',fc:'',tas:'',tad:'',temp:''};
-    return typeof d==='string'?JSON.parse(d):d;
-  });
+  }));
+  const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, {sat:'',fc:'',tas:'',tad:'',temp:''}));
   const [diagnostic, setDiagnostic] = useState(p.diagnostic||'');
   const [priseEnCharge, setPriseEnCharge] = useState(p.prise_en_charge||'');
   const [evolution, setEvolution] = useState(p.evolution||'');
