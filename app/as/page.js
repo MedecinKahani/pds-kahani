@@ -244,6 +244,7 @@ export default function PageAS() {
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
+          <button onClick={() => router.push('/medecin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
           <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
         </div>
       </nav>
@@ -257,9 +258,11 @@ export default function PageAS() {
             </button>
           </div>
           {patients.length === 0 ? (
-            <div style={{ textAlign:'center', color:'#9ca3af', padding:'4rem 0', background:'#fff', borderRadius:12, border:'1px solid #e5e7eb' }}>
-              <div style={{ fontSize:36, marginBottom:8 }}>🌙</div>
-              <div>Aucun patient en ce moment</div>
+            <div style={{ textAlign:'center', padding:'4rem 0', background:'#fff', borderRadius:12, border:'1px solid #e5e7eb' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{margin:'0 auto 10px',display:'block',opacity:0.2}}>
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div style={{color:'#9ca3af',fontSize:13}}>Aucun patient en ce moment</div>
             </div>
           ) : patients.map(p => (
             <div key={p.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:'14px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -337,13 +340,13 @@ export default function PageAS() {
               <span style={{ fontSize:18 }}>📊</span>
               <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>Constantes vitales</span>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:12 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:12 }}>
               {[
                 {k:'fc',l:'FC',u:'bpm',icon:'❤️',col:cfcCol,ph:'75'},
                 {k:'sat',l:'SpO2',u:'%',icon:'💧',col:csatCol,ph:'98'},
+                {k:'temp',l:'Temperature',u:'°C',icon:'🌡️',col:ctempCol,ph:'37.0'},
                 {k:'tas',l:'PAS',u:'mmHg',icon:'🩸',col:ctasCol,ph:'120'},
                 {k:'tad',l:'PAD',u:'mmHg',icon:'🩸',col:ctadCol,ph:'80'},
-                {k:'temp',l:'Temperature',u:'°C',icon:'🌡️',col:ctempCol,ph:'37.0'},
               ].map(({k,l,u,icon,col,ph}) => (
                 <div key={k} style={{background:col?BG[col]:'#f9fafb',border:'1px solid '+(col?BORDER[col]:'#e5e7eb'),borderRadius:10,padding:'10px 12px'}}>
                   <div style={{fontSize:10,color:'#9ca3af',marginBottom:6,display:'flex',alignItems:'center',gap:4,textTransform:'uppercase',letterSpacing:0.5}}>
@@ -356,6 +359,17 @@ export default function PageAS() {
                   {col==='orange'&&<div style={{fontSize:9,color:COLORS.orange,marginTop:3,fontWeight:600}}>A SURVEILLER</div>}
                 </div>
               ))}
+
+              {/* PAM */}
+              <div style={{background:'#f0fdfa',border:'1px solid #99f6e4',borderRadius:10,padding:'10px 12px'}}>
+                <div style={{fontSize:10,color:'#9ca3af',marginBottom:6,display:'flex',alignItems:'center',gap:4,textTransform:'uppercase',letterSpacing:0.5}}>
+                  <span>💉</span><span>PAM</span>
+                </div>
+                {form.tas && form.tad ? (
+                  <div style={{fontSize:20,fontWeight:700,color:'#0d9488'}}>{Math.round(parseFloat(form.tad) + (parseFloat(form.tas) - parseFloat(form.tad)) / 3)} <span style={{fontSize:13,fontWeight:400,color:'#9ca3af'}}>mmHg</span></div>
+                ) : <div style={{fontSize:16,color:'#d1d5db'}}>--</div>}
+                <div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>TAD + (TAS-TAD)/3</div>
+              </div>
             </div>
 
             {/* Poids / Taille / IMC */}
@@ -510,21 +524,25 @@ export default function PageAS() {
             {/* PLAIE */}
             {form.symptome==='plaie'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <label style={lbl}>Etat du carnet de vaccination</label>
-                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
-                  {[['ok','Vaccin a jour (moins de 5 ans)','#16a34a'],['depasse','Vaccin ancien (plus de 5 ans)','#f59e0b'],['absent','Pas de carnet / illisible','#ef4444']].map(([v,l,c])=>(
-                    <button key={v} onClick={()=>set('plaie_vaccin',v)} style={{padding:'8px 14px',borderRadius:99,fontSize:12,background:form.plaie_vaccin===v?c:'/fff',color:form.plaie_vaccin===v?'#fff':'#374151',border:'1px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:500}}>
-                      {l}
+                <label style={lbl}>Carnet de vaccination</label>
+                <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
+                  {[
+                    ['ok','Carnet present - vaccin lisible (1ere ou derniere page)','#16a34a','✓'],
+                    ['illisible','Carnet present mais illisible / incomplet','#f59e0b','⚠️'],
+                    ['absent','Pas de carnet','#ef4444','✗'],
+                  ].map(([v,l,c,ic])=>(
+                    <button key={v} onClick={()=>{set('plaie_vaccin',v);if(v!=='ok')set('quicktest','');}} style={{padding:'12px 16px',borderRadius:10,fontSize:13,background:form.plaie_vaccin===v?c+'15':'#f9fafb',color:form.plaie_vaccin===v?c:'#374151',border:'2px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:600,textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
+                      <span style={{fontSize:16}}>{ic}</span>{l}
                     </button>
                   ))}
                 </div>
-                {(form.plaie_vaccin==='depasse'||form.plaie_vaccin==='absent')&&(
-                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'10px 12px'}}>
-                    <div style={{color:'#d97706',fontWeight:700,fontSize:13}}>Realiser le Quick Test Tetanos maintenant</div>
-                    <div style={{display:'flex',gap:8,marginTop:8}}>
+                {(form.plaie_vaccin==='illisible'||form.plaie_vaccin==='absent')&&(
+                  <div style={{background:'#fffbeb',border:'2px solid #f59e0b',borderRadius:10,padding:'12px 14px'}}>
+                    <div style={{color:'#d97706',fontWeight:700,fontSize:13,marginBottom:8}}>Quick Test Tetanos - A realiser maintenant</div>
+                    <div style={{display:'flex',gap:8}}>
                       {['Negatif','Positif'].map(r=>(
-                        <button key={r} onClick={()=>set('quicktest',r)} style={{padding:'6px 14px',borderRadius:6,background:form.quicktest===r?'#f59e0b':'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1px solid '+(form.quicktest===r?'#f59e0b':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                          {r}
+                        <button key={r} onClick={()=>set('quicktest',r)} style={{flex:1,padding:'10px',borderRadius:8,background:form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1.5px solid '+(form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                          {r==='Negatif'?'✓ Negatif':'✗ Positif'}
                         </button>
                       ))}
                     </div>
