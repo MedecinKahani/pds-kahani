@@ -22,7 +22,7 @@ function duree(ts) {
 function Case({id, label, p}) {
   const c = COULEURS[id]||'#9ca3af';
   return (
-    <div style={{background:p?'#fff':BG_VIDE[id]||'#f9fafb',border:'1.5px solid '+(p?c:'#e5e7eb'),borderRadius:10,position:'relative',overflow:'hidden',height:'100%'}}>
+    <div style={{background:p?'#e2e8f0':BG_VIDE[id]||'#f9fafb',border:'1.5px solid '+(p?c:'#e5e7eb'),borderRadius:10,position:'relative',overflow:'hidden',height:'100%'}}>
       <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div style={{display:'flex',alignItems:'baseline',gap:5}}>
           <span style={{fontWeight:800,fontSize:13,color:c}}>{label}</span>
