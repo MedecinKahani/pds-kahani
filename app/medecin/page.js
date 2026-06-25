@@ -31,6 +31,7 @@ export default function PageMedecin() {
   const [rx,setRx] = useState('');
   const [diag,setDiag] = useState('');
   const [orient,setOrient] = useState('');
+  const [ficheOuverte,setFicheOuverte] = useState(null);
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
