@@ -343,12 +343,47 @@ export default function PageMedecin() {
                 <div>
                   <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:8}}>Diagnostic et orientation</div>
                   <textarea value={diag} onChange={e=>setDiag(e.target.value)} placeholder="Diagnostic..." style={{width:'100%',padding:'9px 11px',borderRadius:8,border:'1.5px solid #e5e7eb',background:'#fff',color:'#111827',fontSize:13,minHeight:55,resize:'vertical',marginBottom:8,outline:'none',fontFamily:'inherit'}}/>
+                  {/* Orientations */}
                   <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:10}}>
-                    {[{id:'sortie',label:'Sortie'},{id:'rdv_consultation',label:'RDV'},{id:'transfert_CHM',label:'CHM'},{id:'transfert_SMUR',label:'SMUR'},{id:'hospitalisation',label:'Hospi'}].map(o=>(
-                      <button key={o.id} onClick={()=>setOrient(o.id)} style={{padding:'7px 12px',borderRadius:8,fontSize:12,fontWeight:600,background:orient===o.id?'#0d9488':'#fff',color:orient===o.id?'#fff':'#374151',border:'1.5px solid '+(orient===o.id?'#0d9488':'#e5e7eb')}}>{o.label}</button>
+                    {[
+                      {id:'sortie',label:'RAD',icon:'🏠'},
+                      {id:'rdv_consultation',label:'RDV',icon:'📅'},
+                      {id:'transfert_CHM',label:'CHM Mamoudzou',icon:'🚑'},
+                      {id:'transfert_SMUR',label:'SMUR',icon:'🚨'},
+                      {id:'hospitalisation',label:'Hospi',icon:'🏥'},
+                    ].map(o=>(
+                      <button key={o.id} onClick={()=>setOrient(o.id)} style={{
+                        padding:'8px 12px',borderRadius:8,fontSize:12,fontWeight:600,
+                        background:orient===o.id?'#0d9488':'#fff',
+                        color:orient===o.id?'#fff':'#374151',
+                        border:'1.5px solid '+(orient===o.id?'#0d9488':'#e5e7eb'),
+                        display:'flex',alignItems:'center',gap:5
+                      }}><span>{o.icon}</span>{o.label}</button>
                     ))}
                   </div>
-                  <button onClick={()=>finaliser(sel.id)} disabled={!diag||!orient} style={{width:'100%',padding:'12px',borderRadius:10,background:!diag||!orient?'#f3f4f6':'#0d9488',color:!diag||!orient?'#9ca3af':'#fff',fontSize:14,fontWeight:700}}>Finaliser la prise en charge</button>
+
+                  {/* Confirmation sortie */}
+                  {orient&&(
+                    <div style={{background:orient.startsWith('transfert')?'#fef2f2':orient==='sortie'?'#f0fdf4':'#f0fdfa',border:'1.5px solid '+(orient.startsWith('transfert')?'#fecaca':orient==='sortie'?'#bbf7d0':'#99f6e4'),borderRadius:10,padding:'12px',marginBottom:10}}>
+                      <div style={{fontSize:12,color:'#374151',marginBottom:8}}>
+                        {orient==='sortie'&&'Retour a domicile — patient informe des signes de gravite ?'}
+                        {orient==='rdv_consultation'&&'RDV de suivi a programmer'}
+                        {orient==='transfert_CHM'&&'Transfert CHM Mamoudzou — SAMU contacte ?'}
+                        {orient==='transfert_SMUR'&&'SMUR demande — medecin regulateur contacte ?'}
+                        {orient==='hospitalisation'&&'Hospitalisation — service contacte ?'}
+                      </div>
+                      <button onClick={()=>finaliser(sel.id)} disabled={!diag} style={{
+                        width:'100%',padding:'12px',borderRadius:9,
+                        background:!diag?'#f3f4f6':orient.startsWith('transfert')?'#ef4444':orient==='sortie'?'#16a34a':'#0d9488',
+                        color:!diag?'#9ca3af':'#fff',
+                        fontSize:14,fontWeight:700,cursor:'pointer',
+                        display:'flex',alignItems:'center',justifyContent:'center',gap:8
+                      }}>
+                        <span>{orient==='sortie'?'🏠':orient==='rdv_consultation'?'📅':orient==='transfert_CHM'?'🚑':orient==='transfert_SMUR'?'🚨':'🏥'}</span>
+                        Confirmer — {orient==='sortie'?'Retour a domicile':orient==='rdv_consultation'?'RDV programme':orient==='transfert_CHM'?'Transfert CHM':orient==='transfert_SMUR'?'SMUR en route':'Hospitalisation'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
