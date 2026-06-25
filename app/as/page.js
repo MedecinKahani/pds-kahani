@@ -753,7 +753,8 @@ export default function PageAS() {
                     <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
                       placeholder="Ex: 1.0"
                       style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
-                    {form.dextro&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie - Alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE - Brancard 1 + alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie - Alerter medecin</div>}
                     {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie - Prevenir medecin</div>}
                   </div>
                   <div>
@@ -761,8 +762,9 @@ export default function PageAS() {
                     <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
                       placeholder="Ex: 12.0"
                       style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
-                    {form.hemocue&&parseFloat(form.hemocue)<8&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie severe - Alerter medecin</div>}
-                    {form.hemocue&&parseFloat(form.hemocue)>=8&&parseFloat(form.hemocue)<10&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee - Prevenir medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE - Brancard 1 + alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie - Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee - Prevenir medecin</div>}
                   </div>
                 </div>
               </div>
