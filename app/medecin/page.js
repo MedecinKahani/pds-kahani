@@ -175,7 +175,18 @@ export default function PageMedecin() {
           <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
             <button
               onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
-              style={{width:22,height:22,borderRadius:'50%',background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.35,padding:0,lineHeight:1}}
+              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'18';e.currentTarget.style.borderStyle='solid';}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.3';e.currentTarget.style.background='transparent';e.currentTarget.style.borderStyle='dashed';}}
+              style={{
+                width:28,height:28,borderRadius:8,
+                background:'transparent',
+                border:'1.5px dashed '+c,
+                color:c,fontSize:16,fontWeight:400,
+                display:'flex',alignItems:'center',justifyContent:'center',
+                cursor:'pointer',opacity:0.3,padding:0,
+                transition:'opacity 0.15s, background 0.15s',
+                lineHeight:1,
+              }}
               title="Ajouter un patient"
             >+</button>
           </div>
