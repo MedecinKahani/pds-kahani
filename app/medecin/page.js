@@ -432,29 +432,40 @@ export default function PageMedecin() {
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>En attente</span>
             {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
           </div>
-          {preau.length===0?(
-            <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8}}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{opacity:0.18}}>
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span style={{fontSize:11,color:'#d1d5db'}}>Aucun patient</span>
-            </div>
-          ):(
-            preau.map(p=>(
-              <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'12px',marginBottom:8}}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom}</div>
-                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.age} ans - {p.motifPrincipal}</div>
-                <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>{duree(p.arrivee)}</div>
-                {p.sat&&<div style={{color:parseFloat(p.sat)<94?'#ef4444':'#6b7280',fontSize:11,marginTop:2}}>SpO2 {p.sat}%</div>}
-                <button onClick={async()=>{
-                  await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
-                  setSel(p); load();
-                }} style={{width:'100%',marginTop:10,padding:'7px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600}}>
-                  Faire rentrer
-                </button>
-              </div>
-            ))
-          )}
+          {/* Slots fixes en attente - toujours 4 visibles */}
+          <div style={{display:'flex',flexDirection:'column',gap:6,flex:1,minHeight:0}}>
+            {[0,1,2,3].map(i => {
+              const p = preau[i];
+              return p ? (
+                <div key={p.id} style={{
+                  background:'#fffbeb',border:'1px solid #fde68a',
+                  borderRadius:10,padding:'10px 12px',flex:1,
+                  display:'flex',flexDirection:'column',justifyContent:'space-between'
+                }}>
+                  <div>
+                    <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+                    <div style={{color:'#6b7280',fontSize:11,marginTop:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.motifPrincipal}</div>
+                    <div style={{color:'#9ca3af',fontSize:10,marginTop:2}}>{duree(p.arrivee)}</div>
+                  </div>
+                  <button onClick={async()=>{
+                    await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
+                    setSel(p); load();
+                  }} style={{marginTop:6,padding:'5px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:11,fontWeight:600,width:'100%'}}>
+                    Faire rentrer
+                  </button>
+                </div>
+              ) : (
+                <div key={i} style={{
+                  flex:1,borderRadius:10,
+                  border:'1.5px dashed #e5e7eb',
+                  background:'transparent',
+                  display:'flex',alignItems:'center',justifyContent:'center'
+                }}>
+                  <span style={{color:'#e5e7eb',fontSize:11}}>--</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
       </div>
