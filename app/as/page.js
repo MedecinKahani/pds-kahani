@@ -18,14 +18,17 @@ const ZONES_CORPS = [
 ];
 
 const EMPLACEMENTS = [
-  { id: 'brancard1', label: 'Brancard 1', salle: 'Déchocage', urgence: true },
-  { id: 'brancard2', label: 'Brancard 2', salle: 'Déchocage', urgence: true },
-  { id: 'lit1', label: 'Lit 1', salle: 'Salle 2' },
-  { id: 'fauteuil1', label: 'Fauteuil 1', salle: 'Salle 2', o2: true },
-  { id: 'lit2', label: 'Lit 2', salle: 'Salle 2' },
-  { id: 'fauteuil2', label: 'Fauteuil 2', salle: 'Salle 2', o2: true },
-  { id: 'obs', label: 'Salle obs', salle: 'Observation' },
-  { id: 'pansement', label: 'Salle pansement', salle: 'Pansement' },
+  { id: 'brancard1', label: 'B1 — Brancard 1', salle: 'Déchocage', urgence: true },
+  { id: 'brancard2', label: 'B2 — Brancard 2', salle: 'Déchocage', urgence: true },
+  { id: 'lit1', label: 'L1 — Lit 1', salle: 'Salle 2' },
+  { id: 'lit2', label: 'L2 — Lit 2', salle: 'Salle 2' },
+  { id: 'fauteuil1', label: 'F1 — Fauteuil 1', salle: 'Salle 2', o2: true },
+  { id: 'fauteuil2', label: 'F2 — Fauteuil 2', salle: 'Salle 2', o2: true },
+  { id: 'obs1', label: 'O1 — Observation 1', salle: 'Observation' },
+  { id: 'obs2', label: 'O2 — Observation 2', salle: 'Observation' },
+  { id: 'pansement', label: 'P1 — Pansement', salle: 'Pansement' },
+  { id: 'consultation', label: 'CS — Consultation', salle: 'Médecin' },
+  { id: 'preau', label: '⏳ Préau — Attente dehors', salle: 'Préau', special: true },
 ];
 
 function calcAge(ddn) {
@@ -50,9 +53,30 @@ function estHorsNormes(champ, valeur, age) {
   return v < min || v > max;
 }
 
+function toutesConstantesNormales(form) {
+  const normes = {
+    sat: [94, 100], fc: [50, 100],
+    ta_sys: [90, 150], ta_dia: [60, 95], temp: [36, 38.4]
+  };
+  return Object.entries(normes).every(([k, [min, max]]) => {
+    const v = parseFloat(form[k]);
+    if (isNaN(v)) return true;
+    return v >= min && v <= max;
+  });
+}
+
+const MOTIFS_NON_URGENTS = ['fievre', 'vertige', 'autre', 'douleur_abdominale'];
+
 function suggerePlacement(motifs, constantes, empsDispos) {
   const suggestions = [];
   const { sat, motifPrincipal, thoraxAlerte, coma } = motifs;
+  const toutNormal = toutesConstantesNormales(constantes);
+  const motifBenin = MOTIFS_NON_URGENTS.includes(motifPrincipal);
+
+  if (toutNormal && motifBenin) {
+    suggestions.push('preau');
+    return suggestions;
+  }
 
   if (coma || motifPrincipal === 'coma') {
     suggestions.push('brancard1');
@@ -66,7 +90,8 @@ function suggerePlacement(motifs, constantes, empsDispos) {
       suggestions.push('fauteuil1');
       suggestions.push('fauteuil2');
     } else {
-      suggestions.push('obs');
+      suggestions.push('obs1');
+      suggestions.push('obs2');
     }
   } else if (motifPrincipal === 'plaie' || motifPrincipal === 'suture') {
     suggestions.push('pansement');
@@ -74,7 +99,7 @@ function suggerePlacement(motifs, constantes, empsDispos) {
   } else if (motifPrincipal === 'fievre' || motifPrincipal === 'douleur') {
     suggestions.push('lit1');
     suggestions.push('lit2');
-    suggestions.push('obs');
+    suggestions.push('obs1');
   } else {
     suggestions.push('lit1');
     suggestions.push('lit2');
@@ -161,7 +186,17 @@ export default function PageAS() {
 
   async function creerPatient() {
     const age = calcAge(form.ddn);
-    const patient = { ...form, age, creePar: user.matricule, statut: 'attente_medecin' };
+    const isPreau = form.emplacement === 'preau';
+    const statut = isPreau ? 'preau' : 'attente_medecin';
+    const emplacementFinal = isPreau ? null : form.emplacement;
+    const patient = {
+      ...form,
+      age,
+      creePar: user.matricule,
+      statut,
+      emplacement: emplacementFinal,
+      emplacement_suggere: isPreau ? (suggestions[1] || 'lit1') : form.emplacement,
+    };
     const res = await fetch('/api/patients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
