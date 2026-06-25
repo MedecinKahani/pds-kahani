@@ -697,8 +697,22 @@ export default function PageAS() {
                     <div style={{color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
                       <div style={{fontWeight:700,marginBottom:4}}>Actions immediates :</div>
                       <div>1. Prevenir le medecin</div>
-                      <div>2. Realiser un dextro et un hemocue</div>
-                      <div>3. Installer en brancard 1</div>
+                      <div>2. Installer en brancard 1</div>
+                      <div>3. Realiser un dextro et un hemocue</div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:10}}>
+                      <div>
+                        <div style={{color:'rgba(255,255,255,0.7)',fontSize:10,marginBottom:3}}>Dextro (g/L)</div>
+                        <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
+                          placeholder="Ex: 1.0" style={{width:'100%',padding:'6px 8px',borderRadius:6,border:'1px solid rgba(255,255,255,0.3)',background:'rgba(255,255,255,0.1)',color:'#fff',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                        {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#fca5a5',fontSize:10,marginTop:2,fontWeight:700}}>HYPOGLYCEMIE SEVERE</div>}
+                      </div>
+                      <div>
+                        <div style={{color:'rgba(255,255,255,0.7)',fontSize:10,marginBottom:3}}>Hemocue (g/dL)</div>
+                        <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
+                          placeholder="Ex: 12.0" style={{width:'100%',padding:'6px 8px',borderRadius:6,border:'1px solid rgba(255,255,255,0.3)',background:'rgba(255,255,255,0.1)',color:'#fff',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                        {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#fca5a5',fontSize:10,marginTop:2,fontWeight:700}}>ANEMIE SEVERE</div>}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -804,6 +818,17 @@ export default function PageAS() {
             {form.symptome==='asthme'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
                 <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer l'asthme</div>
+                <div style={{background:'#f0fdf4',borderRadius:8,padding:'10px 12px',marginBottom:12,border:'1px solid #bbf7d0'}}>
+                  <div style={{fontWeight:700,color:'#15803d',fontSize:12,marginBottom:6}}>Protocole aerosol (3 aerosols)</div>
+                  <div style={{fontSize:11,color:'#166534',lineHeight:1.8}}>
+                    <div>1er : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL + Atrovent {parseFloat(form.poids||99)<16?'0.25':'0.5'}mg</div>
+                    <div>2e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL</div>
+                    <div>3e : Ventoline {parseFloat(form.poids||99)<16?'2.5':'5'}mL</div>
+                    <div style={{marginTop:4,fontWeight:600}}>Reevaluation saturation + clinique apres chaque aerosol</div>
+                    <div style={{marginTop:4,color:'#16a34a'}}>Sat OK → Observation sous AIR</div>
+                    <div style={{color:'#ef4444'}}>Sat basse ou lutte → F1 sous O2 5L + scope</div>
+                  </div>
+                </div>
                 <div style={{marginBottom:10}}>
                   <label style={lbl}>Signe de lutte (tirage, n'arrive pas a parler) ?</label>
                   <div style={{display:'flex',gap:8}}>
