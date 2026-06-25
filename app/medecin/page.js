@@ -110,19 +110,24 @@ export default function PageMedecin() {
 
   function renderPoste(cell) {
     const isMedecin = cell.id === '_doc';
+    const sessionNom = user?.nom || '';
+    const sessionRole = user?.role || '';
+    const showNom = (isMedecin && sessionRole==='medecin') ||
+                    (cell.id==='_ide' && sessionRole==='ide') ||
+                    (cell.id==='_as' && sessionRole==='as');
     return (
       <div key={cell.id} style={{
         height:120, borderRadius:10,
-        background:'#fff', border:'1.5px solid '+(isMedecin?'#0d948844':'#e5e7eb'),
+        background:'#fff', border:'1.5px solid '+(showNom?cell.color+'55':'#e5e7eb'),
         display:'flex', flexDirection:'column',
-        alignItems:'center', justifyContent:'center', gap:6,
+        alignItems:'center', justifyContent:'center', gap:5,
         padding:'0 8px'
       }}>
         <div style={{width:10,height:10,borderRadius:'50%',background:cell.color, flexShrink:0}}/>
         <span style={{fontSize:12,fontWeight:600,color:'#374151',textAlign:'center'}}>{cell.label}</span>
-        {isMedecin && (
-          <span style={{fontSize:11,color:'#0d9488',fontWeight:500,textAlign:'center',lineHeight:1.3}}>
-            Dr {user.nom}
+        {showNom && (
+          <span style={{fontSize:11,color:cell.color,fontWeight:500,textAlign:'center',lineHeight:1.3}}>
+            {isMedecin ? 'Dr '+sessionNom : sessionNom}
           </span>
         )}
       </div>
@@ -179,18 +184,18 @@ export default function PageMedecin() {
             {attente&&<div style={{position:'absolute',bottom:5,left:8,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:3,padding:'1px 4px',fontSize:8,fontWeight:700,color:'#d97706'}}>ATTEND</div>}
           </div>
         ) : (
-          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
             <button
               onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
-              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'18';e.currentTarget.style.borderStyle='solid';}}
-              onMouseLeave={e=>{e.currentTarget.style.opacity='0.3';e.currentTarget.style.background='transparent';e.currentTarget.style.borderStyle='dashed';}}
+              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'20';e.currentTarget.style.borderStyle='solid';}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.55';e.currentTarget.style.background='transparent';e.currentTarget.style.borderStyle='dashed';}}
               style={{
-                width:28,height:28,borderRadius:8,
+                width:32,height:32,borderRadius:8,
                 background:'transparent',
                 border:'1.5px dashed '+c,
-                color:c,fontSize:16,fontWeight:400,
+                color:c,fontSize:18,fontWeight:300,
                 display:'flex',alignItems:'center',justifyContent:'center',
-                cursor:'pointer',opacity:0.3,padding:0,
+                cursor:'pointer',opacity:0.55,padding:0,
                 transition:'opacity 0.15s, background 0.15s',
                 lineHeight:1,
               }}
@@ -238,13 +243,13 @@ export default function PageMedecin() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 2fr 1fr',gap:6}}>
 
               {/* Observation */}
-              <div style={{border:'1.5px solid #16a34a30',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
+              <div style={{border:'2px solid #16a34a55',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
                 {renderCase(LIGNE1[0])}
                 {renderCase(LIGNE2[0])}
               </div>
 
               {/* Salle 2 */}
-              <div style={{border:'1.5px solid #9ca3af30',borderRadius:14,padding:5,display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+              <div style={{border:'2px solid #9ca3af55',borderRadius:14,padding:5,display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
                 {renderCase(LIGNE1[1])}
                 {renderCase(LIGNE1[2])}
                 {renderCase(LIGNE2[1])}
@@ -252,7 +257,7 @@ export default function PageMedecin() {
               </div>
 
               {/* Dechocage */}
-              <div style={{border:'1.5px solid #ef444430',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
+              <div style={{border:'2px solid #ef444455',borderRadius:14,padding:5,display:'flex',flexDirection:'column',gap:6}}>
                 {renderCase(LIGNE1[3])}
                 {renderCase(LIGNE2[3])}
               </div>
