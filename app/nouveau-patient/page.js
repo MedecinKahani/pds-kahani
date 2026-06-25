@@ -269,7 +269,7 @@ export default function PageAS() {
             <div key={p.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:'14px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
                 <div style={{ fontWeight:700, color:'#111827', fontSize:15 }}>{p.nom} {p.prenom} <span style={{ color:'#9ca3af', fontWeight:400, fontSize:13 }}>{p.age} ans</span></div>
-                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.emplacement || 'Preau'}</div>
+                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.emplacement || "Salle d'attente dehors"}</div>
               </div>
               <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
             </div>
@@ -353,8 +353,8 @@ export default function PageAS() {
                   <div style={{fontSize:10,color:'#9ca3af',marginBottom:6,display:'flex',alignItems:'center',gap:4,textTransform:'uppercase',letterSpacing:0.5}}>
                     <span>{icon}</span><span>{l}</span>
                   </div>
-                  <input type="number" step="0.1" value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={ph}
-                    style={{width:'100%',border:'none',background:'transparent',fontSize:20,fontWeight:700,color:col?COLORS[col]:'#111827',outline:'none',padding:0}}/>
+                  <input type="number" step="0.1" value={form[k]} onChange={e=>set(k,e.target.value)} placeholder="--"
+                    style={{width:'100%',border:'none',background:'transparent',fontSize:20,fontWeight:700,color:form[k]?(col?COLORS[col]:'#111827'):'#d1d5db',outline:'none',padding:0}}/>
                   <div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>{u}</div>
                   {col==='red'&&<div style={{fontSize:9,color:COLORS.red,marginTop:3,fontWeight:600}}>ANOMALIE</div>}
                   {col==='orange'&&<div style={{fontSize:9,color:COLORS.orange,marginTop:3,fontWeight:600}}>A SURVEILLER</div>}
