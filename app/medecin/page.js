@@ -70,37 +70,92 @@ export default function PageMedecin() {
   const preau=patients.filter(p=>p.statut==='preau');
   const enSalle=patients.filter(p=>p.statut!=='preau');
 
+  function couleurDuree(ts) {
+    const h = (Date.now()-parseInt(ts)) / 3600000;
+    if (h < 1) return {color:'#16a34a', bg:'#f0fdf4', label:'<1h'};
+    if (h < 2) return {color:'#16a34a', bg:'#f0fdf4', label:'>1h'};
+    if (h < 3) return {color:'#f59e0b', bg:'#fffbeb', label:'>2h'};
+    if (h < 4) return {color:'#f59e0b', bg:'#fffbeb', label:'>3h'};
+    if (h < 5) return {color:'#ef4444', bg:'#fef2f2', label:'>4h'};
+    if (h < 6) return {color:'#ef4444', bg:'#fef2f2', label:'>5h'};
+    return {color:'#ef4444', bg:'#fef2f2', label:'>6h'};
+  }
+
   function Case({id,label}){
     const p=enSalle.find(x=>x.emplacement===id);
     const c=C[id]||'#9ca3af';
     const attente=p?.statut==='attente_medecin';
     const anomalie=p&&hasAnomalie(p);
     const isSelected=sel?.id===p?.id;
+    const dureeInfo = p ? couleurDuree(p.arrivee) : null;
+    const actes = p?.actes ? JSON.parse(p.actes) : [];
+    const prescriptions = p?.prescriptions ? JSON.parse(p.prescriptions) : [];
+
     return(
       <div onClick={()=>{if(!p)return;setSel(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
-        style={{background:p?'#fff':BG[id]||'#f9fafb',border:'1.5px solid '+(isSelected?c:'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'border-color 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',flex:1}}>
-        <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        style={{background:p?'#fff':BG[id]||'#f9fafb',border:'2px solid '+(isSelected?c:p?c+'66':'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'border-color 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column'}}>
+
+        {/* Header label */}
+        <div style={{padding:'6px 9px 4px',display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:p?'1px solid #f3f4f6':'none',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'baseline',gap:5}}>
-            <span style={{fontWeight:800,fontSize:13,color:c}}>{label}</span>
-            {!p&&<span style={{fontSize:9,color:c,opacity:0.5,fontWeight:500}}>{LEGENDES[id]}</span>}
+            <span style={{fontWeight:800,fontSize:12,color:c}}>{label}</span>
+            {!p&&<span style={{fontSize:9,color:c,opacity:0.45}}>{LEGENDES[id]}</span>}
           </div>
-          {p&&<div style={{display:'flex',gap:3,alignItems:'center'}}>{anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}<div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/></div>}
+          {p&&<div style={{display:'flex',gap:4,alignItems:'center'}}>
+            {anomalie&&<span style={{fontSize:9,color:'#ef4444',fontWeight:700}}>!</span>}
+            <div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/>
+          </div>}
         </div>
-        {p?(
-          <div style={{padding:'0 9px 7px'}}>
-            <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-            <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.age} ans{p.ipp?' · '+p.ipp:''}</div>
-            <div style={{color:'#374151',fontSize:10,marginTop:2,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.motifPrincipal}</div>
-            <div style={{display:'flex',gap:3,marginTop:4,flexWrap:'wrap'}}>
-              {p.sat&&<span style={{fontSize:9,fontWeight:600,color:isAnormal(p.sat,'sat')?'#ef4444':'#6b7280',background:isAnormal(p.sat,'sat')?'#fef2f2':'#f3f4f6',padding:'1px 4px',borderRadius:3}}>SpO2 {p.sat}%</span>}
-              {p.fc&&<span style={{fontSize:9,fontWeight:600,color:isAnormal(p.fc,'fc')?'#ef4444':'#6b7280',background:isAnormal(p.fc,'fc')?'#fef2f2':'#f3f4f6',padding:'1px 4px',borderRadius:3}}>FC {p.fc}</span>}
-              {p.temp&&<span style={{fontSize:9,fontWeight:600,color:isAnormal(p.temp,'temp')?'#ef4444':'#6b7280',background:isAnormal(p.temp,'temp')?'#fef2f2':'#f3f4f6',padding:'1px 4px',borderRadius:3}}>T {p.temp}</span>}
+
+        {p ? (
+          <div style={{padding:'6px 9px',flex:1,display:'flex',flexDirection:'column',gap:4,overflow:'hidden'}}>
+
+            {/* Identite */}
+            <div>
+              <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+              <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.age} ans{p.ipp?' · '+p.ipp:''}</div>
             </div>
-            <div style={{position:'absolute',bottom:5,right:7,fontSize:9,color:'#9ca3af',fontWeight:600}}>{duree(p.arrivee)}</div>
-            {attente&&<div style={{position:'absolute',bottom:5,left:7,background:'#fef3c7',border:'1px solid #f59e0b',borderRadius:3,padding:'1px 4px',fontSize:8,fontWeight:700,color:'#d97706'}}>ATTEND</div>}
+
+            {/* Motif */}
+            <div style={{background:'#f9fafb',borderRadius:5,padding:'3px 6px'}}>
+              <span style={{color:'#374151',fontSize:10,fontWeight:600}}>{p.symptome||p.motifPrincipal||'--'}</span>
+              {p.douleur_eva&&<span style={{color:'#9ca3af',fontSize:9,marginLeft:4}}>EVA {p.douleur_eva}</span>}
+            </div>
+
+            {/* Constantes */}
+            <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+              {[
+                {k:'sat',v:p.sat,l:'SpO2',u:'%'},
+                {k:'fc',v:p.fc,l:'FC',u:''},
+                {k:'tas',v:p.tas,l:'PAS',u:''},
+                {k:'temp',v:p.temp,l:'T',u:'°'},
+              ].filter(x=>x.v).map(({k,v,l,u})=>{
+                const bad=isAnormal(v,k==='tas'?'ta_sys':k);
+                return <span key={k} style={{fontSize:9,fontWeight:600,color:bad?'#ef4444':'#6b7280',background:bad?'#fef2f2':'#f3f4f6',padding:'2px 5px',borderRadius:4}}>{l} {v}{u}</span>;
+              })}
+            </div>
+
+            {/* Examens / actes */}
+            {(actes.length>0||prescriptions.length>0)&&(
+              <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                {prescriptions.slice(0,2).map((rx,i)=>(
+                  <span key={i} style={{fontSize:8,color:'#3b82f6',background:'#eff6ff',padding:'1px 5px',borderRadius:3,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:70}}>{rx.texte}</span>
+                ))}
+                {actes.slice(0,3).map((a,i)=>(
+                  <span key={i} style={{fontSize:8,color:'#16a34a',background:'#f0fdf4',padding:'1px 5px',borderRadius:3,fontWeight:500}}>✓ {a.label}</span>
+                ))}
+              </div>
+            )}
+
+            {/* Duree + statut */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto',paddingTop:2}}>
+              {attente&&<span style={{fontSize:8,fontWeight:700,color:'#d97706',background:'#fef3c7',padding:'1px 5px',borderRadius:3}}>ATTEND</span>}
+              <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:99}}>{dureeInfo.label}</div>
+            </div>
+
           </div>
         ):(
-          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
             <button onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+id);}}
               onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderStyle='solid';e.currentTarget.style.background=c+'18';}}
               onMouseLeave={e=>{e.currentTarget.style.opacity='0.45';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
