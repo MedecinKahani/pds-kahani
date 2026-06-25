@@ -888,7 +888,7 @@ export default function PageAS() {
               <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
               <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>x</button>
             </div>
-            <iframe src="/vue-ensemble" style={{flex:1,border:'none',width:'100%'}}/>
+            <iframe src="/medecin" style={{flex:1,border:'none',width:'100%'}}/>
           </div>
         </div>
       )}
