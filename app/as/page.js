@@ -393,11 +393,11 @@ export default function PageAS() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
               <div>
                 <label style={lbl}>Poids (kg)</label>
-                <input type="number" value={form.poids} onChange={e=>set('poids',e.target.value)} placeholder="70" style={inp}/>
+                <input type="number" value={form.poids} onChange={e=>set('poids',e.target.value)} placeholder="--" style={inp}/>
               </div>
               <div>
                 <label style={lbl}>Taille (cm)</label>
-                <input type="number" value={form.taille} onChange={e=>set('taille',e.target.value)} placeholder="170" style={inp}/>
+                <input type="number" value={form.taille} onChange={e=>set('taille',e.target.value)} placeholder="--" style={inp}/>
               </div>
               <div>
                 <label style={lbl}>IMC</label>
@@ -732,8 +732,8 @@ export default function PageAS() {
                   </div>
                 )}
                 {!form.sat&&(
-                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginTop:8}}>
-                    <div style={{color:'#d97706',fontSize:12}}>Renseignez la saturation pour voir la recommandation</div>
+                  <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 12px',marginTop:8}}>
+                    <div style={{color:'#16a34a',fontSize:12,fontWeight:600}}>Sans saturation renseignee : orienter vers Salle 2</div>
                   </div>
                 )}
                 {age!==null&&age<2&&(
