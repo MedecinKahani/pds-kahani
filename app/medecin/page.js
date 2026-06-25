@@ -165,7 +165,7 @@ export default function PageMedecin() {
             <span style={{color:c,opacity:0.35,fontSize:11}}>{cell.nom}</span>
             <button
               onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+cell.id);}}
-              style={{width:24,height:24,borderRadius:'50%',background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',alignSelf:'flex-end',cursor:'pointer',opacity:0.4}}
+              style={{width:24,height:24,borderRadius:'50%',background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:14,lineHeight:'24px',textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',alignSelf:'center',margin:'auto',cursor:'pointer',opacity:0.35,padding:0}}
               title="Ajouter un patient"
             >+</button>
           </div>
@@ -202,39 +202,42 @@ export default function PageMedecin() {
           <div style={{width:sel?420:'100%',flexShrink:0,padding:'1.5rem',overflowY:'auto',transition:'width 0.25s'}}>
 
             {/* PLAN */}
-            <div style={{display:'flex',gap:10,alignItems:'stretch'}}>
+            <div style={{display:'flex',gap:10,alignItems:'stretch',minHeight:280}}>
 
-              {/* Salle Pansement */}
-              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {/* Pansement */}
+              <div style={{display:'flex',flexDirection:'column',gap:6,width:160,flexShrink:0}}>
                 <div style={{fontSize:10,fontWeight:600,color:'#f59e0b',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Pansement</div>
-                <div style={{border:'2px solid #f59e0b44',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
-                  {[PLAN[0][0]].map(cell => renderCell(cell))}
-                  <div style={{flex:1}}/>
-                  <div style={{flex:1}}/>
+                <div style={{border:'2px solid #f59e0b55',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                  {renderCell(PLAN[0][0])}
                 </div>
               </div>
 
               {/* Salle 2 */}
-              <div style={{display:'flex',flexDirection:'column',gap:6,flex:2}}>
+              <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
                 <div style={{fontSize:10,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Salle 2</div>
-                <div style={{border:'2px solid #9ca3af44',borderRadius:14,padding:6,flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
-                  {[PLAN[1][1],PLAN[1][2],PLAN[2][1],PLAN[2][2]].map(cell => renderCell(cell))}
+                <div style={{border:'2px solid #9ca3af44',borderRadius:14,padding:6,flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:6}}>
+                  {renderCell(PLAN[1][1])}
+                  {renderCell(PLAN[1][2])}
+                  {renderCell(PLAN[2][2])}
+                  {renderCell(PLAN[2][1])}
                 </div>
               </div>
 
               {/* Observation */}
-              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              <div style={{display:'flex',flexDirection:'column',gap:6,width:160,flexShrink:0}}>
                 <div style={{fontSize:10,fontWeight:600,color:'#16a34a',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Observation</div>
                 <div style={{border:'2px solid #16a34a44',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
-                  {[PLAN[1][0],PLAN[2][0]].map(cell => renderCell(cell))}
+                  {renderCell(PLAN[1][0])}
+                  {renderCell(PLAN[2][0])}
                 </div>
               </div>
 
               {/* Dechocage */}
-              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              <div style={{display:'flex',flexDirection:'column',gap:6,width:160,flexShrink:0}}>
                 <div style={{fontSize:10,fontWeight:600,color:'#ef4444',textTransform:'uppercase',letterSpacing:1,textAlign:'center'}}>Dechocage</div>
                 <div style={{border:'2px solid #ef444444',borderRadius:14,padding:6,flex:1,display:'flex',flexDirection:'column',gap:6}}>
-                  {[PLAN[1][3],PLAN[2][3]].map(cell => renderCell(cell))}
+                  {renderCell(PLAN[1][3])}
+                  {renderCell(PLAN[2][3])}
                 </div>
               </div>
 
@@ -365,9 +368,11 @@ export default function PageMedecin() {
             {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
           </div>
           {preau.length===0?(
-            <div style={{textAlign:'center',color:'#d1d5db',padding:'2rem 0'}}>
-              <div style={{fontSize:40,marginBottom:8}}>🌙</div>
-              <div style={{fontSize:12}}>Aucun patient</div>
+            <div style={{textAlign:'center',padding:'2rem 0 1rem'}}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{margin:'0 auto 8px',display:'block',opacity:0.2}}>
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div style={{fontSize:11,color:'#d1d5db'}}>Aucun patient</div>
             </div>
           ):(
             preau.map(p=>(
