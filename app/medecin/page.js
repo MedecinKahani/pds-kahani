@@ -97,8 +97,8 @@ export default function PageMedecin() {
     const anomalie=p&&hasAnomalie(p);
     const isSelected=ficheOuverte?.id===p?.id;
     const dureeInfo = p ? couleurDuree(p.arrivee) : null;
-    const actes = p?.actes ? JSON.parse(p.actes) : [];
-    const prescriptions = p?.prescriptions ? JSON.parse(p.prescriptions) : [];
+    const actes = safeJSON(p?.actes);
+    const prescriptions = safeJSON(p?.prescriptions);
 
     return(
       <div onClick={()=>{if(!p)return;setFicheOuverte(ficheOuverte?.id===p.id?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
