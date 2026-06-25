@@ -1,35 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-
-const ZONES_CORPS = [
-  { id: 'tete', label: 'Tête', x: 140, y: 20, w: 60, h: 50 },
-  { id: 'oreille_g', label: 'Oreille gauche', x: 110, y: 35, w: 28, h: 28 },
-  { id: 'oreille_d', label: 'Oreille droite', x: 202, y: 35, w: 28, h: 28 },
-  { id: 'bouche', label: 'Bouche / gorge', x: 148, y: 58, w: 44, h: 22 },
-  { id: 'cou', label: 'Cou', x: 150, y: 75, w: 40, h: 22 },
-  { id: 'thorax', label: 'Thorax', x: 120, y: 100, w: 100, h: 70 },
-  { id: 'bras_g', label: 'Bras gauche', x: 70, y: 105, w: 45, h: 90 },
-  { id: 'bras_d', label: 'Bras droit', x: 225, y: 105, w: 45, h: 90 },
-  { id: 'abdomen', label: 'Abdomen', x: 125, y: 172, w: 90, h: 65 },
-  { id: 'oge', label: 'OGE', x: 148, y: 238, w: 44, h: 28 },
-  { id: 'jambe_g', label: 'Jambe gauche', x: 115, y: 268, w: 50, h: 110 },
-  { id: 'jambe_d', label: 'Jambe droite', x: 175, y: 268, w: 50, h: 110 },
-];
-
-const EMPLACEMENTS = [
-  { id: 'brancard1', label: 'B1 — Brancard 1', salle: 'Déchocage', urgence: true },
-  { id: 'brancard2', label: 'B2 — Brancard 2', salle: 'Déchocage', urgence: true },
-  { id: 'lit1', label: 'L1 — Lit 1', salle: 'Salle 2' },
-  { id: 'lit2', label: 'L2 — Lit 2', salle: 'Salle 2' },
-  { id: 'fauteuil1', label: 'F1 — Fauteuil 1', salle: 'Salle 2', o2: true },
-  { id: 'fauteuil2', label: 'F2 — Fauteuil 2', salle: 'Salle 2', o2: true },
-  { id: 'obs1', label: 'O1 — Observation 1', salle: 'Observation' },
-  { id: 'obs2', label: 'O2 — Observation 2', salle: 'Observation' },
-  { id: 'pansement', label: 'P1 — Pansement', salle: 'Pansement' },
-  { id: 'consultation', label: 'CS — Consultation', salle: 'Médecin' },
-  { id: 'preau', label: '⏳ Préau — Attente dehors', salle: 'Préau', special: true },
-];
 
 function calcAge(ddn) {
   if (!ddn) return null;
@@ -37,779 +8,589 @@ function calcAge(ddn) {
   return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
 }
 
-function estHorsNormes(champ, valeur, age) {
-  const v = parseFloat(valeur);
-  if (isNaN(v)) return false;
-  const normes = {
-    sat: [94, 100],
-    fc: [50, 100],
-    ta_sys: [90, 150],
-    ta_dia: [60, 95],
-    temp: [36, 38.4],
-    dextro: [0.7, 2.0],
-    hemocue: [10, 18],
-  };
-  const [min, max] = normes[champ] || [0, 9999];
-  return v < min || v > max;
+function calcIMC(poids, taille) {
+  const p = parseFloat(poids), t = parseFloat(taille) / 100;
+  if (!p || !t) return null;
+  const imc = p / (t * t);
+  let grade = '';
+  if (imc < 18.5) grade = 'Maigreur';
+  else if (imc < 25) grade = 'Normal';
+  else if (imc < 30) grade = 'Surpoids';
+  else if (imc < 35) grade = 'Obesite grade 1';
+  else if (imc < 40) grade = 'Obesite grade 2';
+  else grade = 'Obesite grade 3';
+  return { val: imc.toFixed(1), grade };
 }
 
-function toutesConstantesNormales(form) {
-  const normes = {
-    sat: [94, 100], fc: [50, 100],
-    ta_sys: [90, 150], ta_dia: [60, 95], temp: [36, 38.4]
-  };
-  return Object.entries(normes).every(([k, [min, max]]) => {
-    const v = parseFloat(form[k]);
-    if (isNaN(v)) return true;
-    return v >= min && v <= max;
-  });
+// Couleurs constantes
+function couleurFC(v) {
+  const n = parseFloat(v); if (isNaN(n)) return null;
+  if (n >= 50 && n <= 90) return 'green';
+  if (n > 90 && n <= 105) return 'orange';
+  return 'red';
+}
+function couleurSat(v) {
+  const n = parseFloat(v); if (isNaN(n)) return null;
+  if (n > 94) return 'green';
+  if (n >= 90) return 'orange';
+  return 'red';
+}
+function couleurTAS(v) {
+  const n = parseFloat(v); if (isNaN(n)) return null;
+  if (n >= 100 && n <= 140) return 'green';
+  if ((n > 140 && n <= 179) || (n < 100 && n >= 80)) return 'orange';
+  return 'red';
+}
+function couleurTAD(v) {
+  const n = parseFloat(v); if (isNaN(n)) return null;
+  if (n >= 60 && n <= 90) return 'green';
+  if ((n > 90 && n <= 110) || (n >= 50 && n < 60)) return 'orange';
+  return 'red';
+}
+function couleurTemp(v) {
+  const n = parseFloat(v); if (isNaN(n)) return null;
+  if (n >= 36 && n <= 37.9) return 'green';
+  if (n >= 38 && n <= 39) return 'orange';
+  return 'red';
 }
 
-const MOTIFS_NON_URGENTS = ['fievre', 'vertige', 'autre', 'douleur_abdominale'];
+const COLORS = { green:'#16a34a', orange:'#f59e0b', red:'#ef4444' };
+const BG = { green:'#f0fdf4', orange:'#fffbeb', red:'#fef2f2' };
+const BORDER = { green:'#bbf7d0', orange:'#fde68a', red:'#fecaca' };
 
-function suggerePlacement(motifs, constantes, empsDispos) {
-  const suggestions = [];
-  const { sat, motifPrincipal, thoraxAlerte, coma } = motifs;
-  const toutNormal = toutesConstantesNormales(constantes);
-  const motifBenin = MOTIFS_NON_URGENTS.includes(motifPrincipal);
-
-  if (toutNormal && motifBenin) {
-    suggestions.push('preau');
-    return suggestions;
-  }
-
-  if (coma || motifPrincipal === 'coma') {
-    suggestions.push('brancard1');
-    suggestions.push('brancard2');
-  } else if (thoraxAlerte || motifPrincipal === 'douleur_thorax') {
-    suggestions.push('brancard1');
-    suggestions.push('brancard2');
-  } else if (motifPrincipal === 'asthme') {
-    const satVal = parseFloat(sat);
-    if (!isNaN(satVal) && satVal < 95) {
-      suggestions.push('fauteuil1');
-      suggestions.push('fauteuil2');
-    } else {
-      suggestions.push('obs1');
-      suggestions.push('obs2');
-    }
-  } else if (motifPrincipal === 'plaie' || motifPrincipal === 'suture') {
-    suggestions.push('pansement');
-    suggestions.push('brancard2');
-  } else if (motifPrincipal === 'fievre' || motifPrincipal === 'douleur') {
-    suggestions.push('lit1');
-    suggestions.push('lit2');
-    suggestions.push('obs1');
-  } else {
-    suggestions.push('lit1');
-    suggestions.push('lit2');
-  }
-
-  const dispoIds = empsDispos.map(e => e.id);
-  const filtres = suggestions.filter(s => dispoIds.includes(s));
-  if (filtres.length === 0) return suggestions;
-  return filtres;
-}
-
-export default function PageAS() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [patients, setPatients] = useState([]);
-  const [etape, setEtape] = useState('liste');
-  const [urgenceVitale, setUrgenceVitale] = useState(false);
-  const [alerte, setAlerte] = useState(null);
-
-  const [form, setForm] = useState({
-    sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
-    allergie: '', allergie_detail: '',
-    sat: '', fc: '', ta_sys: '', ta_dia: '', temp: '', dextro: '', hemocue: '',
-    motifPrincipal: '',
-    douleur_zones: [],
-    douleur_eva: 5,
-    fievre_depuis: '',
-    plaie_vaccin: '',
-    quicktest_tetanos: false,
-    bu_urine: false, bhcg: false,
-    ecg: false,
-    emplacement: '',
-    notes_as: '',
-    coma: false,
-  });
-
-  useEffect(() => {
-    const session = sessionStorage.getItem('pds_user');
-    if (!session) { router.push('/login'); return; }
-    const u = JSON.parse(session);
-    if (u.role !== 'as') { router.push('/'); return; }
-    setUser(u);
-    chargerPatients();
-    const interval = setInterval(chargerPatients, 15000);
-    return () => clearInterval(interval);
-  }, []);
-
-  async function chargerPatients() {
-    const res = await fetch('/api/patients');
-    const data = await res.json();
-    setPatients(data.patients || []);
-  }
-
-  function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
-
-  function toggleZone(zoneId) {
-    setForm(f => {
-      const zones = f.douleur_zones.includes(zoneId)
-        ? f.douleur_zones.filter(z => z !== zoneId)
-        : [...f.douleur_zones, zoneId];
-      const thoraxAlerte = zones.includes('thorax');
-      return { ...f, douleur_zones: zones, thoraxAlerte };
-    });
-  }
-
-  function handleComa(val) {
-    set('coma', val);
-    if (val) {
-      setUrgenceVitale(true);
-      setAlerte({ type: 'coma', msg: '⚠️ PATIENT INCONSCIENT — Alerter le médecin immédiatement et vérifier la respiration' });
-    } else {
-      setUrgenceVitale(false);
-      setAlerte(null);
-    }
-  }
-
-  const empsOccupes = patients.map(p => p.emplacement);
-  const empsDispos = EMPLACEMENTS.filter(e => !empsOccupes.includes(e.id));
-  const suggestions = etape === 'placement' ? suggerePlacement(
-    { ...form, coma: form.coma || form.motifPrincipal === 'coma' },
-    form,
-    empsDispos
-  ) : [];
-
-  async function creerPatient() {
-    const age = calcAge(form.ddn);
-    const isPreau = form.emplacement === 'preau';
-    const statut = isPreau ? 'preau' : 'attente_medecin';
-    const emplacementFinal = isPreau ? null : form.emplacement;
-    const patient = {
-      ...form,
-      age,
-      creePar: user.matricule,
-      statut,
-      emplacement: emplacementFinal,
-      emplacement_suggere: isPreau ? (suggestions[1] || 'lit1') : form.emplacement,
-    };
-    const res = await fetch('/api/patients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create', patient })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      setPatients(data.patients);
-      setEtape('liste');
-      setForm({
-        sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
-        allergie: '', allergie_detail: '',
-        sat: '', fc: '', ta_sys: '', ta_dia: '', temp: '', dextro: '', hemocue: '',
-        motifPrincipal: '', douleur_zones: [], douleur_eva: 5,
-        fievre_depuis: '', plaie_vaccin: '', quicktest_tetanos: false,
-        bu_urine: false, bhcg: false, ecg: false, emplacement: '', notes_as: '', coma: false,
-      });
-      setAlerte(null);
-      setUrgenceVitale(false);
-    }
-  }
-
-  function dureePresence(ts) {
-    const diff = Date.now() - ts;
-    const min = Math.floor(diff / 60000);
-    if (min < 60) return `${min} min`;
-    return `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, '0')}`;
-  }
-
-  const couleurStatut = {
-    attente_medecin: '#f59e0b',
-    en_cours: '#3b82f6',
-    vu: '#10b981',
-    transfert: '#8b5cf6',
-    sorti: '#6b7280',
-  };
-  const labelStatut = {
-    attente_medecin: 'En attente',
-    en_cours: 'En cours',
-    vu: 'Vu',
-    transfert: 'Transfert',
-  };
-
-  if (!user) return null;
-
+function StatCard({ label, value, unit, couleur, icon }) {
+  const c = couleur ? COLORS[couleur] : '#6b7280';
+  const bg = couleur ? BG[couleur] : '#f9fafb';
+  const border = couleur ? BORDER[couleur] : '#e5e7eb';
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a' }}>
-      <nav style={{
-        background: '#1e293b', borderBottom: '1px solid #334155',
-        padding: '0 1rem', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', height: 56
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 22 }}>🏥</span>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>PDS Kahani</span>
-          <span style={{ background: '#f59e0b', color: '#000', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>AIDE-SOIGNANT</span>
+    <div style={{ background: bg, border: '1px solid ' + border, borderRadius: 10, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+        <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span>{icon}</span><span style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: '#94a3b8', fontSize: 13 }}>{user.nom} — {user.matricule}</span>
-          <button onClick={() => { sessionStorage.clear(); router.push('/login'); }}
-            style={{ background: '#334155', color: '#cbd5e1', padding: '6px 12px', borderRadius: 6, fontSize: 13 }}>
-            Déconnexion
-          </button>
-        </div>
-      </nav>
-
-      {urgenceVitale && alerte && (
-        <div style={{
-          background: '#7f1d1d', border: '2px solid #ef4444',
-          padding: '16px 20px', margin: '0',
-          display: 'flex', alignItems: 'center', gap: 12,
-          animation: 'pulse 1s infinite'
-        }}>
-          <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }`}</style>
-          <span style={{ fontSize: 28 }}>🚨</span>
-          <div>
-            <div style={{ color: '#fef2f2', fontWeight: 700, fontSize: 18 }}>{alerte.msg}</div>
-            {alerte.type === 'coma' && (
-              <div style={{ color: '#fca5a5', fontSize: 14, marginTop: 4 }}>
-                Vérifiez si le patient respire — si non, appelez le médecin et démarrez la RCP
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div style={{ padding: '1rem', maxWidth: 900, margin: '0 auto' }}>
-
-        {etape === 'liste' && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: 20, fontWeight: 600 }}>
-                Patients en cours ({patients.length})
-              </h2>
-              <button
-                onClick={() => setEtape('identite')}
-                style={{
-                  background: '#3b82f6', color: '#fff', padding: '10px 20px',
-                  borderRadius: 10, fontSize: 15, fontWeight: 600,
-                  display: 'flex', alignItems: 'center', gap: 8
-                }}
-              >
-                + Nouveau patient
-              </button>
-            </div>
-
-            {patients.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#475569', padding: '3rem', background: '#1e293b', borderRadius: 12 }}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>🌙</div>
-                <div style={{ fontSize: 16 }}>Aucun patient en ce moment</div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {patients.map(p => (
-                  <div key={p.id} style={{
-                    background: '#1e293b', border: '1px solid #334155',
-                    borderRadius: 12, padding: '14px 16px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{
-                        width: 44, height: 44, borderRadius: '50%',
-                        background: '#334155', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: 20
-                      }}>
-                        {p.sexe === 'F' ? '👩' : '👨'}
-                      </div>
-                      <div>
-                        <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 16 }}>
-                          {p.nom} {p.prenom} {p.age && <span style={{ color: '#94a3b8', fontWeight: 400, fontSize: 14 }}>({p.age} ans)</span>}
-                        </div>
-                        <div style={{ color: '#94a3b8', fontSize: 13 }}>
-                          {EMPLACEMENTS.find(e => e.id === p.emplacement)?.label || 'Non placé'} — {p.motifPrincipal || 'Motif non précisé'}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ color: '#64748b', fontSize: 12 }}>{dureePresence(parseInt(p.arrivee))}</span>
-                      <span style={{
-                        background: couleurStatut[p.statut] || '#334155',
-                        color: '#fff', fontSize: 11, fontWeight: 600,
-                        padding: '3px 10px', borderRadius: 99
-                      }}>
-                        {labelStatut[p.statut] || p.statut}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {etape === 'identite' && (
-          <div style={{ background: '#1e293b', borderRadius: 16, padding: '1.5rem', border: '1px solid #334155' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <button onClick={() => setEtape('liste')} style={{ background: '#334155', color: '#94a3b8', padding: '6px 12px', borderRadius: 6, fontSize: 13 }}>← Retour</button>
-              <h2 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 600 }}>1 — Identité du patient</h2>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={lbl}>Sexe</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {['M', 'F'].map(s => (
-                    <button key={s} onClick={() => set('sexe', s)} style={{
-                      flex: 1, padding: '12px', borderRadius: 8, fontSize: 18,
-                      background: form.sexe === s ? '#3b82f6' : '#334155',
-                      color: '#fff', fontWeight: 600
-                    }}>{s === 'M' ? '👨 Homme' : '👩 Femme'}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label style={lbl}>Date de naissance</label>
-                <input type="date" value={form.ddn} onChange={e => set('ddn', e.target.value)} style={inp} />
-                {form.ddn && <div style={{ color: '#10b981', fontSize: 13, marginTop: 4 }}>Âge : {calcAge(form.ddn)} ans</div>}
-              </div>
-
-              <div>
-                <label style={lbl}>Nom</label>
-                <input type="text" value={form.nom} onChange={e => set('nom', e.target.value.toUpperCase())} placeholder="NOM" style={{ ...inp, textTransform: 'uppercase' }} />
-              </div>
-
-              <div>
-                <label style={lbl}>Prénom</label>
-                <input type="text" value={form.prenom} onChange={e => set('prenom', e.target.value)} placeholder="Prénom" style={inp} />
-              </div>
-
-              <div>
-                <label style={lbl}>IPP (numéro patient DxCare)</label>
-                <input type="text" value={form.ipp} onChange={e => set('ipp', e.target.value)} placeholder="IPP" style={inp} />
-              </div>
-
-              <div>
-                <label style={lbl}>Allergie connue ?</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {['Oui', 'Non', 'Inconnu'].map(a => (
-                    <button key={a} onClick={() => set('allergie', a)} style={{
-                      flex: 1, padding: '10px', borderRadius: 8, fontSize: 13,
-                      background: form.allergie === a ? (a === 'Oui' ? '#dc2626' : '#334155') : '#1e3a5f',
-                      color: '#fff', border: form.allergie === a ? 'none' : '1px solid #334155'
-                    }}>{a}</button>
-                  ))}
-                </div>
-                {form.allergie === 'Oui' && (
-                  <input type="text" value={form.allergie_detail} onChange={e => set('allergie_detail', e.target.value)}
-                    placeholder="Préciser l'allergie..." style={{ ...inp, marginTop: 8, border: '2px solid #dc2626' }} />
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setEtape('constantes')}
-              disabled={!form.nom || !form.ddn || !form.sexe}
-              style={{ ...btnPrimary, marginTop: 20, opacity: (!form.nom || !form.ddn || !form.sexe) ? 0.5 : 1 }}
-            >
-              Suivant : Constantes →
-            </button>
-          </div>
-        )}
-
-        {etape === 'constantes' && (
-          <div style={{ background: '#1e293b', borderRadius: 16, padding: '1.5rem', border: '1px solid #334155' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <button onClick={() => setEtape('identite')} style={{ background: '#334155', color: '#94a3b8', padding: '6px 12px', borderRadius: 6, fontSize: 13 }}>← Retour</button>
-              <h2 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 600 }}>2 — Constantes vitales</h2>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-              {[
-                { key: 'sat', label: 'Saturation (SpO2)', unite: '%', placeholder: '98', min: 70, max: 100 },
-                { key: 'fc', label: 'Fréquence cardiaque', unite: 'bpm', placeholder: '75' },
-                { key: 'ta_sys', label: 'TA systolique', unite: 'mmHg', placeholder: '120' },
-                { key: 'ta_dia', label: 'TA diastolique', unite: 'mmHg', placeholder: '80' },
-                { key: 'temp', label: 'Température', unite: '°C', placeholder: '37.0' },
-                { key: 'dextro', label: 'Dextro', unite: 'g/L', placeholder: '1.0' },
-              ].map(({ key, label, unite, placeholder }) => {
-                const horsNormes = estHorsNormes(key, form[key]);
-                return (
-                  <div key={key}>
-                    <label style={lbl}>{label}</label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="number" step="0.1" value={form[key]}
-                        onChange={e => set(key, e.target.value)}
-                        placeholder={placeholder}
-                        style={{
-                          ...inp,
-                          border: horsNormes ? '2px solid #ef4444' : '1px solid #334155',
-                          background: horsNormes ? '#450a0a' : '#0f172a',
-                          color: horsNormes ? '#fca5a5' : '#fff',
-                          paddingRight: 40
-                        }}
-                      />
-                      <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: 13 }}>{unite}</span>
-                    </div>
-                    {horsNormes && <div style={{ color: '#ef4444', fontSize: 11, marginTop: 2 }}>⚠️ Valeur anormale — à recontrôler</div>}
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => setEtape('motif')}
-              style={{ ...btnPrimary, marginTop: 20 }}
-            >
-              Suivant : Motif de consultation →
-            </button>
-          </div>
-        )}
-
-        {etape === 'motif' && (
-          <div style={{ background: '#1e293b', borderRadius: 16, padding: '1.5rem', border: '1px solid #334155' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <button onClick={() => setEtape('constantes')} style={{ background: '#334155', color: '#94a3b8', padding: '6px 12px', borderRadius: 6, fontSize: 13 }}>← Retour</button>
-              <h2 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 600 }}>3 — Motif de consultation</h2>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-              {[
-                { id: 'douleur', label: 'Douleur', emoji: '😣' },
-                { id: 'fievre', label: 'Fièvre', emoji: '🌡️' },
-                { id: 'coma', label: 'Inconscient / Coma', emoji: '😶' },
-                { id: 'plaie', label: 'Plaie / Suture', emoji: '🩹' },
-                { id: 'asthme', label: 'Asthme / Gêne respiratoire', emoji: '😮‍💨' },
-                { id: 'vertige', label: 'Vertige / Malaise', emoji: '💫' },
-                { id: 'douleur_abdominale', label: 'Douleur abdominale', emoji: '🤢' },
-                { id: 'traumatisme', label: 'Traumatisme / Chute', emoji: '🦴' },
-                { id: 'autre', label: 'Autre', emoji: '❓' },
-              ].map(m => (
-                <button key={m.id} onClick={() => {
-                  set('motifPrincipal', m.id);
-                  if (m.id === 'coma') handleComa(true);
-                  else handleComa(false);
-                }} style={{
-                  padding: '16px 10px', borderRadius: 10, fontSize: 14, fontWeight: 600,
-                  background: form.motifPrincipal === m.id ? '#3b82f6' : '#334155',
-                  color: '#fff', border: form.motifPrincipal === m.id ? '2px solid #60a5fa' : '1px solid #475569',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
-                }}>
-                  <span style={{ fontSize: 28 }}>{m.emoji}</span>
-                  <span>{m.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {form.motifPrincipal === 'douleur' && (
-              <div style={{ background: '#0f172a', borderRadius: 12, padding: '1rem', marginBottom: 16 }}>
-                <div style={{ color: '#cbd5e1', fontSize: 14, marginBottom: 12, fontWeight: 500 }}>
-                  Cliquez sur la zone douloureuse
-                </div>
-                <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  <svg width="340" height="390" style={{ flex: '0 0 auto' }}>
-                    <rect x="0" y="0" width="340" height="390" fill="#0f172a" />
-                    {ZONES_CORPS.map(z => {
-                      const sel = form.douleur_zones.includes(z.id);
-                      return (
-                        <g key={z.id} onClick={() => toggleZone(z.id)} style={{ cursor: 'pointer' }}>
-                          <rect x={z.x} y={z.y} width={z.w} height={z.h} rx="6"
-                            fill={sel ? '#ef4444' : '#1e3a5f'}
-                            stroke={sel ? '#fca5a5' : '#334155'}
-                            strokeWidth={sel ? 2 : 1}
-                          />
-                          <text x={z.x + z.w / 2} y={z.y + z.h / 2 + 1} textAnchor="middle" dominantBaseline="middle"
-                            fill={sel ? '#fff' : '#94a3b8'} fontSize="9" fontWeight={sel ? '700' : '400'}>
-                            {z.label.length > 12 ? z.label.slice(0, 12) + '…' : z.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    {form.douleur_zones.length > 0 && (
-                      <>
-                        <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 8 }}>Zones sélectionnées :</div>
-                        {form.douleur_zones.map(z => {
-                          const zone = ZONES_CORPS.find(zz => zz.id === z);
-                          return (
-                            <div key={z} style={{ background: '#334155', borderRadius: 6, padding: '6px 10px', marginBottom: 4, color: '#fca5a5', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              {zone?.label}
-                              <button onClick={() => toggleZone(z)} style={{ background: 'none', color: '#ef4444', fontSize: 16 }}>×</button>
-                            </div>
-                          );
-                        })}
-                        {form.douleur_zones.includes('thorax') && (
-                          <div style={{ background: '#451a03', border: '1px solid #f59e0b', borderRadius: 8, padding: '10px', marginTop: 8 }}>
-                            <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 600 }}>⚡ Douleur thoracique</div>
-                            <div style={{ color: '#fbbf24', fontSize: 12, marginTop: 4 }}>Le médecin demandera probablement un ECG — vous pouvez le préparer dès maintenant</div>
-                            <button onClick={() => set('ecg', !form.ecg)} style={{
-                              marginTop: 8, padding: '6px 12px', borderRadius: 6, fontSize: 12,
-                              background: form.ecg ? '#16a34a' : '#334155', color: '#fff'
-                            }}>
-                              {form.ecg ? '✓ ECG réalisé' : '→ Réaliser l\'ECG maintenant'}
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    <div style={{ marginTop: 16 }}>
-                      <label style={{ ...lbl, color: '#94a3b8' }}>Intensité de la douleur (EVA 0-10)</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <input type="range" min="0" max="10" value={form.douleur_eva}
-                          onChange={e => set('douleur_eva', parseInt(e.target.value))}
-                          style={{ flex: 1, accentColor: form.douleur_eva >= 7 ? '#ef4444' : form.douleur_eva >= 4 ? '#f59e0b' : '#10b981' }} />
-                        <span style={{
-                          fontSize: 24, fontWeight: 700, minWidth: 32, textAlign: 'center',
-                          color: form.douleur_eva >= 7 ? '#ef4444' : form.douleur_eva >= 4 ? '#f59e0b' : '#10b981'
-                        }}>{form.douleur_eva}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: 11, marginTop: 2 }}>
-                        <span>Pas de douleur</span><span>Douleur maximale</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {form.motifPrincipal === 'fievre' && (
-              <div style={{ background: '#0f172a', borderRadius: 12, padding: '1rem', marginBottom: 16 }}>
-                <label style={lbl}>Fièvre depuis combien de temps ?</label>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {['Quelques heures', '1 jour', '2-3 jours', 'Plus de 3 jours', 'Inconnu'].map(d => (
-                    <button key={d} onClick={() => set('fievre_depuis', d)} style={{
-                      padding: '8px 14px', borderRadius: 8, fontSize: 13,
-                      background: form.fievre_depuis === d ? '#3b82f6' : '#334155', color: '#fff'
-                    }}>{d}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {form.motifPrincipal === 'plaie' && (
-              <div style={{ background: '#0f172a', borderRadius: 12, padding: '1rem', marginBottom: 16 }}>
-                <div style={{ color: '#fcd34d', fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
-                  📋 Regardez la PREMIÈRE PAGE du carnet de santé
-                </div>
-                <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
-                  Y a-t-il des vaccins notés ? Le carnet est-il lisible ?
-                </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {[
-                    { id: 'vaccin_ok', label: '✓ Vaccins à jour (moins de 5 ans)', color: '#16a34a' },
-                    { id: 'vaccin_depasse', label: '⚠️ Vaccins présents mais anciens (plus de 5 ans)', color: '#d97706' },
-                    { id: 'vaccin_absent', label: '✗ Pas de vaccin noté / carnet illisible', color: '#dc2626' },
-                  ].map(v => (
-                    <button key={v.id} onClick={() => set('plaie_vaccin', v.id)} style={{
-                      padding: '10px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
-                      background: form.plaie_vaccin === v.id ? v.color : '#334155',
-                      color: '#fff', border: form.plaie_vaccin === v.id ? 'none' : '1px solid #475569',
-                      flex: '1 1 200px'
-                    }}>{v.label}</button>
-                  ))}
-                </div>
-                {(form.plaie_vaccin === 'vaccin_absent' || form.plaie_vaccin === 'vaccin_depasse') && (
-                  <div style={{ background: '#451a03', border: '1px solid #f59e0b', borderRadius: 8, padding: '12px', marginTop: 12 }}>
-                    <div style={{ color: '#fcd34d', fontSize: 14, fontWeight: 600 }}>
-                      → Réaliser le Quick Test Tétanos maintenant
-                    </div>
-                    <div style={{ color: '#fbbf24', fontSize: 12, marginTop: 4, marginBottom: 10 }}>
-                      Le médecin en aura besoin — autant l'avancer maintenant pour ne pas perdre de temps
-                    </div>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <button onClick={() => set('quicktest_tetanos', 'fait')} style={{
-                        padding: '8px 16px', borderRadius: 6, fontSize: 13,
-                        background: form.quicktest_tetanos === 'fait' ? '#16a34a' : '#334155', color: '#fff'
-                      }}>✓ Test réalisé</button>
-                      <button onClick={() => set('quicktest_tetanos', 'negatif')} style={{
-                        padding: '8px 16px', borderRadius: 6, fontSize: 13,
-                        background: form.quicktest_tetanos === 'negatif' ? '#dc2626' : '#334155', color: '#fff'
-                      }}>Résultat négatif</button>
-                      <button onClick={() => set('quicktest_tetanos', 'positif')} style={{
-                        padding: '8px 16px', borderRadius: 6, fontSize: 13,
-                        background: form.quicktest_tetanos === 'positif' ? '#16a34a' : '#334155', color: '#fff'
-                      }}>Résultat positif</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {form.motifPrincipal === 'vertige' && (
-              <div style={{ background: '#172554', border: '1px solid #3b82f6', borderRadius: 12, padding: '1rem', marginBottom: 16 }}>
-                <div style={{ color: '#93c5fd', fontSize: 14, fontWeight: 600 }}>
-                  → À réaliser dès maintenant pour ce patient :
-                </div>
-                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                  <button onClick={() => set('dextro', prompt('Dextro (g/L) :') || form.dextro)} style={{
-                    padding: '8px 14px', borderRadius: 6, fontSize: 13,
-                    background: form.dextro ? '#16a34a' : '#334155', color: '#fff'
-                  }}>
-                    {form.dextro ? `✓ Dextro : ${form.dextro} g/L` : '→ Saisir le Dextro'}
-                  </button>
-                  <button onClick={() => set('hemocue', prompt('Hémocue (g/dL) :') || form.hemocue)} style={{
-                    padding: '8px 14px', borderRadius: 6, fontSize: 13,
-                    background: form.hemocue ? '#16a34a' : '#334155', color: '#fff'
-                  }}>
-                    {form.hemocue ? `✓ Hémocue : ${form.hemocue} g/dL` : '→ Réaliser l\'Hémocue'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {form.motifPrincipal === 'douleur_abdominale' && form.sexe === 'F' && (
-              <div style={{ background: '#2d1657', border: '1px solid #8b5cf6', borderRadius: 12, padding: '1rem', marginBottom: 16 }}>
-                <div style={{ color: '#c4b5fd', fontSize: 14, fontWeight: 600 }}>
-                  → Douleur abdominale chez une femme — à préparer :
-                </div>
-                <div style={{ color: '#a78bfa', fontSize: 13, marginTop: 6, marginBottom: 10 }}>
-                  Donner un pot à urine au patient pour réaliser BU et bHCG urinaire
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => set('bu_urine', !form.bu_urine)} style={{
-                    padding: '8px 14px', borderRadius: 6, fontSize: 13,
-                    background: form.bu_urine ? '#16a34a' : '#334155', color: '#fff'
-                  }}>
-                    {form.bu_urine ? '✓ Pot donné — BU en attente' : '→ Donner le pot à urine'}
-                  </button>
-                  {form.bu_urine && (
-                    <button onClick={() => set('bhcg', !form.bhcg)} style={{
-                      padding: '8px 14px', borderRadius: 6, fontSize: 13,
-                      background: form.bhcg ? '#16a34a' : '#334155', color: '#fff'
-                    }}>
-                      {form.bhcg ? '✓ bHCG réalisé' : '→ bHCG urinaire'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {form.motifPrincipal === 'asthme' && (
-              <div style={{ background: '#0f172a', borderRadius: 12, padding: '1rem', marginBottom: 16 }}>
-                {parseFloat(form.sat) < 95 ? (
-                  <div style={{ background: '#450a0a', border: '1px solid #ef4444', borderRadius: 8, padding: '12px' }}>
-                    <div style={{ color: '#fca5a5', fontSize: 14, fontWeight: 600 }}>⚠️ Saturation basse — Fauteuil avec O2</div>
-                    <div style={{ color: '#f87171', fontSize: 13, marginTop: 4 }}>
-                      Installer au fauteuil 1 ou 2 — Préparer salbutamol + atrovent sous O2 5L/min
-                    </div>
-                    <div style={{ color: '#fca5a5', fontSize: 12, marginTop: 6 }}>
-                      Objectif : saturation &gt; 95% — Recontrôler dans 5 minutes
-                    </div>
-                    {form.age && (
-                      <div style={{ background: '#7f1d1d', borderRadius: 6, padding: '8px', marginTop: 8 }}>
-                        <div style={{ color: '#fcd34d', fontSize: 12, fontWeight: 600 }}>Posologie salbutamol :</div>
-                        <div style={{ color: '#fbbf24', fontSize: 13, marginTop: 2 }}>
-                          {parseInt(form.age) < 16 ? 'Ventoline 2,5 mL nébulisation' : 'Ventoline 5 mL nébulisation'}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{ background: '#052e16', border: '1px solid #16a34a', borderRadius: 8, padding: '12px' }}>
-                    <div style={{ color: '#86efac', fontSize: 14, fontWeight: 600 }}>✓ Saturation correcte</div>
-                    <div style={{ color: '#4ade80', fontSize: 13, marginTop: 4 }}>
-                      Salle d'observation — Éducation thérapeutique disponible sur la télé
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button onClick={() => setEtape('placement')} disabled={!form.motifPrincipal}
-              style={{ ...btnPrimary, opacity: !form.motifPrincipal ? 0.5 : 1 }}>
-              Suivant : Placement →
-            </button>
-          </div>
-        )}
-
-        {etape === 'placement' && (
-          <div style={{ background: '#1e293b', borderRadius: 16, padding: '1.5rem', border: '1px solid #334155' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <button onClick={() => setEtape('motif')} style={{ background: '#334155', color: '#94a3b8', padding: '6px 12px', borderRadius: 6, fontSize: 13 }}>← Retour</button>
-              <h2 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 600 }}>4 — Placement</h2>
-            </div>
-
-            {suggestions.length > 0 && (
-              <div style={{ background: '#172554', border: '1px solid #3b82f6', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-                <div style={{ color: '#93c5fd', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                  💡 Placement suggéré :
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {suggestions.map(s => {
-                    const emp = EMPLACEMENTS.find(e => e.id === s);
-                    const dispo = !empsOccupes.includes(s);
-                    return (
-                      <button key={s} onClick={() => set('emplacement', s)} style={{
-                        padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                        background: form.emplacement === s ? '#3b82f6' : dispo ? '#1e3a5f' : '#451a03',
-                        color: dispo ? '#93c5fd' : '#f97316',
-                        border: form.emplacement === s ? '2px solid #60a5fa' : '1px solid #334155'
-                      }}>
-                        {emp?.label} {!dispo ? '(occupé)' : ''}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {EMPLACEMENTS.map(e => {
-                const occupe = empsOccupes.includes(e.id);
-                const sel = form.emplacement === e.id;
-                const suggere = suggestions.includes(e.id);
-                return (
-                  <button key={e.id} onClick={() => set('emplacement', e.id)} style={{
-                    padding: '14px 16px', borderRadius: 10, textAlign: 'left',
-                    background: sel ? '#3b82f6' : occupe ? '#1c1917' : '#334155',
-                    border: sel ? '2px solid #60a5fa' : suggere ? '2px solid #f59e0b' : '1px solid #475569',
-                    color: occupe ? '#57534e' : '#fff',
-                    cursor: 'pointer'
-                  }}>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{e.label}</div>
-                    <div style={{ fontSize: 12, color: sel ? '#bfdbfe' : occupe ? '#44403c' : '#94a3b8', marginTop: 2 }}>
-                      {e.salle} {e.urgence ? '— Scope + O2' : ''}{e.o2 ? '— O2 disponible' : ''}
-                      {occupe ? ' — OCCUPÉ' : ''}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: 16 }}>
-              <label style={lbl}>Notes pour l'équipe (optionnel)</label>
-              <textarea value={form.notes_as} onChange={e => set('notes_as', e.target.value)}
-                placeholder="Observations particulières..."
-                style={{ ...inp, minHeight: 70, resize: 'vertical' }} />
-            </div>
-
-            <button
-              onClick={creerPatient}
-              disabled={!form.emplacement}
-              style={{ ...btnPrimary, opacity: !form.emplacement ? 0.5 : 1, marginTop: 16, background: '#16a34a' }}
-            >
-              ✓ Enregistrer et placer le patient
-            </button>
-          </div>
+        {value ? (
+          <div style={{ fontSize: 20, fontWeight: 700, color: c }}>{value} <span style={{ fontSize: 13, fontWeight: 400, color: '#9ca3af' }}>{unit}</span></div>
+        ) : (
+          <div style={{ fontSize: 16, color: '#d1d5db' }}>--</div>
         )}
       </div>
     </div>
   );
 }
 
-const lbl = { display: 'block', color: '#94a3b8', fontSize: 13, marginBottom: 6, fontWeight: 500 };
-const inp = {
-  width: '100%', padding: '12px 14px', borderRadius: 8,
-  border: '1px solid #334155', background: '#0f172a',
-  color: '#fff', fontSize: 15, outline: 'none'
-};
-const btnPrimary = {
-  width: '100%', padding: '14px', borderRadius: 10,
-  background: '#3b82f6', color: '#fff', fontSize: 15, fontWeight: 600,
-  cursor: 'pointer'
-};
+const SYMPTOMES = [
+  { id: 'douleur', label: 'Douleur', icon: '😣' },
+  { id: 'fievre', label: 'Fievre', icon: '🌡️' },
+  { id: 'coma', label: 'Coma / Inconscience', icon: '🚨' },
+  { id: 'detresse_respi', label: 'Detresse respiratoire', icon: '😮‍💨' },
+  { id: 'asthme', label: 'Asthme', icon: '💨' },
+  { id: 'vertige', label: 'Vertige / Malaise', icon: '💫' },
+  { id: 'plaie', label: 'Plaie / Traumatisme', icon: '🩹' },
+  { id: 'autre', label: 'Autre', icon: '❓' },
+];
+
+const ZONES_CORPS = [
+  { id: 'tete', label: 'Tete' },
+  { id: 'oreille_g', label: 'Oreille gauche' },
+  { id: 'oreille_d', label: 'Oreille droite' },
+  { id: 'bouche', label: 'Bouche / Gorge' },
+  { id: 'cou', label: 'Cou' },
+  { id: 'thorax', label: 'Thorax' },
+  { id: 'bras_g', label: 'Bras gauche' },
+  { id: 'bras_d', label: 'Bras droit' },
+  { id: 'abdomen', label: 'Abdomen' },
+  { id: 'oge', label: 'OGE' },
+  { id: 'jambe_g', label: 'Jambe gauche' },
+  { id: 'jambe_d', label: 'Jambe droite' },
+];
+
+function dureePresence(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  return m < 60 ? m + 'min' : 'H' + Math.floor(m / 60) + (m % 60 > 0 ? 'h' + (m % 60) : '');
+}
+
+export default function PageAS() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [patients, setPatients] = useState([]);
+  const [vue, setVue] = useState('liste'); // liste | nouveau
+
+  const [form, setForm] = useState({
+    sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
+    allergie: '', allergie_detail: '',
+    medicaments_today: '', medicaments_detail: '',
+    fc: '', sat: '', tas: '', tad: '', temp: '', poids: '', taille: '',
+    symptome: '',
+    douleur_zones: [], douleur_eva: 5,
+    fievre_depuis: '',
+    plaie_vaccin: '', quicktest: '',
+    ecg_fait: false, bu_fait: false, bhcg_fait: false,
+    notes: '',
+  });
+
+  function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
+
+  const load = useCallback(async () => {
+    const r = await fetch('/api/patients');
+    const d = await r.json();
+    setPatients(d.patients || []);
+  }, []);
+
+  useEffect(() => {
+    const s = sessionStorage.getItem('pds_user');
+    if (!s) { router.push('/login'); return; }
+    const u = JSON.parse(s);
+    if (u.role !== 'as') { router.push('/'); return; }
+    setUser(u);
+    load();
+    const iv = setInterval(load, 15000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const age = calcAge(form.ddn);
+  const imc = calcIMC(form.poids, form.taille);
+
+  const cfcCol = couleurFC(form.fc);
+  const csatCol = couleurSat(form.sat);
+  const ctasCol = couleurTAS(form.tas);
+  const ctadCol = couleurTAD(form.tad);
+  const ctempCol = couleurTemp(form.temp);
+
+  const urgenceVitale = form.symptome === 'coma' ||
+    csatCol === 'red' ||
+    (form.symptome === 'detresse_respi' && csatCol !== 'green') ||
+    (form.symptome === 'douleur' && form.douleur_zones.includes('thorax'));
+
+  // Algorithme de placement
+  function calcPlacement() {
+    const s = form.symptome;
+    const sat = parseFloat(form.sat);
+    const emps = patients.map(p => p.emplacement);
+    const libre = id => !emps.includes(id);
+
+    if (s === 'coma' || (s === 'detresse_respi' && sat < 90) || (s === 'douleur' && form.douleur_zones.includes('thorax'))) {
+      return { place: 'brancard1', label: 'B1 - Brancard 1', urgence: true, msg: null };
+    }
+    if (s === 'asthme') {
+      if (sat >= 95) {
+        return { place: 'obs2', label: 'O2 - Fauteuil observation', urgence: false, msg: 'Installer en fauteuil observation. Aerosol sur AIR : Ventoline + Atrovent (1 seule fois), puis 2x Ventoline. Reevaluation saturation + clinique apres chaque aerosol.' };
+      } else {
+        return { place: 'fauteuil1', label: 'F1 - Fauteuil 1', urgence: true, msg: 'Installer en fauteuil 1. Aerosol sur O2 5L : Ventoline + Atrovent (1 seule fois), puis 2x Ventoline. Scope a mettre en place. Reevaluation apres chaque aerosol.' };
+      }
+    }
+    if (s === 'plaie') {
+      if (libre('brancard1') && libre('brancard2')) return { place: 'brancard2', label: 'B2 - Brancard 2', urgence: false, msg: null };
+      return { place: 'pansement', label: 'P1 - Pansement', urgence: false, msg: null };
+    }
+
+    const hasRedConst = [cfcCol, csatCol, ctasCol, ctadCol, ctempCol].includes('red');
+    const hasOrangeConst = [cfcCol, csatCol, ctasCol, ctadCol, ctempCol].includes('orange');
+
+    if (!hasRedConst && !hasOrangeConst && s !== 'coma') {
+      return { place: 'preau', label: 'Salle d\'attente (preau)', urgence: false, msg: 'Constantes normales - faire patienter en salle d\'attente. Le medecin appellera le patient.' };
+    }
+
+    if (hasRedConst) {
+      if (libre('brancard1')) return { place: 'brancard1', label: 'B1 - Brancard 1', urgence: true, msg: null };
+      if (libre('brancard2')) return { place: 'brancard2', label: 'B2 - Brancard 2', urgence: true, msg: null };
+    }
+
+    if (libre('lit1')) return { place: 'lit1', label: 'L1 - Lit 1', urgence: false, msg: null };
+    if (libre('lit2')) return { place: 'lit2', label: 'L2 - Lit 2', urgence: false, msg: null };
+    if (libre('obs1')) return { place: 'obs1', label: 'O1 - Observation', urgence: false, msg: null };
+    return { place: 'preau', label: 'Salle d\'attente', urgence: false, msg: 'Toutes les places sont occupees - faire patienter.' };
+  }
+
+  const placement = form.symptome ? calcPlacement() : null;
+
+  async function creerPatient() {
+    const p = placement || { place: 'preau' };
+    const patient = {
+      ...form,
+      age,
+      statut: p.place === 'preau' ? 'preau' : 'attente_medecin',
+      emplacement: p.place === 'preau' ? null : p.place,
+      emplacement_suggere: p.place,
+      creePar: user.matricule,
+    };
+    const r = await fetch('/api/patients', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', patient })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      setPatients(d.patients);
+      setVue('liste');
+      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
+    }
+  }
+
+  if (!user) return null;
+
+  const inp = { width:'100%', padding:'10px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', background:'#fff', color:'#111827', boxSizing:'border-box' };
+  const lbl = { fontSize:12, fontWeight:600, color:'#6b7280', display:'block', marginBottom:5, textTransform:'uppercase', letterSpacing:0.5 };
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#f3f4f6', fontFamily:'system-ui' }}>
+
+      {/* NAV */}
+      <nav style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'0 1.5rem', display:'flex', alignItems:'center', justifyContent:'space-between', height:56, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ width:32, height:32, borderRadius:'50%', background:'#f59e0b', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:14, fontWeight:700 }}>AS</div>
+          <div>
+            <div style={{ fontWeight:700, fontSize:15, color:'#111827' }}>PDS Kahani</div>
+            <div style={{ fontSize:10, color:'#6b7280' }}>Aide-soignant</div>
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
+          <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
+        </div>
+      </nav>
+
+      {vue === 'liste' && (
+        <div style={{ maxWidth:700, margin:'0 auto', padding:'1.5rem' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Patients ({patients.length})</h2>
+            <button onClick={() => setVue('nouveau')} style={{ padding:'10px 20px', borderRadius:10, background:'#0d9488', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer' }}>
+              + Nouveau patient
+            </button>
+          </div>
+          {patients.length === 0 ? (
+            <div style={{ textAlign:'center', color:'#9ca3af', padding:'4rem 0', background:'#fff', borderRadius:12, border:'1px solid #e5e7eb' }}>
+              <div style={{ fontSize:36, marginBottom:8 }}>🌙</div>
+              <div>Aucun patient en ce moment</div>
+            </div>
+          ) : patients.map(p => (
+            <div key={p.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:'14px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <div style={{ fontWeight:700, color:'#111827', fontSize:15 }}>{p.nom} {p.prenom} <span style={{ color:'#9ca3af', fontWeight:400, fontSize:13 }}>{p.age} ans</span></div>
+                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.emplacement || 'Preau'}</div>
+              </div>
+              <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {vue === 'nouveau' && (
+        <div style={{ maxWidth:820, margin:'0 auto', padding:'1.5rem' }}>
+
+          {/* ALERTE URGENCE VITALE */}
+          {urgenceVitale && (
+            <div style={{ background:'#7f1d1d', border:'2px solid #ef4444', borderRadius:12, padding:'16px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:12, animation:'pulse 1s infinite' }}>
+              <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}`}</style>
+              <span style={{ fontSize:28 }}>🚨</span>
+              <div>
+                <div style={{ color:'#fff', fontWeight:800, fontSize:18 }}>URGENCE VITALE - Alerter le medecin immediatement</div>
+                {form.symptome === 'coma' && <div style={{ color:'#fca5a5', fontSize:13, marginTop:4 }}>Verifier que le patient respire. Si non : allonger, appeler le medecin, commencer massage cardiaque.</div>}
+                {form.douleur_zones?.includes('thorax') && <div style={{ color:'#fca5a5', fontSize:13, marginTop:4 }}>Douleur thoracique : allonger le patient et preparer l'ECG.</div>}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Nouveau patient</h2>
+            <button onClick={() => setVue('liste')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</button>
+          </div>
+
+          {/* IDENTITE */}
+          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'1.25rem', marginBottom:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+              <span style={{ fontSize:18 }}>👤</span>
+              <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>Identite</span>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ gridColumn:'1/-1' }}>
+                <label style={lbl}>Sexe</label>
+                <div style={{ display:'flex', gap:8 }}>
+                  {[['M','Homme','👨'],['F','Femme','👩']].map(([v,l,e]) => (
+                    <button key={v} onClick={() => set('sexe', v)} style={{ flex:1, padding:'10px', borderRadius:8, background:form.sexe===v?'#0d9488':'#f9fafb', color:form.sexe===v?'#fff':'#374151', border:'1.5px solid '+(form.sexe===v?'#0d9488':'#e5e7eb'), fontSize:14, fontWeight:600, cursor:'pointer' }}>
+                      {e} {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label style={lbl}>Nom</label>
+                <input value={form.nom} onChange={e=>set('nom',e.target.value.toUpperCase())} placeholder="NOM" style={{...inp,textTransform:'uppercase'}}/>
+              </div>
+              <div>
+                <label style={lbl}>Prenom</label>
+                <input value={form.prenom} onChange={e=>set('prenom',e.target.value)} placeholder="Prenom" style={inp}/>
+              </div>
+              <div>
+                <label style={lbl}>Date de naissance</label>
+                <input type="date" value={form.ddn} onChange={e=>set('ddn',e.target.value)} style={inp}/>
+                {age !== null && <div style={{color:'#0d9488',fontSize:12,marginTop:4,fontWeight:600}}>{age} ans</div>}
+              </div>
+              <div>
+                <label style={lbl}>IPP DxCare</label>
+                <input value={form.ipp} onChange={e=>set('ipp',e.target.value)} placeholder="Numero IPP" style={inp}/>
+              </div>
+            </div>
+          </div>
+
+          {/* CONSTANTES */}
+          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'1.25rem', marginBottom:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+              <span style={{ fontSize:18 }}>📊</span>
+              <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>Constantes vitales</span>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:12 }}>
+              {[
+                {k:'fc',l:'FC',u:'bpm',icon:'❤️',col:cfcCol,ph:'75'},
+                {k:'sat',l:'SpO2',u:'%',icon:'💧',col:csatCol,ph:'98'},
+                {k:'tas',l:'PAS',u:'mmHg',icon:'🩸',col:ctasCol,ph:'120'},
+                {k:'tad',l:'PAD',u:'mmHg',icon:'🩸',col:ctadCol,ph:'80'},
+                {k:'temp',l:'Temperature',u:'°C',icon:'🌡️',col:ctempCol,ph:'37.0'},
+              ].map(({k,l,u,icon,col,ph}) => (
+                <div key={k} style={{background:col?BG[col]:'#f9fafb',border:'1px solid '+(col?BORDER[col]:'#e5e7eb'),borderRadius:10,padding:'10px 12px'}}>
+                  <div style={{fontSize:10,color:'#9ca3af',marginBottom:6,display:'flex',alignItems:'center',gap:4,textTransform:'uppercase',letterSpacing:0.5}}>
+                    <span>{icon}</span><span>{l}</span>
+                  </div>
+                  <input type="number" step="0.1" value={form[k]} onChange={e=>set(k,e.target.value)} placeholder={ph}
+                    style={{width:'100%',border:'none',background:'transparent',fontSize:20,fontWeight:700,color:col?COLORS[col]:'#111827',outline:'none',padding:0}}/>
+                  <div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>{u}</div>
+                  {col==='red'&&<div style={{fontSize:9,color:COLORS.red,marginTop:3,fontWeight:600}}>ANOMALIE</div>}
+                  {col==='orange'&&<div style={{fontSize:9,color:COLORS.orange,marginTop:3,fontWeight:600}}>A SURVEILLER</div>}
+                </div>
+              ))}
+            </div>
+
+            {/* Poids / Taille / IMC */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+              <div>
+                <label style={lbl}>Poids (kg)</label>
+                <input type="number" value={form.poids} onChange={e=>set('poids',e.target.value)} placeholder="70" style={inp}/>
+              </div>
+              <div>
+                <label style={lbl}>Taille (cm)</label>
+                <input type="number" value={form.taille} onChange={e=>set('taille',e.target.value)} placeholder="170" style={inp}/>
+              </div>
+              <div>
+                <label style={lbl}>IMC</label>
+                {imc ? (
+                  <div style={{background:imc.val>=30?'#fef2f2':imc.val<18.5?'#fef2f2':'#f9fafb',border:'1px solid #e5e7eb',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{fontSize:20,fontWeight:700,color:imc.val>=30||imc.val<18.5?'#ef4444':'#0d9488'}}>{imc.val}</div>
+                    <div style={{fontSize:11,color:'#6b7280',marginTop:2}}>{imc.grade}</div>
+                  </div>
+                ) : <div style={{background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:8,padding:'10px 12px',color:'#d1d5db',fontSize:14}}>--</div>}
+              </div>
+            </div>
+          </div>
+
+          {/* ALLERGIE + MEDICAMENTS */}
+          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'1.25rem', marginBottom:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+              <span style={{ fontSize:18 }}>⚠️</span>
+              <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>Allergies et traitements</span>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div>
+                <label style={lbl}>Allergie connue ?</label>
+                <div style={{display:'flex',gap:6}}>
+                  {['Oui','Non','Inconnu'].map(v=>(
+                    <button key={v} onClick={()=>set('allergie',v)} style={{flex:1,padding:'8px',borderRadius:8,background:form.allergie===v?(v==='Oui'?'#fef2f2':'#f9fafb'):'#f9fafb',border:'1.5px solid '+(form.allergie===v?(v==='Oui'?'#ef4444':'#0d9488'):'#e5e7eb'),color:form.allergie===v?(v==='Oui'?'#ef4444':'#0d9488'):'#374151',fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                {form.allergie==='Oui'&&<input value={form.allergie_detail} onChange={e=>set('allergie_detail',e.target.value)} placeholder="Preciser..." style={{...inp,marginTop:8,borderColor:'#ef4444'}}/>}
+              </div>
+              <div>
+                <label style={lbl}>Medicaments pris aujourd'hui ?</label>
+                <div style={{display:'flex',gap:6}}>
+                  {['Oui','Non'].map(v=>(
+                    <button key={v} onClick={()=>set('medicaments_today',v)} style={{flex:1,padding:'8px',borderRadius:8,background:form.medicaments_today===v?'#f0fdfa':'#f9fafb',border:'1.5px solid '+(form.medicaments_today===v?'#0d9488':'#e5e7eb'),color:form.medicaments_today===v?'#0d9488':'#374151',fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                {form.medicaments_today==='Oui'&&<input value={form.medicaments_detail} onChange={e=>set('medicaments_detail',e.target.value)} placeholder="Lesquels ?" style={{...inp,marginTop:8}}/>}
+              </div>
+            </div>
+          </div>
+
+          {/* SYMPTOME */}
+          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'1.25rem', marginBottom:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+              <span style={{ fontSize:18 }}>🩺</span>
+              <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>Symptome principal</span>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
+              {SYMPTOMES.map(s => (
+                <button key={s.id} onClick={() => set('symptome', s.id)} style={{
+                  padding:'14px 8px', borderRadius:10, display:'flex', flexDirection:'column', alignItems:'center', gap:6,
+                  background:form.symptome===s.id?'#f0fdfa':'#f9fafb',
+                  border:'1.5px solid '+(form.symptome===s.id?'#0d9488':'#e5e7eb'),
+                  cursor:'pointer', transition:'all 0.15s'
+                }}>
+                  <span style={{fontSize:22}}>{s.icon}</span>
+                  <span style={{fontSize:11,fontWeight:600,color:form.symptome===s.id?'#0d9488':'#374151',textAlign:'center',lineHeight:1.2}}>{s.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* DOULEUR */}
+            {form.symptome==='douleur'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ?</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
+                  {ZONES_CORPS.map(z=>{
+                    const sel=form.douleur_zones.includes(z.id);
+                    return(
+                      <button key={z.id} onClick={()=>{
+                        const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                        set('douleur_zones',zones);
+                      }} style={{padding:'6px 12px',borderRadius:99,fontSize:12,fontWeight:500,background:sel?'#0d9488':'#fff',color:sel?'#fff':'#374151',border:'1px solid '+(sel?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
+                        {z.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {form.douleur_zones.includes('thorax')&&(
+                  <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px',marginBottom:10}}>
+                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Douleur thoracique - Action immediate</div>
+                    <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Allonger le patient et preparer l'ECG. Prevenir le medecin.</div>
+                    <button onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:8,padding:'6px 14px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                      {form.ecg_fait?'✓ ECG realise':'Marquer ECG realise'}
+                    </button>
+                  </div>
+                )}
+
+                {form.douleur_zones.includes('abdomen')&&form.sexe==='F'&&(
+                  <div style={{background:'#f5f3ff',border:'1px solid #ddd6fe',borderRadius:8,padding:'10px 12px',marginBottom:10}}>
+                    <div style={{color:'#7c3aed',fontWeight:700,fontSize:13}}>Douleur abdominale chez une femme</div>
+                    <div style={{color:'#8b5cf6',fontSize:12,marginTop:4}}>Donner un pot a urine pour BU et bHCG urinaire.</div>
+                    <div style={{display:'flex',gap:8,marginTop:8}}>
+                      <button onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'6px 14px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        {form.bu_fait?'✓ BU faite':'BU'}
+                      </button>
+                      <button onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'6px 14px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        {form.bhcg_fait?'✓ bHCG fait':'bHCG'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{marginTop:8}}>
+                  <label style={lbl}>Intensite (EVA 0-10)</label>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <input type="range" min="0" max="10" value={form.douleur_eva} onChange={e=>set('douleur_eva',parseInt(e.target.value))} style={{flex:1,accentColor:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}/>
+                    <span style={{fontSize:24,fontWeight:700,minWidth:28,textAlign:'center',color:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}>{form.douleur_eva}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* FIEVRE */}
+            {form.symptome==='fievre'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Fievre depuis ?</label>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                  {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
+                    <button key={d} onClick={()=>set('fievre_depuis',d)} style={{padding:'8px 14px',borderRadius:99,fontSize:12,background:form.fievre_depuis===d?'#0d9488':'#fff',color:form.fievre_depuis===d?'#fff':'#374151',border:'1px solid '+(form.fievre_depuis===d?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* VERTIGE */}
+            {form.symptome==='vertige'&&(
+              <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
+                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13}}>Vertige / Malaise - A realiser</div>
+                <div style={{color:'#3b82f6',fontSize:12,marginTop:4}}>Realiser un dextro et un hemocue.</div>
+              </div>
+            )}
+
+            {/* PLAIE */}
+            {form.symptome==='plaie'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Etat du carnet de vaccination</label>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
+                  {[['ok','Vaccin a jour (moins de 5 ans)','#16a34a'],['depasse','Vaccin ancien (plus de 5 ans)','#f59e0b'],['absent','Pas de carnet / illisible','#ef4444']].map(([v,l,c])=>(
+                    <button key={v} onClick={()=>set('plaie_vaccin',v)} style={{padding:'8px 14px',borderRadius:99,fontSize:12,background:form.plaie_vaccin===v?c:'/fff',color:form.plaie_vaccin===v?'#fff':'#374151',border:'1px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:500}}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                {(form.plaie_vaccin==='depasse'||form.plaie_vaccin==='absent')&&(
+                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{color:'#d97706',fontWeight:700,fontSize:13}}>Realiser le Quick Test Tetanos maintenant</div>
+                    <div style={{display:'flex',gap:8,marginTop:8}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('quicktest',r)} style={{padding:'6px 14px',borderRadius:6,background:form.quicktest===r?'#f59e0b':'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1px solid '+(form.quicktest===r?'#f59e0b':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ASTHME */}
+            {form.symptome==='asthme'&&form.sat&&(
+              <div style={{marginTop:16,padding:14,background:parseFloat(form.sat)<95?'#fef2f2':'#f0fdf4',borderRadius:10,border:'1px solid '+(parseFloat(form.sat)<95?'#fecaca':'#bbf7d0')}}>
+                {parseFloat(form.sat)<95?(
+                  <>
+                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Saturation basse - Fauteuil 1 avec O2</div>
+                    <div style={{color:'#ef4444',fontSize:12,marginTop:6}}>
+                      <div>Installer en F1 · O2 5L/min · Scope</div>
+                      <div style={{marginTop:6,fontWeight:600}}>Protocol aerosol :</div>
+                      <div>1er : Ventoline + Atrovent</div>
+                      <div>2e et 3e : Ventoline seule</div>
+                      <div>Reevaluation saturation + clinique apres chaque aerosol</div>
+                      <div style={{marginTop:6,fontWeight:600}}>Posologie Ventoline : {age&&age<16&&parseFloat(form.poids||99)<16?'2.5 mL':'5 mL'}</div>
+                      <div>Posologie Atrovent : {age&&parseFloat(form.poids||99)<16?'0.25 mg (1 fois)':'0.5 mg (1 fois)'}</div>
+                    </div>
+                  </>
+                ):(
+                  <>
+                    <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Saturation correcte - Fauteuil observation</div>
+                    <div style={{color:'#15803d',fontSize:12,marginTop:6}}>
+                      <div>Installer en O2 · Aerosol sur AIR</div>
+                      <div style={{marginTop:4,fontWeight:600}}>Protocol aerosol :</div>
+                      <div>1er : Ventoline + Atrovent</div>
+                      <div>2e et 3e : Ventoline seule</div>
+                      <div>Reevaluation apres chaque aerosol</div>
+                      <div style={{marginTop:4,fontWeight:600}}>Posologie Ventoline : {age&&parseFloat(form.poids||99)<16?'2.5 mL':'5 mL'}</div>
+                      <div>Posologie Atrovent : {age&&parseFloat(form.poids||99)<16?'0.25 mg (1 fois)':'0.5 mg (1 fois)'}</div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* PLACEMENT SUGGERE */}
+          {placement && (
+            <div style={{background:placement.urgence?'#fef2f2':'#f0fdfa',border:'2px solid '+(placement.urgence?'#ef4444':'#0d9488'),borderRadius:12,padding:'1rem 1.25rem',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:placement.urgence?'#dc2626':'#0d9488',textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>
+                {placement.urgence?'Placement urgent':'Placement suggere'}
+              </div>
+              <div style={{fontWeight:700,fontSize:16,color:'#111827'}}>{placement.label}</div>
+              {placement.msg&&<div style={{color:'#6b7280',fontSize:13,marginTop:6}}>{placement.msg}</div>}
+            </div>
+          )}
+
+          {/* NOTES */}
+          <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'1.25rem',marginBottom:16}}>
+            <label style={lbl}>Notes pour l'equipe (optionnel)</label>
+            <textarea value={form.notes} onChange={e=>set('notes',e.target.value)} placeholder="Observations particulieres..." rows={2}
+              style={{...inp,resize:'vertical',fontFamily:'system-ui'}}/>
+          </div>
+
+          <button onClick={creerPatient} disabled={!form.nom||!form.sexe||!form.symptome}
+            style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
+            Enregistrer le patient
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
