@@ -30,7 +30,10 @@ export default function FichePatient({patient, onClose, onUpdate, user}) {
   const [exam, setExam] = useState(p.examen_clinique||'');
   const [prescriptions, setPrescriptions] = useState(p.prescriptions?JSON.parse(p.prescriptions):[]);
   const [newRx, setNewRx] = useState('');
-  const [section, setSection] = useState(null); // section ouverte
+  const [section, setSection] = useState(null);
+  const [perfVol, setPerfVol] = useState('500');
+  const [perfDuree, setPerfDuree] = useState('4');
+  const [perfSolute, setPerfSolute] = useState('NaCl 0.9%');
 
   // Constantes post-thérapeutiques
   const [constPost, setConstPost] = useState({sat:'',fc:'',tas:'',temp:''});
@@ -247,38 +250,30 @@ export default function FichePatient({patient, onClose, onUpdate, user}) {
           </Section>
 
           <Section id="perf" label="Perfusion" icon="💧">
-            {(()=>{
-              const [vol,setVol] = useState('500');
-              const [duree,setDuree] = useState('4');
-              const [soluteType,setSoluteType] = useState('NaCl 0.9%');
-              const debit = vol&&duree ? Math.round(parseFloat(vol)/parseFloat(duree)) : null;
-              return(
+            <div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
                 <div>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
-                    <div>
-                      <label style={lbl}>Solute</label>
-                      <select value={soluteType} onChange={e=>setSoluteType(e.target.value)} style={{...inp,padding:'6px 8px'}}>
-                        {['NaCl 0.9%','G5%','G10%','G30%','Ringer lactate','NaCl 0.45%'].map(s=><option key={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={lbl}>Volume (mL)</label>
-                      <input type="number" value={vol} onChange={e=>setVol(e.target.value)} style={{...inp,padding:'6px 8px'}}/>
-                    </div>
-                    <div>
-                      <label style={lbl}>Duree (h)</label>
-                      <input type="number" step="0.5" value={duree} onChange={e=>setDuree(e.target.value)} style={{...inp,padding:'6px 8px'}}/>
-                    </div>
-                  </div>
-                  {debit&&<div style={{background:'#f0fdfa',borderRadius:7,padding:'8px 10px',marginBottom:8,fontSize:12,color:'#0d9488',fontWeight:600}}>
-                    Debit : {debit} mL/h
-                  </div>}
-                  <button onClick={()=>ajouterRx(`Perf ${soluteType} ${vol}mL en ${duree}h → ${debit} mL/h`)} style={{padding:'7px 14px',borderRadius:7,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none'}}>
-                    + Ajouter cette perfusion
-                  </button>
+                  <label style={lbl}>Solute</label>
+                  <select value={perfSolute} onChange={e=>setPerfSolute(e.target.value)} style={{...inp,padding:'6px 8px'}}>
+                    {['NaCl 0.9%','G5%','G10%','G30%','Ringer lactate','NaCl 0.45%'].map(s=><option key={s}>{s}</option>)}
+                  </select>
                 </div>
-              );
-            })()}
+                <div>
+                  <label style={lbl}>Volume (mL)</label>
+                  <input type="number" value={perfVol} onChange={e=>setPerfVol(e.target.value)} style={{...inp,padding:'6px 8px'}}/>
+                </div>
+                <div>
+                  <label style={lbl}>Duree (h)</label>
+                  <input type="number" step="0.5" value={perfDuree} onChange={e=>setPerfDuree(e.target.value)} style={{...inp,padding:'6px 8px'}}/>
+                </div>
+              </div>
+              {perfVol&&perfDuree&&<div style={{background:'#f0fdfa',borderRadius:7,padding:'8px 10px',marginBottom:8,fontSize:12,color:'#0d9488',fontWeight:600}}>
+                Debit : {Math.round(parseFloat(perfVol)/parseFloat(perfDuree))} mL/h
+              </div>}
+              <button onClick={()=>ajouterRx('Perf '+perfSolute+' '+perfVol+'mL en '+perfDuree+'h → '+Math.round(parseFloat(perfVol)/parseFloat(perfDuree))+' mL/h')} style={{padding:'7px 14px',borderRadius:7,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none'}}>
+                + Ajouter cette perfusion
+              </button>
+            </div>
           </Section>
 
           <Section id="bio" label="Biologie delocalisee" icon="🧪">
