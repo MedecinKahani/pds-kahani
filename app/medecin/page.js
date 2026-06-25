@@ -432,39 +432,49 @@ export default function PageMedecin() {
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>En attente</span>
             {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
           </div>
-          {/* Slots fixes en attente - toujours 4 visibles */}
-          <div style={{display:'flex',flexDirection:'column',gap:6,flex:1,minHeight:0}}>
-            {[0,1,2,3].map(i => {
-              const p = preau[i];
-              return p ? (
-                <div key={p.id} style={{
-                  background:'#fffbeb',border:'1px solid #fde68a',
-                  borderRadius:10,padding:'10px 12px',flex:1,
-                  display:'flex',flexDirection:'column',justifyContent:'space-between'
-                }}>
-                  <div>
-                    <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-                    <div style={{color:'#6b7280',fontSize:11,marginTop:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.motifPrincipal}</div>
-                    <div style={{color:'#9ca3af',fontSize:10,marginTop:2}}>{duree(p.arrivee)}</div>
-                  </div>
-                  <button onClick={async()=>{
-                    await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
-                    setSel(p); load();
-                  }} style={{marginTop:6,padding:'5px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:11,fontWeight:600,width:'100%'}}>
-                    Faire rentrer
-                  </button>
-                </div>
-              ) : (
-                <div key={i} style={{
-                  flex:1,borderRadius:10,
-                  border:'1.5px dashed #e5e7eb',
-                  background:'transparent',
-                  display:'flex',alignItems:'center',justifyContent:'center'
-                }}>
-                  <span style={{color:'#e5e7eb',fontSize:11}}>--</span>
-                </div>
-              );
-            })}
+          {/* Slots en attente - 4 fixes + scroll si plus */}
+          <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
+            {/* Patients en attente */}
+            {preau.map(p => (
+              <div key={p.id} style={{
+                background:'#fffbeb',border:'1px solid #fde68a',
+                borderRadius:10,padding:'10px 12px',flexShrink:0,
+                minHeight:80,
+              }}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.motifPrincipal}</div>
+                <div style={{color:'#9ca3af',fontSize:10,marginTop:2}}>{duree(p.arrivee)}</div>
+                <button onClick={async()=>{
+                  await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
+                  setSel(p); load();
+                }} style={{marginTop:8,padding:'5px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:11,fontWeight:600,width:'100%'}}>
+                  Faire rentrer
+                </button>
+              </div>
+            ))}
+
+            {/* Slots vides avec + jusqu'a 4 minimum */}
+            {[...Array(Math.max(4 - preau.length, 1))].map((_,i) => (
+              <div key={'empty-'+i} style={{
+                flexShrink:0, minHeight:80, borderRadius:10,
+                border:'1.5px dashed #e5e7eb',
+                background:'transparent',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                cursor:'pointer',
+              }}
+              onClick={()=>router.push('/as')}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor='#0d9488';e.currentTarget.querySelector('button').style.opacity='1';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='#e5e7eb';e.currentTarget.querySelector('button').style.opacity='0.4';}}>
+                <button style={{
+                  width:28,height:28,borderRadius:7,
+                  background:'transparent',border:'1.5px dashed #9ca3af',
+                  color:'#9ca3af',fontSize:18,
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  cursor:'pointer',opacity:0.4,padding:0,
+                  transition:'opacity 0.15s',pointerEvents:'none'
+                }}>+</button>
+              </div>
+            ))}
           </div>
         </div>
 
