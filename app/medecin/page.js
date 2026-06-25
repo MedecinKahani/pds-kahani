@@ -234,21 +234,50 @@ export default function PageMedecin() {
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
 
-            {/* GRILLE UNIQUE 4x3 - toutes cases identiques */}
-            <div style={{
-              display:'grid',
-              gridTemplateColumns:'repeat(4,1fr)',
-              gridTemplateRows:'repeat(3,1fr)',
-              gap:8,
-              flex:1,
-              minHeight:0
-            }}>
-              {/* Ligne 0 */}
-              {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
-              {/* Ligne 1 */}
-              {LIGNE1.map(cell => renderCase(cell))}
-              {/* Ligne 2 */}
-              {LIGNE2.map(cell => renderCase(cell))}
+            {/* GRILLE UNIQUE 4x3 avec contours salles */}
+            <div style={{position:'relative',flex:1,minHeight:0}}>
+
+              {/* Contours salles - positionnés absolument par dessus */}
+              {/* P1 seul - col1, rows 1 */}
+              <div style={{position:'absolute',pointerEvents:'none',zIndex:10,
+                top:0, left:0,
+                width:'calc(25% - 4px)',
+                height:'calc(33.33% - 4px)',
+                border:'2px solid #f59e0b66', borderRadius:14
+              }}/>
+              {/* Observation - col1, rows 2+3 */}
+              <div style={{position:'absolute',pointerEvents:'none',zIndex:10,
+                top:'calc(33.33% + 4px)', left:0,
+                width:'calc(25% - 4px)',
+                height:'calc(66.66% - 4px)',
+                border:'2px solid #16a34a55', borderRadius:14
+              }}/>
+              {/* Salle 2 - cols 2+3, rows 2+3 */}
+              <div style={{position:'absolute',pointerEvents:'none',zIndex:10,
+                top:'calc(33.33% + 4px)', left:'calc(25% + 4px)',
+                width:'calc(50% - 8px)',
+                height:'calc(66.66% - 4px)',
+                border:'2px solid #9ca3af55', borderRadius:14
+              }}/>
+              {/* Dechocage - col4, rows 2+3 */}
+              <div style={{position:'absolute',pointerEvents:'none',zIndex:10,
+                top:'calc(33.33% + 4px)', right:0,
+                width:'calc(25% - 4px)',
+                height:'calc(66.66% - 4px)',
+                border:'2px solid #ef444455', borderRadius:14
+              }}/>
+
+              <div style={{
+                display:'grid',
+                gridTemplateColumns:'repeat(4,1fr)',
+                gridTemplateRows:'repeat(3,1fr)',
+                gap:8,
+                height:'100%'
+              }}>
+                {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
+                {LIGNE1.map(cell => renderCase(cell))}
+                {LIGNE2.map(cell => renderCase(cell))}
+              </div>
             </div>
 
           </div>
