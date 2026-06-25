@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const PIN_CHEF = '023799';
 
 export default function Admin() {
+  const router = useRouter();
   const [pin, setPin] = useState('');
   const [debloque, setDebloque] = useState(false);
   const [erreur, setErreur] = useState('');
@@ -74,7 +76,10 @@ export default function Admin() {
     <div style={{minHeight:'100vh',background:'#f3f4f6',padding:'2rem',fontFamily:'system-ui'}}>
       <div style={{maxWidth:600,margin:'0 auto'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
-          <h1 style={{fontSize:20,fontWeight:700,color:'#111827'}}>Gestion des agents</h1>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <button onClick={()=>router.back()} style={{width:34,height:34,borderRadius:'50%',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:'#374151'}}>←</button>
+            <h1 style={{fontSize:20,fontWeight:700,color:'#111827',margin:0}}>Gestion des agents</h1>
+          </div>
           <button onClick={()=>setDebloque(false)} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer'}}>
             Verrouiller
           </button>
