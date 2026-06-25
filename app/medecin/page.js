@@ -8,6 +8,7 @@ function hasAnomalie(p){return['sat','fc','ta_sys','ta_dia','temp'].some(k=>p[k]
 function duree(ts){const m=Math.floor((Date.now()-parseInt(ts))/60000);return m<60?m+'min':'H'+Math.floor(m/60)+(m%60>0?'h'+(m%60):'');}
 
 const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
+const LEGENDES = {pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
 
 // Couleurs par case
 const C = {
@@ -81,11 +82,7 @@ export default function PageMedecin() {
         <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div style={{display:'flex',alignItems:'baseline',gap:5}}>
             <span style={{fontWeight:800,fontSize:13,color:c}}>{label}</span>
-            {!p&&<span style={{fontSize:9,color:c,opacity:0.5,fontWeight:500}}>{{
-              pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',
-              lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',
-              brancard1:'Brancard 1',brancard2:'Brancard 2'
-            }[id]}}</span>}
+            {!p&&<span style={{fontSize:9,color:c,opacity:0.5,fontWeight:500}}>{LEGENDES[id]}</span>}
           </div>
           {p&&<div style={{display:'flex',gap:3,alignItems:'center'}}>{anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}<div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/></div>}
         </div>
