@@ -74,6 +74,18 @@ function StatCard({ label, value, unit, couleur, icon }) {
           <div style={{ fontSize: 16, color: '#d1d5db' }}>--</div>
         )}
       </div>
+      {/* MODALE VUE ENSEMBLE */}
+      {showVue&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',flexDirection:'column'}}>
+          <div style={{background:'#fff',flex:1,margin:'60px 20px 20px',borderRadius:16,overflow:'hidden',display:'flex',flexDirection:'column',boxShadow:'0 24px 48px rgba(0,0,0,0.3)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
+              <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
+              <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>x</button>
+            </div>
+            <iframe src="/vue-ensemble" style={{flex:1,border:'none',width:'100%'}}/>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -253,7 +265,7 @@ export default function PageAS() {
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
-          <button onClick={() => window.open('/vue-ensemble', '_blank')} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
           <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
           <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
         </div>
@@ -464,58 +476,157 @@ export default function PageAS() {
             {/* DOULEUR */}
             {form.symptome==='douleur'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ? (cliquez sur le schema)</div>
+                <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ? (cliquez sur le schema — selection multiple possible)</div>
                 <div style={{display:'flex',gap:16,alignItems:'flex-start',marginBottom:12}}>
-                  {/* Schema corporel SVG */}
-                  <svg width="120" height="260" viewBox="0 0 120 260" style={{flexShrink:0}}>
-                    {[
-                      {id:'tete',label:'Tete',x:40,y:5,w:40,h:35,rx:18},
-                      {id:'cou',label:'Cou',x:50,y:42,w:20,h:15,rx:5},
-                      {id:'thorax',label:'Thorax',x:25,y:59,w:70,h:55,rx:8},
-                      {id:'abdomen',label:'Abdomen',x:25,y:116,w:70,h:45,rx:8},
-                      {id:'bras_g',label:'Bras G',x:5,y:59,w:18,h:70,rx:6},
-                      {id:'bras_d',label:'Bras D',x:97,y:59,w:18,h:70,rx:6},
-                      {id:'oge',label:'OGE',x:40,y:163,w:40,h:20,rx:5},
-                      {id:'jambe_g',label:'Jambe G',x:25,y:185,w:30,h:70,rx:6},
-                      {id:'jambe_d',label:'Jambe D',x:65,y:185,w:30,h:70,rx:6},
-                    ].map(z=>{
-                      const sel=form.douleur_zones.includes(z.id);
-                      return(
-                        <g key={z.id} onClick={()=>{
-                          const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
-                          set('douleur_zones',zones);
-                        }} style={{cursor:'pointer'}}>
-                          <rect x={z.x} y={z.y} width={z.w} height={z.h} rx={z.rx}
-                            fill={sel?'#0d9488':'#e5e7eb'} stroke={sel?'#0f766e':'#d1d5db'} strokeWidth="1.5"/>
-                          <text x={z.x+z.w/2} y={z.y+z.h/2+1} textAnchor="middle" dominantBaseline="middle"
-                            fontSize="7" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>{z.label}</text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                  {/* Zones selectionnees + oreilles + bouche */}
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:11,color:'#6b7280',marginBottom:6}}>Zones supplementaires :</div>
-                    <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                      {['oreille_g','oreille_d','bouche','dos'].map(z=>{
-                        const labels={oreille_g:'Oreille G',oreille_d:'Oreille D',bouche:'Bouche/Gorge',dos:'Dos'};
-                        const sel=form.douleur_zones.includes(z);
-                        return(
-                          <button key={z} onClick={()=>{
-                            const zones=sel?form.douleur_zones.filter(x=>x!==z):[...form.douleur_zones,z];
-                            set('douleur_zones',zones);
-                          }} style={{padding:'5px 10px',borderRadius:99,fontSize:11,background:sel?'#0d9488':'#fff',color:sel?'#fff':'#374151',border:'1px solid '+(sel?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
-                            {labels[z]}
-                          </button>
-                        );
-                      })}
+
+                  {/* SCHEMAS face + dos cote a cote */}
+                  <div style={{display:'flex',gap:8,flexShrink:0}}>
+                    {/* Face - attention: gauche patient = droite ecran */}
+                    <div style={{textAlign:'center'}}>
+                      <div style={{fontSize:9,color:'#9ca3af',marginBottom:3}}>Face</div>
+                      <svg width="110" height="280" viewBox="0 0 110 280">
+                        {[
+                          {id:'tete',     label:'Tete',        path:'M55,4 C42,4 33,14 33,26 C33,38 42,46 55,46 C68,46 77,38 77,26 C77,14 68,4 55,4 Z'},
+                          {id:'cou',      label:'Cou',         path:'M46,46 L46,58 L64,58 L64,46 Z'},
+                          {id:'thorax',   label:'Thorax',      path:'M25,58 L85,58 L88,115 L22,115 Z'},
+                          {id:'bras_g',   label:'Bras Gauche', path:'M84,60 L96,62 L100,130 L86,128 Z'},
+                          {id:'bras_d',   label:'Bras Droit',  path:'M26,60 L14,62 L10,130 L24,128 Z'},
+                          {id:'avant_bras_g', label:'Avant-bras G', path:'M86,128 L100,130 L102,185 L88,183 Z'},
+                          {id:'avant_bras_d', label:'Avant-bras D', path:'M24,128 L10,130 L8,185 L22,183 Z'},
+                          {id:'abdomen',  label:'Abdomen',     path:'M22,115 L88,115 L86,165 L24,165 Z'},
+                          {id:'bassin',   label:'Bassin/OGE',  path:'M24,165 L86,165 L83,185 L27,185 Z'},
+                          {id:'cuisse_g', label:'Cuisse G',    path:'M55,185 L82,185 L80,240 L57,240 Z'},
+                          {id:'cuisse_d', label:'Cuisse D',    path:'M55,185 L28,185 L30,240 L53,240 Z'},
+                          {id:'jambe_g',  label:'Jambe G',     path:'M57,240 L80,240 L78,278 L59,278 Z'},
+                          {id:'jambe_d',  label:'Jambe D',     path:'M53,240 L30,240 L32,278 L51,278 Z'},
+                        ].map(z=>{
+                          const sel=form.douleur_zones.includes(z.id);
+                          const isBrasG = z.id==='bras_g'||z.id==='avant_bras_g';
+                          return(
+                            <g key={z.id} onClick={()=>{
+                              const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                              set('douleur_zones',zones);
+                            }} style={{cursor:'pointer'}}>
+                              <path d={z.path} fill={sel?(isBrasG?'#ef4444':'#0d9488'):'#e5e7eb'} stroke={sel?(isBrasG?'#b91c1c':'#0f766e'):'#c4c4c4'} strokeWidth="1"/>
+                              <text textAnchor="middle" fontSize="6" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>
+                                {z.id==='tete'&&<><tspan x="55" dy="22">{z.label}</tspan></>}
+                                {z.id==='cou'&&<><tspan x="55" dy="54">{z.label}</tspan></>}
+                                {z.id==='thorax'&&<><tspan x="55" dy="86">{z.label}</tspan></>}
+                                {z.id==='bras_g'&&<><tspan x="93" dy="97">Bras G</tspan></>}
+                                {z.id==='bras_d'&&<><tspan x="17" dy="97">Bras D</tspan></>}
+                                {z.id==='avant_bras_g'&&<><tspan x="95" dy="155">AVB G</tspan></>}
+                                {z.id==='avant_bras_d'&&<><tspan x="15" dy="155">AVB D</tspan></>}
+                                {z.id==='abdomen'&&<><tspan x="55" dy="143">{z.label}</tspan></>}
+                                {z.id==='bassin'&&<><tspan x="55" dy="178">Bassin</tspan></>}
+                                {z.id==='cuisse_g'&&<><tspan x="69" dy="215">Cuisse G</tspan></>}
+                                {z.id==='cuisse_d'&&<><tspan x="41" dy="215">Cuisse D</tspan></>}
+                                {z.id==='jambe_g'&&<><tspan x="69" dy="260">Jambe G</tspan></>}
+                                {z.id==='jambe_d'&&<><tspan x="41" dy="260">Jambe D</tspan></>}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
                     </div>
-                    {form.douleur_zones.length>0&&(
-                      <div style={{marginTop:8,padding:'8px 10px',background:'#f0fdfa',borderRadius:8,border:'1px solid #99f6e4'}}>
-                        <div style={{fontSize:10,color:'#0d9488',fontWeight:600,marginBottom:3}}>Localisation :</div>
-                        <div style={{fontSize:11,color:'#374151'}}>{form.douleur_zones.join(', ')}</div>
+
+                    {/* Dos */}
+                    <div style={{textAlign:'center'}}>
+                      <div style={{fontSize:9,color:'#9ca3af',marginBottom:3}}>Dos</div>
+                      <svg width="110" height="280" viewBox="0 0 110 280">
+                        {[
+                          {id:'tete_dos',     label:'Tete (dos)',   path:'M55,4 C42,4 33,14 33,26 C33,38 42,46 55,46 C68,46 77,38 77,26 C77,14 68,4 55,4 Z'},
+                          {id:'cou_dos',      label:'Cou (dos)',    path:'M46,46 L46,58 L64,58 L64,46 Z'},
+                          {id:'dos_haut',     label:'Dos haut',     path:'M25,58 L85,58 L88,115 L22,115 Z'},
+                          {id:'bras_g_dos',   label:'Bras G (dos)', path:'M84,60 L96,62 L100,130 L86,128 Z'},
+                          {id:'bras_d_dos',   label:'Bras D (dos)', path:'M26,60 L14,62 L10,130 L24,128 Z'},
+                          {id:'dos_bas',      label:'Dos bas/Reins',path:'M22,115 L88,115 L86,165 L24,165 Z'},
+                          {id:'fesses',       label:'Fesses',       path:'M24,165 L86,165 L83,185 L27,185 Z'},
+                          {id:'cuisse_g_dos', label:'Cuisse G (dos)',path:'M55,185 L82,185 L80,240 L57,240 Z'},
+                          {id:'cuisse_d_dos', label:'Cuisse D (dos)',path:'M55,185 L28,185 L30,240 L53,240 Z'},
+                          {id:'mollet_g',     label:'Mollet G',     path:'M57,240 L80,240 L78,278 L59,278 Z'},
+                          {id:'mollet_d',     label:'Mollet D',     path:'M53,240 L30,240 L32,278 L51,278 Z'},
+                        ].map(z=>{
+                          const sel=form.douleur_zones.includes(z.id);
+                          return(
+                            <g key={z.id} onClick={()=>{
+                              const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                              set('douleur_zones',zones);
+                            }} style={{cursor:'pointer'}}>
+                              <path d={z.path} fill={sel?'#8b5cf6':'#e5e7eb'} stroke={sel?'#6d28d9':'#c4c4c4'} strokeWidth="1"/>
+                              <text textAnchor="middle" fontSize="6" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>
+                                {z.id==='tete_dos'&&<tspan x="55" dy="22">Tete</tspan>}
+                                {z.id==='dos_haut'&&<tspan x="55" dy="86">Dos haut</tspan>}
+                                {z.id==='bras_g_dos'&&<tspan x="93" dy="97">Bras G</tspan>}
+                                {z.id==='bras_d_dos'&&<tspan x="17" dy="97">Bras D</tspan>}
+                                {z.id==='dos_bas'&&<tspan x="55" dy="143">Dos bas</tspan>}
+                                {z.id==='fesses'&&<tspan x="55" dy="178">Fesses</tspan>}
+                                {z.id==='cuisse_g_dos'&&<tspan x="69" dy="215">Cuisse G</tspan>}
+                                {z.id==='cuisse_d_dos'&&<tspan x="41" dy="215">Cuisse D</tspan>}
+                                {z.id==='mollet_g'&&<tspan x="69" dy="260">Mollet G</tspan>}
+                                {z.id==='mollet_d'&&<tspan x="41" dy="260">Mollet D</tspan>}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Recap zones + alertes */}
+                  <div style={{flex:1}}>
+                    {/* Alerte bras gauche */}
+                    {(form.douleur_zones.includes('bras_g')||form.douleur_zones.includes('avant_bras_g'))&&(
+                      <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px',marginBottom:10}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Douleur bras gauche - Faire ECG</div>
+                        <div style={{color:'#ef4444',fontSize:12,marginTop:3}}>Allonger le patient et appeler le medecin immediatement</div>
                       </div>
                     )}
+
+                    {/* Zones selectionnees */}
+                    {form.douleur_zones.length>0&&(
+                      <div style={{background:'#f0fdfa',borderRadius:8,border:'1px solid #99f6e4',padding:'8px 10px',marginBottom:10}}>
+                        <div style={{fontSize:10,color:'#0d9488',fontWeight:700,marginBottom:5}}>Zones selectionnees :</div>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                          {form.douleur_zones.map(z=>(
+                            <span key={z} style={{background:'#fff',border:'1px solid #99f6e4',color:'#0d9488',fontSize:11,padding:'2px 8px',borderRadius:99,display:'flex',alignItems:'center',gap:4}}>
+                              {z.replace(/_/g,' ')}
+                              <button onClick={()=>set('douleur_zones',form.douleur_zones.filter(x=>x!==z))} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:13,lineHeight:1,padding:0}}>x</button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* EVA */}
+                    <div>
+                      <label style={{...lbl}}>Intensite (EVA 0-10)</label>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <input type="range" min="0" max="10" value={form.douleur_eva} onChange={e=>set('douleur_eva',parseInt(e.target.value))}
+                          style={{flex:1,accentColor:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}/>
+                        <span style={{fontSize:22,fontWeight:800,minWidth:28,textAlign:'center',color:form.douleur_eva>=7?'#ef4444':form.douleur_eva>=4?'#f59e0b':'#16a34a'}}>{form.douleur_eva}</span>
+                      </div>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'#9ca3af'}}>
+                        <span>Pas de douleur</span><span>Douleur maximale</span>
+                      </div>
+                    </div>
+
+                    {/* Zones supplementaires boutons */}
+                    <div style={{marginTop:10}}>
+                      <label style={lbl}>Autres zones</label>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                        {[{id:'oreille_g',l:'Oreille gauche'},{id:'oreille_d',l:'Oreille droite'},{id:'bouche',l:'Bouche/Gorge'},{id:'oeil_g',l:'Oeil gauche'},{id:'oeil_d',l:'Oeil droit'}].map(z=>{
+                          const sel=form.douleur_zones.includes(z.id);
+                          return(
+                            <button key={z.id} onClick={()=>{
+                              const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                              set('douleur_zones',zones);
+                            }} style={{padding:'5px 10px',borderRadius:99,fontSize:11,background:sel?'#0d9488':'#fff',color:sel?'#fff':'#374151',border:'1px solid '+(sel?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
+                              {z.l}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -784,6 +895,18 @@ export default function PageAS() {
             style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
             Enregistrer le patient
           </button>
+        </div>
+      )}
+      {/* MODALE VUE ENSEMBLE */}
+      {showVue&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',flexDirection:'column'}}>
+          <div style={{background:'#fff',flex:1,margin:'60px 20px 20px',borderRadius:16,overflow:'hidden',display:'flex',flexDirection:'column',boxShadow:'0 24px 48px rgba(0,0,0,0.3)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
+              <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
+              <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>x</button>
+            </div>
+            <iframe src="/vue-ensemble" style={{flex:1,border:'none',width:'100%'}}/>
+          </div>
         </div>
       )}
     </div>
