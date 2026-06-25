@@ -120,7 +120,7 @@ export default function PageAS() {
     allergie: '', allergie_detail: '',
     medicaments_today: '', medicaments_detail: '',
     fc: '', sat: '', tas: '', tad: '', temp: '', poids: '', taille: '',
-    symptome: '', symptome_autre: '', signe_lutte: '', respire: '',
+    symptome: '', symptome_autre: '', signe_lutte: '', respire: '', dextro: '', hemocue: '',
     douleur_zones: [], douleur_eva: 5,
     fievre_depuis: '',
     plaie_vaccin: '', quicktest: '',
@@ -230,7 +230,7 @@ export default function PageAS() {
     if (d.ok) {
       setPatients(d.patients);
       setVue('liste');
-      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
+      setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',dextro:'',hemocue:'',douleur_zones:[],douleur_eva:5,fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
 
@@ -644,8 +644,25 @@ export default function PageAS() {
             {/* VERTIGE */}
             {form.symptome==='vertige'&&(
               <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
-                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13}}>Vertige / Malaise - A realiser</div>
-                <div style={{color:'#3b82f6',fontSize:12,marginTop:4}}>Realiser un dextro et un hemocue.</div>
+                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13,marginBottom:10}}>Vertige / Malaise - Realiser dextro et hemocue</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Dextro (g/L)</label>
+                    <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
+                      placeholder="Ex: 1.0"
+                      style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
+                    {form.dextro&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie - Alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie - Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
+                    <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
+                      placeholder="Ex: 12.0"
+                      style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
+                    {form.hemocue&&parseFloat(form.hemocue)<8&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie severe - Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=8&&parseFloat(form.hemocue)<10&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee - Prevenir medecin</div>}
+                  </div>
+                </div>
               </div>
             )}
 
