@@ -589,17 +589,22 @@ export default function PageAS() {
                       </div>
                     )}
 
-                    {/* EVA */}
+                    {/* Intensite */}
                     <div>
-                      <label style={lbl}>Intensite douleur (EVA 0-10)</label>
-                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                        {[0,1,2,3,4,5,6,7,8,9,10].map(n=>(
-                          <button key={n} onClick={()=>set('douleur_eva',n)} style={{
-                            width:36,height:36,borderRadius:8,fontSize:14,fontWeight:700,cursor:'pointer',
-                            background:form.douleur_eva===n?(n>=7?'#ef4444':n>=4?'#f59e0b':'#16a34a'):'#f3f4f6',
-                            color:form.douleur_eva===n?'#fff':(n>=7?'#ef4444':n>=4?'#f59e0b':'#374151'),
-                            border:'1.5px solid '+(form.douleur_eva===n?(n>=7?'#ef4444':n>=4?'#f59e0b':'#16a34a'):'#e5e7eb')
-                          }}>{n}</button>
+                      <label style={lbl}>Intensite de la douleur</label>
+                      <div style={{display:'flex',gap:8}}>
+                        {[
+                          {id:3, label:'Legere', color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0'},
+                          {id:6, label:'Moyenne', color:'#f59e0b', bg:'#fffbeb', border:'#fde68a'},
+                          {id:9, label:'Intense', color:'#ef4444', bg:'#fef2f2', border:'#fecaca'},
+                        ].map(o=>(
+                          <button key={o.id} onClick={()=>set('douleur_eva',o.id)} style={{
+                            flex:1, padding:'12px 8px', borderRadius:10, cursor:'pointer',
+                            background:form.douleur_eva===o.id?o.color:o.bg,
+                            color:form.douleur_eva===o.id?'#fff':o.color,
+                            border:'2px solid '+(form.douleur_eva===o.id?o.color:o.border),
+                            fontWeight:700, fontSize:14,
+                          }}>{o.label}</button>
                         ))}
                       </div>
                     </div>
