@@ -1,6 +1,14 @@
 'use client';
 import { useState } from 'react';
 
+function safeJSON(val, fallback=[]) {
+  if(!val) return fallback;
+  if(typeof val === 'string') { try { return JSON.parse(val); } catch(e) { return fallback; } }
+  if(Array.isArray(val)) return val;
+  if(typeof val === 'object') return val;
+  return fallback;
+}
+
 const inp = {width:'100%',padding:'8px 10px',borderRadius:8,border:'1.5px solid #e5e7eb',fontSize:13,outline:'none',background:'#fff',color:'#111827',boxSizing:'border-box',fontFamily:'system-ui'};
 const lbl = {fontSize:11,fontWeight:600,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,display:'block'};
 
