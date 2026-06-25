@@ -58,7 +58,7 @@ export default function PageMedecin() {
     const grid=gridRef.current;
     if(!grid)return;
     const gb=grid.getBoundingClientRect();
-    const pad=6;
+    const pad=8;
     const newRects=[];
     for(const groupe of GROUPES){
       const cells=groupe.ids.map(id=>grid.querySelector('[data-id="'+id+'"]')).filter(Boolean);
@@ -136,7 +136,7 @@ export default function PageMedecin() {
     const isSelected=sel?.id===p?.id;
     return(
       <div data-id={cell.id} onClick={()=>{if(!p)return;setSel(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
-        style={{background:p?'#fff':bgVide,border:'1.5px solid '+(isSelected?c:p?c:c+'66'),borderRadius:10,cursor:p?'pointer':'default',transition:'all 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',width:'100%',height:'100%',boxSizing:'border-box'}}>
+        style={{background:p?'#fff':bgVide,border:'1.5px solid '+(isSelected?c:'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'all 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',width:'100%',height:'100%',boxSizing:'border-box'}}>
         <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <span style={{fontWeight:800,fontSize:13,color:c}}>{cell.label}</span>
           {p&&<div style={{display:'flex',gap:3,alignItems:'center'}}>{anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}<div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/></div>}
@@ -189,7 +189,7 @@ export default function PageMedecin() {
               <svg style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:10,overflow:'visible'}}>
                 {svgRects.map((r,i)=>(
                   <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx="14"
-                    fill={r.color+'08'} stroke={r.color} strokeWidth="2" strokeOpacity="0.7"/>
+                    fill={r.color+'08'} stroke={r.color} strokeWidth="2.5" strokeOpacity="0.85"/>
                 ))}
               </svg>
 
