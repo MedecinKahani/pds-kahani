@@ -197,7 +197,7 @@ export default function PageAS() {
     const hasOrangeConst = [cfcCol, csatCol, ctasCol, ctadCol, ctempCol].includes('orange');
 
     if (!hasRedConst && !hasOrangeConst && s !== 'coma') {
-      return { place: 'preau', label: 'Salle d\'attente (preau)', urgence: false, msg: 'Constantes normales - faire patienter en salle d\'attente. Le medecin appellera le patient.' };
+      return { place: 'preau', label: 'Salle d\'attente dehors', urgence: false, msg: 'Constantes normales - faire patienter dehors.' };
     }
 
     if (hasRedConst) {
@@ -208,7 +208,7 @@ export default function PageAS() {
     if (libre('lit1')) return { place: 'lit1', label: 'L1 - Lit 1', urgence: false, msg: null };
     if (libre('lit2')) return { place: 'lit2', label: 'L2 - Lit 2', urgence: false, msg: null };
     if (libre('obs1')) return { place: 'obs1', label: 'O1 - Observation', urgence: false, msg: null };
-    return { place: 'preau', label: 'Salle d\'attente', urgence: false, msg: 'Toutes les places sont occupees - faire patienter.' };
+    return { place: 'preau', label: 'Salle d\'attente dehors', urgence: false, msg: 'Toutes les places sont occupees - faire patienter dehors.' };
   }
 
   const placement = form.symptome ? calcPlacement() : null;
@@ -470,33 +470,53 @@ export default function PageAS() {
                 <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:10}}>
                   {/* SVG FACE */}
                   <div style={{textAlign:'center',flexShrink:0}}>
-                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>FACE</div>
-                    <svg width="100" height="260" viewBox="0 0 100 260" style={{display:'block'}}>
+                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>FACE — cliquer</div>
+                    <svg width="110" height="300" viewBox="0 0 110 300" style={{display:'block'}}>
                       {[
-                        {id:'tete',      cx:50, cy:20, rx:22, ry:20, label:'Tete'},
-                        {id:'cou',       cx:50, cy:48, rx:10, ry:8,  label:'Cou'},
-                        {id:'thorax',    cx:50, cy:82, rx:30, ry:26, label:'Thorax'},
-                        {id:'bras_g',    cx:86, cy:90, rx:10, ry:28, label:'Bras G'},
-                        {id:'bras_d',    cx:14, cy:90, rx:10, ry:28, label:'Bras D'},
-                        {id:'abdomen',   cx:50, cy:128,rx:28, ry:20, label:'Abdomen'},
-                        {id:'bassin',    cx:50, cy:160,rx:24, ry:14, label:'Bassin'},
-                        {id:'cuisse_g',  cx:63, cy:200,rx:14, ry:28, label:'Cuisse G'},
-                        {id:'cuisse_d',  cx:37, cy:200,rx:14, ry:28, label:'Cuisse D'},
-                        {id:'jambe_g',   cx:63, cy:244,rx:11, ry:20, label:'Jambe G'},
-                        {id:'jambe_d',   cx:37, cy:244,rx:11, ry:20, label:'Jambe D'},
+                        // Tête
+                        {id:'tete', d:'M55,2 C43,2 35,12 35,24 C35,38 43,46 55,46 C67,46 75,38 75,24 C75,12 67,2 55,2 Z', label:'Tete', lx:55, ly:26},
+                        // Cou
+                        {id:'cou', d:'M47,46 L47,58 L63,58 L63,46 Z', label:'Cou', lx:55, ly:53},
+                        // Thorax
+                        {id:'thorax', d:'M22,58 L88,58 L92,118 L18,118 Z', label:'Thorax', lx:55, ly:88},
+                        // Bras gauche patient (droite ecran)
+                        {id:'bras_g', d:'M88,60 L100,64 L104,118 L90,114 Z', label:'Bras G', lx:97, ly:88},
+                        // Avant-bras gauche
+                        {id:'avant_bras_g', d:'M90,114 L104,118 L106,168 L92,164 Z', label:'AVB G', lx:99, ly:141},
+                        // Main gauche
+                        {id:'main_g', d:'M92,164 L106,168 L108,188 L90,184 Z', label:'Main G', lx:99, ly:176},
+                        // Bras droit patient (gauche ecran)
+                        {id:'bras_d', d:'M22,60 L10,64 L6,118 L20,114 Z', label:'Bras D', lx:13, ly:88},
+                        // Avant-bras droit
+                        {id:'avant_bras_d', d:'M20,114 L6,118 L4,168 L18,164 Z', label:'AVB D', lx:11, ly:141},
+                        // Main droite
+                        {id:'main_d', d:'M18,164 L4,168 L2,188 L20,184 Z', label:'Main D', lx:11, ly:176},
+                        // Abdomen
+                        {id:'abdomen', d:'M18,118 L92,118 L90,168 L20,168 Z', label:'Abdomen', lx:55, ly:143},
+                        // Bassin
+                        {id:'bassin', d:'M20,168 L90,168 L86,192 L24,192 Z', label:'Bassin', lx:55, ly:180},
+                        // Cuisse gauche patient (droite ecran)
+                        {id:'cuisse_g', d:'M55,192 L84,192 L82,248 L57,248 Z', label:'Cuisse G', lx:71, ly:220},
+                        // Cuisse droite patient (gauche ecran)
+                        {id:'cuisse_d', d:'M55,192 L26,192 L28,248 L53,248 Z', label:'Cuisse D', lx:39, ly:220},
+                        // Jambe gauche
+                        {id:'jambe_g', d:'M57,248 L82,248 L80,288 L59,288 Z', label:'Jambe G', lx:70, ly:268},
+                        // Jambe droite
+                        {id:'jambe_d', d:'M53,248 L28,248 L30,288 L51,288 Z', label:'Jambe D', lx:40, ly:268},
+                        // Pied gauche
+                        {id:'pied_g', d:'M59,288 L80,288 L84,300 L59,300 Z', label:'Pied G', lx:71, ly:295},
+                        // Pied droit
+                        {id:'pied_d', d:'M51,288 L30,288 L26,300 L51,300 Z', label:'Pied D', lx:39, ly:295},
                       ].map(z=>{
                         const sel=form.douleur_zones.includes(z.id);
-                        const rouge=z.id==='bras_g';
+                        const rouge=z.id==='bras_g'||z.id==='avant_bras_g';
                         return(
                           <g key={z.id} onClick={()=>{
                             const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
                             set('douleur_zones',zones);
                           }} style={{cursor:'pointer'}}>
-                            <ellipse cx={z.cx} cy={z.cy} rx={z.rx} ry={z.ry}
-                              fill={sel?(rouge?'#ef4444':'#0d9488'):'#e5e7eb'}
-                              stroke={sel?(rouge?'#b91c1c':'#0f766e'):'#c4c4c4'} strokeWidth="1"/>
-                            <text x={z.cx} y={z.cy} textAnchor="middle" dominantBaseline="middle"
-                              fontSize="6" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>{z.label}</text>
+                            <path d={z.d} fill={sel?(rouge?'#ef4444':'#0d9488'):'#e2e8f0'} stroke={sel?(rouge?'#b91c1c':'#0f766e'):'#94a3b8'} strokeWidth="1.5" strokeLinejoin="round"/>
+                            <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle" fontSize="6" fill={sel?'#fff':'#64748b'} fontWeight={sel?'700':'500'}>{z.label}</text>
                           </g>
                         );
                       })}
@@ -505,20 +525,24 @@ export default function PageAS() {
 
                   {/* SVG DOS */}
                   <div style={{textAlign:'center',flexShrink:0}}>
-                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>DOS</div>
-                    <svg width="100" height="260" viewBox="0 0 100 260" style={{display:'block'}}>
+                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>DOS — cliquer</div>
+                    <svg width="110" height="300" viewBox="0 0 110 300" style={{display:'block'}}>
                       {[
-                        {id:'tete_dos',     cx:50, cy:20, rx:22, ry:20, label:'Tete'},
-                        {id:'nuque',        cx:50, cy:48, rx:10, ry:8,  label:'Nuque'},
-                        {id:'dos_haut',     cx:50, cy:82, rx:30, ry:26, label:'Dos haut'},
-                        {id:'bras_g_dos',   cx:86, cy:90, rx:10, ry:28, label:'Bras G'},
-                        {id:'bras_d_dos',   cx:14, cy:90, rx:10, ry:28, label:'Bras D'},
-                        {id:'dos_bas',      cx:50, cy:128,rx:28, ry:20, label:'Dos bas'},
-                        {id:'fesses',       cx:50, cy:160,rx:24, ry:14, label:'Fesses'},
-                        {id:'cuisse_g_dos', cx:63, cy:200,rx:14, ry:28, label:'Cuisse G'},
-                        {id:'cuisse_d_dos', cx:37, cy:200,rx:14, ry:28, label:'Cuisse D'},
-                        {id:'mollet_g',     cx:63, cy:244,rx:11, ry:20, label:'Mollet G'},
-                        {id:'mollet_d',     cx:37, cy:244,rx:11, ry:20, label:'Mollet D'},
+                        {id:'tete_dos', d:'M55,2 C43,2 35,12 35,24 C35,38 43,46 55,46 C67,46 75,38 75,24 C75,12 67,2 55,2 Z', label:'Tete', lx:55, ly:26},
+                        {id:'nuque', d:'M47,46 L47,58 L63,58 L63,46 Z', label:'Nuque', lx:55, ly:53},
+                        {id:'dos_haut', d:'M22,58 L88,58 L92,118 L18,118 Z', label:'Dos haut', lx:55, ly:88},
+                        {id:'bras_g_dos', d:'M88,60 L100,64 L104,118 L90,114 Z', label:'Bras G', lx:97, ly:88},
+                        {id:'avb_g_dos', d:'M90,114 L104,118 L106,168 L92,164 Z', label:'AVB G', lx:99, ly:141},
+                        {id:'bras_d_dos', d:'M22,60 L10,64 L6,118 L20,114 Z', label:'Bras D', lx:13, ly:88},
+                        {id:'avb_d_dos', d:'M20,114 L6,118 L4,168 L18,164 Z', label:'AVB D', lx:11, ly:141},
+                        {id:'dos_bas', d:'M18,118 L92,118 L90,168 L20,168 Z', label:'Dos bas', lx:55, ly:143},
+                        {id:'fesses', d:'M20,168 L90,168 L86,192 L24,192 Z', label:'Fesses', lx:55, ly:180},
+                        {id:'cuisse_g_dos', d:'M55,192 L84,192 L82,248 L57,248 Z', label:'Cuisse G', lx:71, ly:220},
+                        {id:'cuisse_d_dos', d:'M55,192 L26,192 L28,248 L53,248 Z', label:'Cuisse D', lx:39, ly:220},
+                        {id:'mollet_g', d:'M57,248 L82,248 L80,288 L59,288 Z', label:'Mollet G', lx:70, ly:268},
+                        {id:'mollet_d', d:'M53,248 L28,248 L30,288 L51,288 Z', label:'Mollet D', lx:40, ly:268},
+                        {id:'talon_g', d:'M59,288 L80,288 L84,300 L59,300 Z', label:'Talon G', lx:71, ly:295},
+                        {id:'talon_d', d:'M51,288 L30,288 L26,300 L51,300 Z', label:'Talon D', lx:39, ly:295},
                       ].map(z=>{
                         const sel=form.douleur_zones.includes(z.id);
                         return(
@@ -526,18 +550,15 @@ export default function PageAS() {
                             const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
                             set('douleur_zones',zones);
                           }} style={{cursor:'pointer'}}>
-                            <ellipse cx={z.cx} cy={z.cy} rx={z.rx} ry={z.ry}
-                              fill={sel?'#8b5cf6':'#e5e7eb'}
-                              stroke={sel?'#6d28d9':'#c4c4c4'} strokeWidth="1"/>
-                            <text x={z.cx} y={z.cy} textAnchor="middle" dominantBaseline="middle"
-                              fontSize="6" fill={sel?'#fff':'#6b7280'} fontWeight={sel?'700':'400'}>{z.label}</text>
+                            <path d={z.d} fill={sel?'#8b5cf6':'#e2e8f0'} stroke={sel?'#6d28d9':'#94a3b8'} strokeWidth="1.5" strokeLinejoin="round"/>
+                            <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle" fontSize="6" fill={sel?'#fff':'#64748b'} fontWeight={sel?'700':'500'}>{z.label}</text>
                           </g>
                         );
                       })}
                     </svg>
                   </div>
 
-                  {/* PANNEAU DROIT */}
+                                    {/* PANNEAU DROIT */}
                   <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
                     {/* Alerte bras gauche */}
                     {(form.douleur_zones.includes('bras_g'))&&(
@@ -1005,7 +1026,7 @@ export default function PageAS() {
                   ):(
                     <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
                       <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Constantes normales</div>
-                      <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Faire patienter dehors (Preau)</div>
+                      <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Faire patienter dehors</div>
                     </div>
                   )
                 )}
