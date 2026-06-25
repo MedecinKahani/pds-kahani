@@ -324,14 +324,35 @@ export default function PageMedecin() {
             {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
           </div>
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
-            {preau.map(p=>(
+            {preau.map(p=>{
+              const placesLibres=[
+                {id:'lit1',l:'L1 - Lit 1'},{id:'lit2',l:'L2 - Lit 2'},
+                {id:'obs1',l:'O1 - Obs'},{id:'obs2',l:'O2 - Obs'},
+                {id:'fauteuil1',l:'F1 - Fauteuil'},{id:'fauteuil2',l:'F2 - Fauteuil'},
+                {id:'brancard1',l:'B1 - Brancard'},{id:'brancard2',l:'B2 - Brancard'},
+                {id:'pansement',l:'P1 - Pansement'},
+              ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
+              return(
               <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0}}>
                 <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-                <div style={{color:'#6b7280',fontSize:11,marginTop:2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.motifPrincipal}</div>
-                <div style={{color:'#9ca3af',fontSize:10,marginTop:2}}>{duree(p.arrivee)}</div>
-                <button onClick={async()=>{await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});setSel(p);load();}} style={{marginTop:8,padding:'5px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:11,fontWeight:600,width:'100%'}}>Faire rentrer</button>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.symptome||p.motifPrincipal}</div>
+                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{duree(p.arrivee)}</div>
+                {p.emplacement_suggere&&<div style={{color:'#0d9488',fontSize:10,marginTop:1,fontWeight:600}}>Suggere : {p.emplacement_suggere}</div>}
+                <div style={{display:'flex',gap:5,marginTop:8}}>
+                  <select onChange={async e=>{
+                    if(!e.target.value) return;
+                    await patch(p.id,{statut:'attente_medecin',emplacement:e.target.value});
+                    load();
+                  }} defaultValue="" style={{flex:1,padding:'5px 4px',borderRadius:6,border:'1px solid #e5e7eb',fontSize:10,background:'#fff',cursor:'pointer'}}>
+                    <option value="">Installer...</option>
+                    {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
+                  </select>
+                  <button onClick={()=>{setFicheOuverte(p);}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+                    Cslt
+                  </button>
+                </div>
               </div>
-            ))}
+            );})}
             {[...Array(Math.max(4-preau.length,1))].map((_,i)=>(
               <div key={'e'+i} onClick={()=>router.push('/nouveau-patient')} style={{flexShrink:0,minHeight:72,borderRadius:10,border:'1.5px dashed #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#0d9488'}
