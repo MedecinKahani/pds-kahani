@@ -22,6 +22,13 @@ function duree(ts) {
   return m<60?`${m}m`:`${Math.floor(m/60)}h${(m%60).toString().padStart(2,'0')}`;
 }
 
+function hx(ts) {
+  const m = Math.floor((Date.now()-parseInt(ts))/60000);
+  if(m<60) return m+'min';
+  const h=Math.floor(m/60); const mn=m%60;
+  return 'H'+h+(mn>0?('h'+mn):'');
+}
+
 const COULEURS = {
   brancard1:'#ef4444', brancard2:'#ef4444',
   lit1:'#9ca3af', lit2:'#9ca3af',
@@ -198,14 +205,6 @@ export default function PageMedecin() {
                   const attente = p?.statut==='attente_medecin';
                   const anomalie = p&&hasAnomalie(p);
                   const isSelected = sel?.id===p?.id;
-
-                  // durée en Hx
-                  function hx(ts) {
-                    const m = Math.floor((Date.now()-parseInt(ts))/60000);
-                    if(m<60) return m+'min';
-                    const h=Math.floor(m/60); const mn=m%60;
-                    return `H${h}`+(mn>0?`${mn}`:'');
-                  }
 
                   return (
                     <div key={ci} onClick={()=>{
