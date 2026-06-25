@@ -267,94 +267,143 @@ export default function PageMedecin() {
 
           {/* FICHE PATIENT */}
           {sel&&(
-            <div style={{flex:1,background:'#fff',borderLeft:'1px solid #e5e7eb',padding:'1.5rem',overflowY:'auto'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.25rem'}}>
+            <div style={{width:380,flexShrink:0,background:'#fff',borderLeft:'1px solid #e5e7eb',overflowY:'auto',display:'flex',flexDirection:'column'}}>
+
+              {/* Header patient style Odaiji */}
+              <div style={{background:'#f0fdfa',padding:'1.25rem 1.25rem 1rem',borderBottom:'1px solid #e5e7eb'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{width:44,height:44,borderRadius:'50%',background:'#ccfbf1',border:'2px solid #5eead4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>
+                      {sel.sexe==='F'?'F':'M'}
+                    </div>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:16,color:'#111827',lineHeight:1.2}}>{sel.nom} {sel.prenom}</div>
+                      <div style={{fontSize:12,color:'#6b7280',marginTop:3}}>{sel.age} ans - {sel.sexe==='F'?'Femme':'Homme'}</div>
+                      {sel.ipp&&<div style={{fontSize:11,color:'#9ca3af',marginTop:1}}>IPP {sel.ipp}</div>}
+                    </div>
+                  </div>
+                  <button onClick={()=>setSel(null)} style={{width:28,height:28,borderRadius:'50%',background:'#e5e7eb',color:'#6b7280',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>x</button>
+                </div>
+                {sel.allergie==='Oui'&&(
+                  <div style={{marginTop:10,background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 12px',display:'flex',alignItems:'center',gap:6}}>
+                    <span style={{fontSize:14}}>!</span>
+                    <span style={{color:'#dc2626',fontWeight:600,fontSize:12}}>Allergie : {sel.allergie_detail}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{padding:'1rem 1.25rem',flex:1,display:'flex',flexDirection:'column',gap:16}}>
+
+                {/* CONSTANTES */}
                 <div>
-                  <h2 style={{fontSize:18,fontWeight:700,color:'#111827'}}>{sel.nom} {sel.prenom}</h2>
-                  <div style={{fontSize:13,color:'#6b7280',marginTop:1}}>{sel.age} ans - {sel.sexe==='F'?'Femme':'Homme'} - IPP {sel.ipp||'--'}</div>
+                  <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:8}}>Dernieres mesures</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6}}>
+                    {[
+                      {k:'sat',  l:'Saturation', u:'%',    icon:'💧'},
+                      {k:'fc',   l:'Freq. card.', u:'bpm', icon:'❤️'},
+                      {k:'ta_sys',l:'PAS',        u:'mmHg',icon:'🩸'},
+                      {k:'ta_dia',l:'PAD',        u:'mmHg',icon:'🩸'},
+                      {k:'temp', l:'Temperature', u:'C',   icon:'🌡️'},
+                      {k:'dextro',l:'Glycemie',   u:'g/L', icon:'💧'},
+                    ].map(({k,l,u,icon})=>{
+                      const bad = sel[k]&&isAnormal(sel[k],k);
+                      return (
+                        <div key={k} style={{background:bad?'#fef2f2':'#f9fafb',borderRadius:10,padding:'10px 8px',border:'1px solid '+(bad?'#fecaca':'#f3f4f6')}}>
+                          <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:4}}>
+                            <span style={{fontSize:12}}>{icon}</span>
+                            <span style={{fontSize:9,color:'#9ca3af',fontWeight:600,textTransform:'uppercase',letterSpacing:0.5}}>{l}</span>
+                          </div>
+                          <div style={{fontSize:18,fontWeight:700,color:bad?'#ef4444':sel[k]?'#111827':'#d1d5db',lineHeight:1}}>{sel[k]||'--'}</div>
+                          <div style={{fontSize:9,color:'#9ca3af',marginTop:2}}>{u}{bad?' - Anormal':''}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <button onClick={()=>setSel(null)} style={{width:30,height:30,borderRadius:'50%',background:'#f3f4f6',color:'#6b7280',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>x</button>
-              </div>
 
-              {sel.allergie==='Oui'&&(
-                <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginBottom:'1rem'}}>
-                  <span style={{color:'#dc2626',fontWeight:600,fontSize:13}}>ALLERGIE : {sel.allergie_detail}</span>
+                {/* MOTIF */}
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:8}}>Motif de consultation</div>
+                  <div style={{background:'#f9fafb',borderRadius:10,padding:'12px',border:'1px solid #f3f4f6'}}>
+                    <div style={{fontWeight:600,color:'#111827',fontSize:14}}>{sel.motifPrincipal||'--'}</div>
+                    {sel.douleur_eva&&<div style={{color:'#6b7280',fontSize:12,marginTop:4}}>Douleur EVA {sel.douleur_eva}/10</div>}
+                    {sel.fievre_depuis&&<div style={{color:'#f59e0b',fontSize:12,marginTop:4}}>Fievre depuis : {sel.fievre_depuis}</div>}
+                    {sel.plaie_vaccin&&<div style={{color:'#6b7280',fontSize:12,marginTop:4}}>Vaccin : {sel.plaie_vaccin}</div>}
+                    {sel.quicktest_tetanos&&<div style={{color:'#6b7280',fontSize:12,marginTop:2}}>Test tetanos : {sel.quicktest_tetanos}</div>}
+                    {sel.bu_urine&&<div style={{color:'#8b5cf6',fontSize:12,marginTop:4}}>BU / bHCG : {sel.bhcg?'realise':'en attente'}</div>}
+                    {sel.notes_as&&<div style={{color:'#6b7280',fontSize:12,marginTop:8,paddingTop:8,borderTop:'1px solid #e5e7eb',fontStyle:'italic'}}>Note AS : {sel.notes_as}</div>}
+                  </div>
                 </div>
-              )}
 
-              <div style={{background:'#f9fafb',borderRadius:10,padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e7eb'}}>
-                <div style={{fontSize:11,fontWeight:600,color:'#6b7280',textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Constantes</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
-                  {[['sat','SpO2','%'],['fc','FC','bpm'],['ta_sys','PAS','mmHg'],['ta_dia','PAD','mmHg'],['temp','T','C'],['dextro','Dextro','g/L']].map(([k,l,u])=>{
-                    const bad = sel[k]&&isAnormal(sel[k],k);
-                    return (
-                      <div key={k} style={{background:'#fff',borderRadius:8,padding:'8px 10px',border:'1px solid '+(bad?'#fecaca':'#e5e7eb'),textAlign:'center'}}>
-                        <div style={{fontSize:10,color:'#9ca3af',marginBottom:2}}>{l}</div>
-                        <div style={{fontSize:16,fontWeight:700,color:bad?'#ef4444':sel[k]?'#111827':'#d1d5db'}}>{sel[k]||'--'}</div>
-                        <div style={{fontSize:10,color:'#9ca3af'}}>{u}</div>
-                      </div>
-                    );
-                  })}
+                {/* ACTES */}
+                {sel.actes&&JSON.parse(sel.actes||'[]').length>0&&(
+                  <div>
+                    <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:8}}>Actes realises</div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                      {JSON.parse(sel.actes).map((a,i)=>(
+                        <span key={i} style={{background:'#f0fdfa',border:'1px solid #99f6e4',color:'#0d9488',fontSize:11,padding:'4px 10px',borderRadius:99,fontWeight:500}}>
+                          {a.label} {new Date(a.heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* PRESCRIPTIONS */}
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:8}}>Prescriptions</div>
+                  {sel.prescriptions&&JSON.parse(sel.prescriptions||'[]').map((p,i)=>(
+                    <div key={i} style={{background:'#f9fafb',borderRadius:8,padding:'10px 12px',marginBottom:6,border:'1px solid #f3f4f6'}}>
+                      <div style={{color:'#111827',fontSize:13}}>{p.texte}</div>
+                      <div style={{color:'#9ca3af',fontSize:10,marginTop:3}}>{new Date(p.heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+                    </div>
+                  ))}
+                  <div style={{display:'flex',gap:8,marginTop:8}}>
+                    <input value={rx} onChange={e=>setRx(e.target.value)}
+                      onKeyDown={e=>e.key==='Enter'&&addRx(sel.id)}
+                      placeholder="Ajouter une prescription..."
+                      style={{flex:1,padding:'10px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',background:'#fff',color:'#111827',fontSize:13,outline:'none'}}
+                    />
+                    <button onClick={()=>addRx(sel.id)} style={{padding:'10px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontWeight:600,fontSize:14}}>+</button>
+                  </div>
                 </div>
-              </div>
 
-              <div style={{background:'#f9fafb',borderRadius:10,padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e7eb'}}>
-                <div style={{fontSize:11,fontWeight:600,color:'#6b7280',textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Motif</div>
-                <div style={{fontWeight:600,color:'#111827',fontSize:14}}>{sel.motifPrincipal||'--'}</div>
-                {sel.douleur_eva&&<div style={{color:'#6b7280',fontSize:13,marginTop:4}}>EVA {sel.douleur_eva}/10</div>}
-                {sel.fievre_depuis&&<div style={{color:'#f59e0b',fontSize:13,marginTop:4}}>Fievre depuis : {sel.fievre_depuis}</div>}
-                {sel.plaie_vaccin&&<div style={{color:'#6b7280',fontSize:13,marginTop:4}}>Vaccin : {sel.plaie_vaccin} - Test tetanos : {sel.quicktest_tetanos||'non fait'}</div>}
-                {sel.bu_urine&&<div style={{color:'#8b5cf6',fontSize:13,marginTop:4}}>BU - bHCG : {sel.bhcg?'fait':'en attente'}</div>}
-                {sel.notes_as&&<div style={{color:'#6b7280',fontSize:13,marginTop:6,fontStyle:'italic',borderTop:'1px solid #e5e7eb',paddingTop:6}}>Note AS : {sel.notes_as}</div>}
-              </div>
-
-              {sel.actes&&JSON.parse(sel.actes||'[]').length>0&&(
-                <div style={{background:'#f0fdfa',borderRadius:10,padding:'1rem',marginBottom:'1rem',border:'1px solid #99f6e4'}}>
-                  <div style={{fontSize:11,fontWeight:600,color:'#0f766e',textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Actes realises</div>
-                  <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                    {JSON.parse(sel.actes).map((a,i)=>(
-                      <span key={i} style={{background:'#fff',border:'1px solid #99f6e4',color:'#0d9488',fontSize:11,padding:'3px 8px',borderRadius:99,fontWeight:500}}>
-                        {a.label} {new Date(a.heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
-                      </span>
+                {/* DIAGNOSTIC */}
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:1.2,marginBottom:8}}>Diagnostic et orientation</div>
+                  <textarea value={diag} onChange={e=>setDiag(e.target.value)}
+                    placeholder="Diagnostic..."
+                    style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',background:'#fff',color:'#111827',fontSize:13,minHeight:60,resize:'vertical',marginBottom:10,outline:'none',fontFamily:'inherit'}}
+                  />
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
+                    {[
+                      {id:'sortie',        label:'Sortie',   icon:'✓'},
+                      {id:'rdv_consultation',label:'RDV',    icon:'📅'},
+                      {id:'transfert_CHM', label:'CHM',      icon:'🚑'},
+                      {id:'transfert_SMUR',label:'SMUR',     icon:'🚨'},
+                      {id:'hospitalisation',label:'Hospi',   icon:'🏥'},
+                    ].map(o=>(
+                      <button key={o.id} onClick={()=>setOrient(o.id)} style={{
+                        padding:'7px 12px',borderRadius:8,fontSize:12,fontWeight:600,
+                        background:orient===o.id?'#0d9488':'#fff',
+                        color:orient===o.id?'#fff':'#374151',
+                        border:'1.5px solid '+(orient===o.id?'#0d9488':'#e5e7eb'),
+                        display:'flex',alignItems:'center',gap:4
+                      }}><span>{o.icon}</span>{o.label}</button>
                     ))}
                   </div>
+                  <button onClick={()=>finaliser(sel.id)} disabled={!diag||!orient} style={{
+                    width:'100%',padding:'13px',borderRadius:10,
+                    background:!diag||!orient?'#f3f4f6':'#0d9488',
+                    color:!diag||!orient?'#9ca3af':'#fff',
+                    fontSize:14,fontWeight:700,
+                    border:'none',cursor:!diag||!orient?'default':'pointer'
+                  }}>
+                    Finaliser la prise en charge
+                  </button>
                 </div>
-              )}
 
-              <div style={{background:'#f9fafb',borderRadius:10,padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e7eb'}}>
-                <div style={{fontSize:11,fontWeight:600,color:'#6b7280',textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Prescriptions</div>
-                {sel.prescriptions&&JSON.parse(sel.prescriptions||'[]').map((p,i)=>(
-                  <div key={i} style={{background:'#fff',borderRadius:8,padding:'8px 12px',marginBottom:6,border:'1px solid #e5e7eb'}}>
-                    <div style={{color:'#111827',fontSize:13}}>{p.texte}</div>
-                    <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>{new Date(p.heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
-                  </div>
-                ))}
-                <div style={{display:'flex',gap:8,marginTop:8}}>
-                  <input value={rx} onChange={e=>setRx(e.target.value)}
-                    onKeyDown={e=>e.key==='Enter'&&addRx(sel.id)}
-                    placeholder="Nouvelle prescription..."
-                    style={{flex:1,padding:'10px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',background:'#fff',color:'#111827',fontSize:13,outline:'none'}}
-                  />
-                  <button onClick={()=>addRx(sel.id)} style={{padding:'10px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontWeight:600,fontSize:13}}>+</button>
-                </div>
               </div>
-
-              <div style={{background:'#f9fafb',borderRadius:10,padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e7eb'}}>
-                <div style={{fontSize:11,fontWeight:600,color:'#6b7280',textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Diagnostic et orientation</div>
-                <textarea value={diag} onChange={e=>setDiag(e.target.value)}
-                  placeholder="Diagnostic..."
-                  style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',background:'#fff',color:'#111827',fontSize:13,minHeight:60,resize:'vertical',marginBottom:10,outline:'none'}}
-                />
-                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                  {[{id:'sortie',label:'Sortie'},{id:'rdv_consultation',label:'RDV cslt'},{id:'transfert_CHM',label:'CHM'},{id:'transfert_SMUR',label:'SMUR'},{id:'hospitalisation',label:'Hospi'}].map(o=>(
-                    <button key={o.id} onClick={()=>setOrient(o.id)} style={{padding:'8px 14px',borderRadius:8,fontSize:12,fontWeight:600,background:orient===o.id?'#0d9488':'#fff',color:orient===o.id?'#fff':'#374151',border:'1.5px solid '+(orient===o.id?'#0d9488':'#e5e7eb')}}>{o.label}</button>
-                  ))}
-                </div>
-              </div>
-
-              <button onClick={()=>finaliser(sel.id)} disabled={!diag||!orient} style={{width:'100%',padding:'14px',borderRadius:10,background:!diag||!orient?'#e5e7eb':'#0d9488',color:!diag||!orient?'#9ca3af':'#fff',fontSize:14,fontWeight:700}}>
-                Finaliser la prise en charge
-              </button>
             </div>
           )}
         </div>
