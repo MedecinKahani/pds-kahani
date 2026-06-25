@@ -1,307 +1,368 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+
+function safeJSON(val, fallback=[]) {
+  if(!val) return fallback;
+  if(typeof val === 'string') {
+    if(val.includes('[object')) return fallback;
+    try { return JSON.parse(val); } catch(e) { return fallback; }
+  }
+  if(Array.isArray(val)) return val;
+  if(typeof val === 'object') return val;
+  return fallback;
+}
+import FichePatient from './fiche';
 import { useRouter } from 'next/navigation';
 
-const ACTES = [
-  { id: 'perf', label: 'Perfusion VVP', emoji: '💉' },
-  { id: 'ecg', label: 'ECG', emoji: '❤️' },
-  { id: 'aerosol_ventoline', label: 'Aérosol Ventoline', emoji: '💨' },
-  { id: 'aerosol_atrovent', label: 'Aérosol Atrovent', emoji: '💨' },
-  { id: 'hemocue', label: 'Hémocue', emoji: '🩸' },
-  { id: 'dextro', label: 'Dextro', emoji: '🩸' },
-  { id: 'bu', label: 'BU', emoji: '🧪' },
-  { id: 'bhcg', label: 'bHCG urinaire', emoji: '🧪' },
-  { id: 'quicktest', label: 'Quick test tétanos', emoji: '🧪' },
-  { id: 'prelevement', label: 'Prélèvement sanguin', emoji: '🩸' },
-  { id: 'injection_im', label: 'Injection IM', emoji: '💉' },
-  { id: 'injection_iv', label: 'Injection IV', emoji: '💉' },
-  { id: 'pansement', label: 'Pansement', emoji: '🩹' },
-  { id: 'o2', label: 'Oxygénothérapie', emoji: '💨' },
-  { id: 'scope', label: 'Scope posé', emoji: '📊' },
-  { id: 'meopa', label: 'MEOPA', emoji: '😮‍💨' },
-  { id: 'radio', label: 'Radio prescrite', emoji: '🩻' },
-  { id: 'suture', label: 'Suture réalisée', emoji: '🪡' },
-];
+const NORMES = { sat:[94,100], fc:[50,100], ta_sys:[90,150], ta_dia:[60,95], temp:[36,38.4], dextro:[0.7,2.0] };
+function isAnormal(val,k){const v=parseFloat(val);if(isNaN(v))return false;const[mn,mx]=NORMES[k]||[0,9999];return v<mn||v>mx;}
+function hasAnomalie(p){return['sat','fc','ta_sys','ta_dia','temp'].some(k=>p[k]&&isAnormal(p[k],k));}
+function duree(ts){const m=Math.floor((Date.now()-parseInt(ts))/60000);return m<60?m+'min':'H'+Math.floor(m/60)+(m%60>0?'h'+(m%60):'');}
 
-const EMPLACEMENTS = [
-  { id: 'brancard1', label: 'Brancard 1' },
-  { id: 'brancard2', label: 'Brancard 2' },
-  { id: 'lit1', label: 'Lit 1' },
-  { id: 'fauteuil1', label: 'Fauteuil 1' },
-  { id: 'lit2', label: 'Lit 2' },
-  { id: 'fauteuil2', label: 'Fauteuil 2' },
-  { id: 'obs', label: 'Salle obs' },
-  { id: 'pansement', label: 'Salle pansement' },
-];
+const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
+const LEGENDES = {pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
 
-function dureePresence(ts) {
-  const diff = Date.now() - parseInt(ts);
-  const min = Math.floor(diff / 60000);
-  if (min < 60) return `${min} min`;
-  return `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, '0')}`;
-}
+// Couleurs par case
+const C = {
+  pansement:'#f59e0b', obs1:'#9ca3af', obs2:'#16a34a',
+  lit1:'#9ca3af', lit2:'#9ca3af', fauteuil1:'#16a34a', fauteuil2:'#16a34a',
+  brancard1:'#ef4444', brancard2:'#ef4444'
+};
+const BG = {
+  pansement:'#fffbeb', obs1:'#f9fafb', obs2:'#f0fdf4',
+  lit1:'#f9fafb', lit2:'#f9fafb', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
+  brancard1:'#fef2f2', brancard2:'#fef2f2'
+};
 
-export default function PageIDE() {
+export default function PageMedecin() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [patients, setPatients] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [pharma, setPharma] = useState({ stocks: [], mouvements: [] });
-  const [vue, setVue] = useState('patients');
-  const [medicament, setMedicament] = useState('');
-  const [quantiteSortie, setQuantiteSortie] = useState(1);
-  const [motifSortie, setMotifSortie] = useState('');
+  const [user,setUser] = useState(null);
+  const [patients,setPatients] = useState([]);
+  const [sel,setSel] = useState(null);
+  const [rx,setRx] = useState('');
+  const [diag,setDiag] = useState('');
+  const [orient,setOrient] = useState('');
+  const [ficheOuverte,setFicheOuverte] = useState(null);
 
-  const charger = useCallback(async () => {
-    const res = await fetch('/api/patients');
-    const data = await res.json();
-    setPatients(data.patients || []);
-    if (selected) {
-      const updated = (data.patients || []).find(p => p.id === selected.id);
-      if (updated) setSelected(updated);
+  const load = useCallback(async()=>{
+    const r=await fetch('/api/patients');
+    const d=await r.json();
+    const ps=d.patients||[];
+    setPatients(ps);
+    if(sel){const u=ps.find(p=>p.id===sel.id);if(u)setSel(u);}
+  },[sel?.id]);
+
+  useEffect(()=>{
+    const s=sessionStorage.getItem('pds_user');
+    if(!s){router.push('/login');return;}
+    const u=JSON.parse(s);
+    if(u.role!=='ide'){router.push('/');return;}
+    setUser(u);load();
+    const iv=setInterval(load,8000);
+    return()=>clearInterval(iv);
+  },[]);
+
+  async function patch(id,data){
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id,patch:data})});
+    load();
+  }
+  async function addRx(id){
+    if(!rx.trim())return;
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'addPrescription',id,prescription:{texte:rx,auteur:user.matricule}})});
+    setRx('');load();
+  }
+  async function finaliser(id){
+    await patch(id,{diagnostic:diag,orientation:orient,statut:orient.startsWith('transfert')?'transfert':'vu'});
+    if(orient==='sortie'||orient==='rdv_consultation'){
+      await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id})});
     }
-  }, [selected]);
-
-  async function chargerPharma() {
-    const res = await fetch('/api/pharma');
-    const data = await res.json();
-    setPharma(data);
+    setSel(null);setDiag('');setOrient('');load();
   }
 
-  useEffect(() => {
-    const session = sessionStorage.getItem('pds_user');
-    if (!session) { router.push('/login'); return; }
-    const u = JSON.parse(session);
-    if (u.role !== 'ide') { router.push('/'); return; }
-    setUser(u);
-    charger();
-    chargerPharma();
-    const interval = setInterval(() => { charger(); chargerPharma(); }, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  if(!user)return null;
+  const preau=patients.filter(p=>p.statut==='preau');
+  const enSalle=patients.filter(p=>p.statut!=='preau');
 
-  async function ajouterActe(patientId, acte) {
-    await fetch('/api/patients', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'addActe', id: patientId, acte: { id: acte.id, label: acte.label } })
-    });
-    charger();
+  function couleurDuree(ts) {
+    const h = (Date.now()-parseInt(ts)) / 3600000;
+    if (h < 1) return {color:'#16a34a', bg:'#f0fdf4', label:'<1h'};
+    if (h < 2) return {color:'#16a34a', bg:'#f0fdf4', label:'>1h'};
+    if (h < 3) return {color:'#f59e0b', bg:'#fffbeb', label:'>2h'};
+    if (h < 4) return {color:'#f59e0b', bg:'#fffbeb', label:'>3h'};
+    if (h < 5) return {color:'#ef4444', bg:'#fef2f2', label:'>4h'};
+    if (h < 6) return {color:'#ef4444', bg:'#fef2f2', label:'>5h'};
+    return {color:'#ef4444', bg:'#fef2f2', label:'>6h'};
   }
 
-  async function sortiePharma() {
-    if (!medicament || !selected) return;
-    await fetch('/api/pharma', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'sortie', medId: medicament, quantite: quantiteSortie,
-        patientId: selected.id, patientNom: `${selected.nom} ${selected.prenom}`,
-        matricule: user.matricule, motif: motifSortie
-      })
-    });
-    chargerPharma();
-    setMedicament('');
-    setQuantiteSortie(1);
-    setMotifSortie('');
-  }
+  function Case({id,label}){
+    const p=enSalle.find(x=>x.emplacement===id);
+    const c=C[id]||'#9ca3af';
+    const attente=p?.statut==='attente_medecin';
+    const anomalie=p&&hasAnomalie(p);
+    const isSelected=ficheOuverte?.id===p?.id;
+    const dureeInfo = p ? couleurDuree(p.arrivee) : null;
+    const actes = safeJSON(p?.actes);
+    const prescriptions = safeJSON(p?.prescriptions);
 
-  if (!user) return null;
+    return(
+      <div onClick={()=>{if(!p)return;setFicheOuverte(ficheOuverte?.id===p.id?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
+        style={{background:p?'#fff':BG[id]||'#fafafa',border:'2px solid '+(isSelected?c:p?c+'55':'#efefef'),borderRadius:12,cursor:p?'pointer':'default',transition:'all 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'0 1px 3px rgba(0,0,0,0.04)',position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column'}}>
 
-  const actesDuPatient = selected?.actes ? JSON.parse(selected.actes) : [];
+        {/* Bande couleur top */}
+        <div style={{height:3,background:p?c:c+'33',flexShrink:0}}/>
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', flexDirection: 'column' }}>
-      <nav style={{
-        background: '#1e3a5f', borderBottom: '1px solid #1e40af',
-        padding: '0 1rem', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', height: 56, flexShrink: 0
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 22 }}>👩‍⚕️</span>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>PDS Kahani</span>
-          <span style={{ background: '#3b82f6', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>INFIRMIER</span>
+        {/* Label emplacement */}
+        <div style={{padding:'6px 10px 0',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:5}}>
+            <span style={{fontWeight:800,fontSize:11,color:c,letterSpacing:0.5}}>{label}</span>
+            {!p&&<span style={{fontSize:9,color:'#c4c4c4'}}>{LEGENDES[id]}</span>}
+          </div>
+          {p&&<div style={{display:'flex',gap:4,alignItems:'center'}}>
+            {anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}
+            <div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb',flexShrink:0}}/>
+          </div>}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={() => setVue('patients')} style={{
-            padding: '6px 14px', borderRadius: 6, fontSize: 13,
-            background: vue === 'patients' ? '#3b82f6' : '#1e3a5f',
-            color: '#fff', border: '1px solid #334155'
-          }}>Patients</button>
-          <button onClick={() => setVue('pharma')} style={{
-            padding: '6px 14px', borderRadius: 6, fontSize: 13,
-            background: vue === 'pharma' ? '#3b82f6' : '#1e3a5f',
-            color: '#fff', border: '1px solid #334155'
-          }}>Pharma sécurisée</button>
-          <button onClick={() => { sessionStorage.clear(); router.push('/login'); }}
-            style={{ background: '#1e3a5f', color: '#93c5fd', padding: '6px 12px', borderRadius: 6, fontSize: 13, border: '1px solid #334155', marginLeft: 8 }}>
-            Déconnexion
-          </button>
+
+        {p ? (
+          <div style={{padding:'6px 10px 8px',flex:1,display:'flex',flexDirection:'column',gap:5,overflow:'hidden'}}>
+
+            {/* Identite style Odaiji */}
+            <div style={{borderBottom:'1px solid #f3f4f6',paddingBottom:5}}>
+              <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+              <div style={{display:'flex',gap:8,marginTop:2}}>
+                <span style={{color:'#6b7280',fontSize:10}}>{p.age} ans</span>
+                {p.ipp&&<span style={{color:'#9ca3af',fontSize:10}}>{p.ipp}</span>}
+              </div>
+            </div>
+
+            {/* Motif */}
+            <div style={{display:'flex',alignItems:'center',gap:5}}>
+              <span style={{fontSize:13,color:'#111827',fontWeight:700,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.symptome||p.motifPrincipal||'--'}</span>
+              {p.douleur_eva&&<span style={{fontSize:10,color:'#9ca3af',flexShrink:0}}>EVA {p.douleur_eva}/10</span>}
+            </div>
+
+            {/* Constantes sur une ligne */}
+            <div style={{display:'flex',gap:3,flexWrap:'nowrap',overflow:'hidden'}}>
+              {[
+                {k:'sat',v:p.sat,l:'SpO2',u:'%',icon:'💧'},
+                {k:'fc',v:p.fc,l:'FC',u:'',icon:'❤️'},
+                {k:'tas',v:p.tas,l:'PAS',u:'',icon:'🩸'},
+                {k:'temp',v:p.temp,l:'T°',u:'°',icon:'🌡️'},
+              ].filter(x=>x.v).map(({k,v,l,u,icon})=>{
+                const bad=isAnormal(v,k==='tas'?'ta_sys':k);
+                return(
+                  <div key={k} style={{background:bad?'#fef2f2':'#f9fafb',borderRadius:5,padding:'2px 5px',display:'flex',alignItems:'center',gap:2,border:'1px solid '+(bad?'#fecaca':'transparent'),flexShrink:0}}>
+                    <span style={{fontSize:8}}>{icon}</span>
+                    <div>
+                      <div style={{fontSize:7,color:'#9ca3af',lineHeight:1}}>{l}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:bad?'#ef4444':'#111827',lineHeight:1.2}}>{v}<span style={{fontSize:7,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Actes & prescriptions */}
+            {(actes.length>0||prescriptions.length>0)&&(
+              <div style={{borderTop:'1px solid #f3f4f6',paddingTop:4}}>
+                <div style={{fontSize:8,color:'#9ca3af',marginBottom:2,textTransform:'uppercase',letterSpacing:0.5}}>Soins</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:2}}>
+                  {prescriptions.slice(0,2).map((rx,i)=>(
+                    <span key={i} style={{fontSize:8,color:'#2563eb',background:'#eff6ff',padding:'1px 5px',borderRadius:3,fontWeight:500,maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{rx.texte}</span>
+                  ))}
+                  {actes.slice(0,3).map((a,i)=>(
+                    <span key={i} style={{fontSize:8,color:'#16a34a',background:'#f0fdf4',padding:'1px 5px',borderRadius:3,fontWeight:500}}>✓ {a.label}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Duree + sortie */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto',gap:4}}>
+              {attente&&<span style={{fontSize:8,fontWeight:700,color:'#d97706',background:'#fef3c7',padding:'1px 6px',borderRadius:3}}>EN ATTENTE</span>}
+              <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 8px',borderRadius:99,border:'1px solid '+dureeInfo.color+'33'}}>{dureeInfo.label}</div>
+              <button onClick={async e=>{
+                e.stopPropagation();
+                if(!confirm('Confirmer la sortie de '+p.nom+' '+p.prenom+' ?')) return;
+                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
+                load();
+              }} style={{padding:'2px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:700,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>
+                Sortie
+              </button>
+            </div>
+
+          </div>
+        ):(
+          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <button onClick={e=>{e.stopPropagation();router.push('/nouveau-patient?emplacement='+id);}}
+              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderStyle='solid';e.currentTarget.style.background=c+'18';}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
+              style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function Poste({id,label,color}){
+    const showNom=(id==='_doc'&&user.role==='medecin')||(id==='_ide'&&user.role==='ide')||(id==='_as'&&user.role==='as');
+    return(
+      <div style={{flex:1,background:'#fff',border:'1.5px solid #e5e7eb',borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:5,padding:'8px'}}>
+        <div style={{width:9,height:9,borderRadius:'50%',background:color}}/>
+        <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{label}</span>
+        {showNom&&<span style={{fontSize:11,color:color,fontWeight:500,textAlign:'center'}}>{id==='_doc'?'Dr '+user.nom:user.nom}</span>}
+      </div>
+    );
+  }
+
+  // Salle = un bloc avec bordure colorée, titre discret, cases internes
+  function Salle({color, label, children, style={}}){
+    return(
+      <div style={{border:'2px solid '+color+'99',borderRadius:14,padding:6,display:'flex',flexDirection:'column',gap:6,...style}}>
+        <div style={{fontSize:9,fontWeight:700,color:color,textTransform:'uppercase',letterSpacing:1,textAlign:'center',opacity:0.7,lineHeight:1}}>{label}</div>
+        {children}
+      </div>
+    );
+  }
+
+  return(
+    <div style={{height:'100vh',background:'#f3f4f6',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <nav style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'0 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',height:56,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{width:32,height:32,borderRadius:'50%',background:'#3b82f6',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:14,fontWeight:700}}>P</div>
+          <div><div style={{fontWeight:700,fontSize:15,color:'#111827'}}>PDS Kahani</div><div style={{fontSize:10,color:'#6b7280'}}>Medecin</div></div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:14}}>
+          <div style={{textAlign:'right'}}><div style={{fontWeight:600,color:'#111827',fontSize:13}}>Dr {user.nom}</div><div style={{fontSize:11,color:'#6b7280'}}>{user.matricule}</div></div>
+          <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',fontSize:12,border:'1px solid #e5e7eb'}}>Admin</button>
+          <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb'}}>Deconnexion</button>
         </div>
       </nav>
 
-      {vue === 'patients' && (
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          <div style={{ width: selected ? '320px' : '100%', flexShrink: 0, padding: '1rem', overflowY: 'auto' }}>
-            <h2 style={{ color: '#f1f5f9', fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-              Patients ({patients.length})
-            </h2>
-            {patients.map(p => (
-              <div key={p.id} onClick={() => setSelected(selected?.id === p.id ? null : p)}
-                style={{
-                  background: selected?.id === p.id ? '#1e3a5f' : '#1e293b',
-                  border: `1px solid ${selected?.id === p.id ? '#3b82f6' : '#334155'}`,
-                  borderRadius: 10, padding: '12px', marginBottom: 8, cursor: 'pointer'
-                }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 14 }}>
-                      {p.nom} {p.prenom} <span style={{ color: '#64748b', fontWeight: 400, fontSize: 12 }}>{p.age} ans</span>
-                    </div>
-                    <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 2 }}>
-                      {EMPLACEMENTS.find(e => e.id === p.emplacement)?.label} — {p.motifPrincipal}
-                    </div>
-                  </div>
-                  <span style={{ color: '#64748b', fontSize: 11 }}>{dureePresence(p.arrivee)}</span>
-                </div>
-                {p.allergie === 'Oui' && (
-                  <div style={{ color: '#ef4444', fontSize: 11, fontWeight: 700, marginTop: 4 }}>⚠️ ALLERGIE</div>
-                )}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
-                  {(p.actes ? JSON.parse(p.actes) : []).map((a, i) => (
-                    <span key={i} style={{ background: '#1e3a5f', color: '#93c5fd', fontSize: 10, padding: '2px 6px', borderRadius: 99 }}>
-                      {a.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
+        <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
+          <div style={{width:'100%',flexShrink:0,padding:'1rem',display:'flex',flexDirection:'column',minHeight:0}}>
 
-          {selected && (
-            <div style={{ flex: 1, background: '#1e293b', borderLeft: '1px solid #334155', padding: '1.5rem', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h2 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 700 }}>
-                  {selected.nom} {selected.prenom}
-                  <span style={{ color: '#94a3b8', fontWeight: 400, fontSize: 14, marginLeft: 8 }}>{selected.age} ans</span>
-                </h2>
-                <button onClick={() => setSelected(null)} style={{ background: '#334155', color: '#94a3b8', padding: '6px 12px', borderRadius: 6, fontSize: 13 }}>✕</button>
+            {/* FICHE OUVERTE AU-DESSUS DU PLAN */}
+            {ficheOuverte&&(
+              <div style={{marginBottom:12,flexShrink:0}}>
+                <FichePatient
+                  patient={ficheOuverte}
+                  onClose={()=>setFicheOuverte(null)}
+                  onUpdate={()=>{load();}}
+                  user={user}
+                />
+              </div>
+            )}
+
+            {/* Grid 4 colonnes x 3 rangées avec encadrés span */}
+            <div style={{
+              display:'grid',
+              gridTemplateColumns:'1fr 1fr 1fr 1fr',
+              gridTemplateRows:'1fr 1fr 1fr',
+              gap:8,
+              flex:1,
+              minHeight:0,
+              position:'relative',
+            }}>
+              {/* Cases ligne 0 */}
+              <div style={{gridColumn:1,gridRow:1,display:'flex'}}>
+                <Case id="pansement" label="P1"/>
+              </div>
+              <div style={{gridColumn:2,gridRow:1,display:'flex'}}>
+                <Poste id="_ide" label="IDE" color="#6b7280"/>
+              </div>
+              <div style={{gridColumn:3,gridRow:1,display:'flex'}}>
+                <Poste id="_doc" label="Medecin" color="#0d9488"/>
+              </div>
+              <div style={{gridColumn:4,gridRow:1,display:'flex'}}>
+                <Poste id="_as" label="AS" color="#f59e0b"/>
               </div>
 
-              {selected.prescriptions && JSON.parse(selected.prescriptions || '[]').length > 0 && (
-                <div style={{ background: '#172554', border: '1px solid #3b82f6', borderRadius: 10, padding: '12px', marginBottom: 16 }}>
-                  <div style={{ color: '#93c5fd', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>📋 PRESCRIPTIONS MÉDECIN</div>
-                  {JSON.parse(selected.prescriptions).map((p, i) => (
-                    <div key={i} style={{ color: '#bfdbfe', fontSize: 13, padding: '6px 0', borderBottom: '1px solid #1e3a5f' }}>
-                      {p.texte}
-                      <span style={{ color: '#475569', fontSize: 11, marginLeft: 8 }}>
-                        {new Date(p.heure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div style={{ background: '#0f172a', borderRadius: 10, padding: '12px', marginBottom: 16 }}>
-                <div style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>ACTES RÉALISÉS — cochez ce qui a été fait</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                  {ACTES.map(a => {
-                    const fait = actesDuPatient.some(ac => ac.id === a.id);
-                    return (
-                      <button key={a.id} onClick={() => !fait && ajouterActe(selected.id, a)}
-                        style={{
-                          padding: '10px 12px', borderRadius: 8, textAlign: 'left',
-                          background: fait ? '#052e16' : '#1e293b',
-                          border: `1px solid ${fait ? '#16a34a' : '#334155'}`,
-                          color: fait ? '#4ade80' : '#94a3b8',
-                          cursor: fait ? 'default' : 'pointer',
-                          display: 'flex', alignItems: 'center', gap: 8, fontSize: 13
-                        }}>
-                        <span>{fait ? '✓' : a.emoji}</span>
-                        <span>{a.label}</span>
-                        {fait && actesDuPatient.find(ac => ac.id === a.id)?.heure && (
-                          <span style={{ color: '#166534', fontSize: 11, marginLeft: 'auto' }}>
-                            {new Date(actesDuPatient.find(ac => ac.id === a.id).heure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ background: '#0f172a', borderRadius: 10, padding: '12px' }}>
-                <div style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>PHARMA SÉCURISÉE — sortie pour ce patient</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <select value={medicament} onChange={e => setMedicament(e.target.value)}
-                    style={{ flex: 2, padding: '10px', borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', fontSize: 13 }}>
-                    <option value="">Choisir un médicament</option>
-                    {pharma.stocks.map(m => (
-                      <option key={m.id} value={m.id}>{m.nom} (stock : {m.stock} {m.unite})</option>
-                    ))}
-                  </select>
-                  <input type="number" min="1" value={quantiteSortie} onChange={e => setQuantiteSortie(parseInt(e.target.value))}
-                    style={{ width: 60, padding: '10px', borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', fontSize: 13, textAlign: 'center' }} />
-                  <input value={motifSortie} onChange={e => setMotifSortie(e.target.value)} placeholder="Motif..."
-                    style={{ flex: 2, padding: '10px', borderRadius: 8, border: '1px solid #334155', background: '#1e293b', color: '#fff', fontSize: 13 }} />
-                  <button onClick={sortiePharma} disabled={!medicament}
-                    style={{ padding: '10px 16px', borderRadius: 8, background: medicament ? '#dc2626' : '#334155', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-                    Sortir
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {vue === 'pharma' && (
-        <div style={{ padding: '1rem', maxWidth: 700, margin: '0 auto', width: '100%' }}>
-          <h2 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Pharma sécurisée — stocks</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-            {pharma.stocks.map(m => (
-              <div key={m.id} style={{
-                background: '#1e293b', border: `1px solid ${m.stock <= 2 ? '#ef4444' : '#334155'}`,
-                borderRadius: 10, padding: '14px'
+              {/* Encadré Observation - col1 rows 2+3 */}
+              <div style={{
+                gridColumn:1, gridRow:'2/4',
+                border:'2px solid #16a34a99',borderRadius:12,
+                display:'flex',flexDirection:'column',gap:6,padding:6
               }}>
-                <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 14 }}>{m.nom}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <span style={{ color: m.stock <= 2 ? '#ef4444' : '#10b981', fontSize: 22, fontWeight: 700 }}>{m.stock}</span>
-                  <span style={{ color: '#64748b', fontSize: 13 }}>{m.unite}</span>
-                </div>
-                {m.stock <= 2 && <div style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ Stock faible</div>}
-                <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                  <button onClick={async () => {
-                    const q = parseInt(prompt('Quantité à ajouter :'));
-                    if (!q || isNaN(q)) return;
-                    await fetch('/api/pharma', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'entree', medId: m.id, quantite: q, matricule: user.matricule }) });
-                    chargerPharma();
-                  }} style={{ flex: 1, padding: '6px', borderRadius: 6, background: '#16a34a', color: '#fff', fontSize: 12, fontWeight: 600 }}>
-                    + Entrée
+                <Case id="obs1" label="O1"/>
+                <Case id="obs2" label="O2"/>
+              </div>
+
+              {/* Encadré Salle 2 - cols 2+3 rows 2+3 */}
+              <div style={{
+                gridColumn:'2/4', gridRow:'2/4',
+                border:'2px solid #9ca3af99',borderRadius:12,
+                display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:6,padding:6
+              }}>
+                <Case id="lit2" label="L2"/>
+                <Case id="fauteuil1" label="F1"/>
+                <Case id="fauteuil2" label="F2"/>
+                <Case id="lit1" label="L1"/>
+              </div>
+
+              {/* Encadré Dechocage - col4 rows 2+3 */}
+              <div style={{
+                gridColumn:4, gridRow:'2/4',
+                border:'2px solid #ef444499',borderRadius:12,
+                display:'flex',flexDirection:'column',gap:6,padding:6
+              }}>
+                <Case id="brancard1" label="B1"/>
+                <Case id="brancard2" label="B2"/>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* EN ATTENTE */}
+        <div style={{width:210,flexShrink:0,background:'#fff',borderLeft:'1px solid #e5e7eb',padding:'1rem',display:'flex',flexDirection:'column',minHeight:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingBottom:10,borderBottom:'1px solid #f3f4f6'}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#e5e7eb'}}/>
+            <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>En attente</span>
+            {preau.length>0&&<span style={{marginLeft:'auto',background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
+          </div>
+          <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
+            {preau.map(p=>{
+              const placesLibres=[
+                {id:'lit1',l:'L1 - Lit 1'},{id:'lit2',l:'L2 - Lit 2'},
+                {id:'obs1',l:'O1 - Obs'},{id:'obs2',l:'O2 - Obs'},
+                {id:'fauteuil1',l:'F1 - Fauteuil'},{id:'fauteuil2',l:'F2 - Fauteuil'},
+                {id:'brancard1',l:'B1 - Brancard'},{id:'brancard2',l:'B2 - Brancard'},
+                {id:'pansement',l:'P1 - Pansement'},
+              ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
+              return(
+              <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0}}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.symptome||p.motifPrincipal}</div>
+                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{duree(p.arrivee)}</div>
+                {p.emplacement_suggere&&<div style={{color:'#0d9488',fontSize:10,marginTop:1,fontWeight:600}}>Suggere : {p.emplacement_suggere}</div>}
+                <div style={{display:'flex',gap:5,marginTop:8}}>
+                  <select onChange={async e=>{
+                    if(!e.target.value) return;
+                    await patch(p.id,{statut:'attente_medecin',emplacement:e.target.value});
+                    load();
+                  }} defaultValue="" style={{flex:1,padding:'5px 4px',borderRadius:6,border:'1px solid #e5e7eb',fontSize:10,background:'#fff',cursor:'pointer'}}>
+                    <option value="">Installer...</option>
+                    {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
+                  </select>
+                  <button onClick={()=>{setFicheOuverte(p);}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+                    Cslt
                   </button>
                 </div>
               </div>
+            );})}
+            {[...Array(Math.max(4-preau.length,1))].map((_,i)=>(
+              <div key={'e'+i} onClick={()=>router.push('/nouveau-patient')} style={{flexShrink:0,minHeight:72,borderRadius:10,border:'1.5px dashed #e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor='#0d9488'}
+                onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+                <div style={{width:28,height:28,borderRadius:7,border:'1.5px dashed #d1d5db',display:'flex',alignItems:'center',justifyContent:'center',color:'#d1d5db',fontSize:18}}>+</div>
+              </div>
             ))}
           </div>
-
-          <h3 style={{ color: '#94a3b8', fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Derniers mouvements</h3>
-          {pharma.mouvements.map((mvt, i) => {
-            const m = typeof mvt === 'string' ? JSON.parse(mvt) : mvt;
-            return (
-              <div key={i} style={{ background: '#1e293b', borderRadius: 8, padding: '10px 14px', marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <span style={{ color: m.type === 'sortie' ? '#ef4444' : '#10b981', fontWeight: 600, fontSize: 13 }}>
-                    {m.type === 'sortie' ? '▼' : '▲'} {m.nom}
-                  </span>
-                  <span style={{ color: '#f1f5f9', fontSize: 13, marginLeft: 8 }}>×{m.quantite}</span>
-                  {m.patientNom && <span style={{ color: '#94a3b8', fontSize: 12, marginLeft: 8 }}>→ {m.patientNom}</span>}
-                </div>
-                <span style={{ color: '#475569', fontSize: 11 }}>
-                  {new Date(m.heure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            );
-          })}
         </div>
-      )}
+      </div>
     </div>
   );
 }
