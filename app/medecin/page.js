@@ -93,64 +93,81 @@ export default function PageMedecin() {
 
     return(
       <div onClick={()=>{if(!p)return;setSel(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
-        style={{background:p?'#fff':BG[id]||'#f9fafb',border:'2px solid '+(isSelected?c:p?c+'66':'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'border-color 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column'}}>
+        style={{background:p?'#fff':BG[id]||'#fafafa',border:'2px solid '+(isSelected?c:p?c+'55':'#efefef'),borderRadius:12,cursor:p?'pointer':'default',transition:'all 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'0 1px 3px rgba(0,0,0,0.04)',position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column'}}>
 
-        {/* Header label */}
-        <div style={{padding:'6px 9px 4px',display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:p?'1px solid #f3f4f6':'none',flexShrink:0}}>
-          <div style={{display:'flex',alignItems:'baseline',gap:5}}>
-            <span style={{fontWeight:800,fontSize:12,color:c}}>{label}</span>
-            {!p&&<span style={{fontSize:9,color:c,opacity:0.45}}>{LEGENDES[id]}</span>}
+        {/* Bande couleur top */}
+        <div style={{height:3,background:p?c:c+'33',flexShrink:0}}/>
+
+        {/* Label emplacement */}
+        <div style={{padding:'6px 10px 0',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:5}}>
+            <span style={{fontWeight:800,fontSize:11,color:c,letterSpacing:0.5}}>{label}</span>
+            {!p&&<span style={{fontSize:9,color:'#c4c4c4'}}>{LEGENDES[id]}</span>}
           </div>
           {p&&<div style={{display:'flex',gap:4,alignItems:'center'}}>
-            {anomalie&&<span style={{fontSize:9,color:'#ef4444',fontWeight:700}}>!</span>}
-            <div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/>
+            {anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}
+            <div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb',flexShrink:0}}/>
           </div>}
         </div>
 
         {p ? (
-          <div style={{padding:'6px 9px',flex:1,display:'flex',flexDirection:'column',gap:4,overflow:'hidden'}}>
+          <div style={{padding:'6px 10px 8px',flex:1,display:'flex',flexDirection:'column',gap:5,overflow:'hidden'}}>
 
-            {/* Identite */}
-            <div>
-              <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-              <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.age} ans{p.ipp?' · '+p.ipp:''}</div>
+            {/* Identite style Odaiji */}
+            <div style={{borderBottom:'1px solid #f3f4f6',paddingBottom:5}}>
+              <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+              <div style={{display:'flex',gap:8,marginTop:2}}>
+                <span style={{color:'#6b7280',fontSize:10}}>{p.age} ans</span>
+                {p.ipp&&<span style={{color:'#9ca3af',fontSize:10}}>{p.ipp}</span>}
+              </div>
             </div>
 
             {/* Motif */}
-            <div style={{background:'#f9fafb',borderRadius:5,padding:'3px 6px'}}>
-              <span style={{color:'#374151',fontSize:10,fontWeight:600}}>{p.symptome||p.motifPrincipal||'--'}</span>
-              {p.douleur_eva&&<span style={{color:'#9ca3af',fontSize:9,marginLeft:4}}>EVA {p.douleur_eva}</span>}
+            <div style={{display:'flex',alignItems:'center',gap:5}}>
+              <span style={{fontSize:10,color:'#374151',fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.symptome||p.motifPrincipal||'--'}</span>
+              {p.douleur_eva&&<span style={{fontSize:9,color:'#9ca3af',flexShrink:0}}>· EVA {p.douleur_eva}/10</span>}
             </div>
 
-            {/* Constantes */}
-            <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+            {/* Constantes style Odaiji - icone + label + valeur */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:3}}>
               {[
-                {k:'sat',v:p.sat,l:'SpO2',u:'%'},
-                {k:'fc',v:p.fc,l:'FC',u:''},
-                {k:'tas',v:p.tas,l:'PAS',u:''},
-                {k:'temp',v:p.temp,l:'T',u:'°'},
-              ].filter(x=>x.v).map(({k,v,l,u})=>{
+                {k:'sat',v:p.sat,l:'SpO2',u:'%',icon:'💧'},
+                {k:'fc',v:p.fc,l:'FC',u:' bpm',icon:'❤️'},
+                {k:'tas',v:p.tas,l:'PAS',u:' mmHg',icon:'🩸'},
+                {k:'temp',v:p.temp,l:'T°',u:'°C',icon:'🌡️'},
+              ].filter(x=>x.v).map(({k,v,l,u,icon})=>{
                 const bad=isAnormal(v,k==='tas'?'ta_sys':k);
-                return <span key={k} style={{fontSize:9,fontWeight:600,color:bad?'#ef4444':'#6b7280',background:bad?'#fef2f2':'#f3f4f6',padding:'2px 5px',borderRadius:4}}>{l} {v}{u}</span>;
+                return(
+                  <div key={k} style={{background:bad?'#fef2f2':'#f9fafb',borderRadius:6,padding:'3px 6px',display:'flex',alignItems:'center',gap:3,border:'1px solid '+(bad?'#fecaca':'transparent')}}>
+                    <span style={{fontSize:9}}>{icon}</span>
+                    <div>
+                      <div style={{fontSize:8,color:'#9ca3af',lineHeight:1}}>{l}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:bad?'#ef4444':'#111827',lineHeight:1.2}}>{v}<span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                    </div>
+                  </div>
+                );
               })}
             </div>
 
-            {/* Examens / actes */}
+            {/* Actes & prescriptions */}
             {(actes.length>0||prescriptions.length>0)&&(
-              <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
-                {prescriptions.slice(0,2).map((rx,i)=>(
-                  <span key={i} style={{fontSize:8,color:'#3b82f6',background:'#eff6ff',padding:'1px 5px',borderRadius:3,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:70}}>{rx.texte}</span>
-                ))}
-                {actes.slice(0,3).map((a,i)=>(
-                  <span key={i} style={{fontSize:8,color:'#16a34a',background:'#f0fdf4',padding:'1px 5px',borderRadius:3,fontWeight:500}}>✓ {a.label}</span>
-                ))}
+              <div style={{borderTop:'1px solid #f3f4f6',paddingTop:4}}>
+                <div style={{fontSize:8,color:'#9ca3af',marginBottom:2,textTransform:'uppercase',letterSpacing:0.5}}>Soins</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:2}}>
+                  {prescriptions.slice(0,2).map((rx,i)=>(
+                    <span key={i} style={{fontSize:8,color:'#2563eb',background:'#eff6ff',padding:'1px 5px',borderRadius:3,fontWeight:500,maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{rx.texte}</span>
+                  ))}
+                  {actes.slice(0,3).map((a,i)=>(
+                    <span key={i} style={{fontSize:8,color:'#16a34a',background:'#f0fdf4',padding:'1px 5px',borderRadius:3,fontWeight:500}}>✓ {a.label}</span>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Duree + statut */}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto',paddingTop:2}}>
-              {attente&&<span style={{fontSize:8,fontWeight:700,color:'#d97706',background:'#fef3c7',padding:'1px 5px',borderRadius:3}}>ATTEND</span>}
-              <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:99}}>{dureeInfo.label}</div>
+            {/* Duree */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto'}}>
+              {attente&&<span style={{fontSize:8,fontWeight:700,color:'#d97706',background:'#fef3c7',padding:'1px 6px',borderRadius:3}}>EN ATTENTE</span>}
+              <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 8px',borderRadius:99,border:'1px solid '+dureeInfo.color+'33'}}>{dureeInfo.label}</div>
             </div>
 
           </div>
@@ -158,8 +175,8 @@ export default function PageMedecin() {
           <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
             <button onClick={e=>{e.stopPropagation();router.push('/as?emplacement='+id);}}
               onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderStyle='solid';e.currentTarget.style.background=c+'18';}}
-              onMouseLeave={e=>{e.currentTarget.style.opacity='0.45';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
-              style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.45,transition:'all 0.15s'}}>+</button>
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
+              style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
           </div>
         )}
       </div>
