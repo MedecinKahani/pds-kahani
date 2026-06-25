@@ -164,10 +164,18 @@ export default function PageMedecin() {
               </div>
             )}
 
-            {/* Duree */}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto'}}>
+            {/* Duree + sortie */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto',gap:4}}>
               {attente&&<span style={{fontSize:8,fontWeight:700,color:'#d97706',background:'#fef3c7',padding:'1px 6px',borderRadius:3}}>EN ATTENTE</span>}
               <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 8px',borderRadius:99,border:'1px solid '+dureeInfo.color+'33'}}>{dureeInfo.label}</div>
+              <button onClick={async e=>{
+                e.stopPropagation();
+                if(!confirm('Confirmer la sortie de '+p.nom+' '+p.prenom+' ?')) return;
+                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
+                load();
+              }} style={{padding:'2px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:700,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>
+                Sortie
+              </button>
             </div>
 
           </div>
