@@ -1,5 +1,12 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+
+function safeJSON(val) {
+  if(!val) return [];
+  if(typeof val === 'string') { try { return JSON.parse(val); } catch(e) { return []; } }
+  if(Array.isArray(val)) return val;
+  return [];
+}
 import FichePatient from './fiche';
 import { useRouter } from 'next/navigation';
 
