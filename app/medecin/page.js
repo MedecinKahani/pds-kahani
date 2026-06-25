@@ -26,7 +26,7 @@ const COULEURS = {
   brancard1:'#ef4444', brancard2:'#ef4444',
   lit1:'#9ca3af', lit2:'#9ca3af',
   fauteuil1:'#16a34a', fauteuil2:'#16a34a',
-  obs1:'#16a34a', obs2:'#16a34a',
+  obs1:'#9ca3af', obs2:'#16a34a',
   pansement:'#f59e0b',
 };
 
@@ -34,7 +34,7 @@ const BG_VIDE = {
   brancard1:'#fef2f2', brancard2:'#fef2f2',
   lit1:'#f9fafb', lit2:'#f9fafb',
   fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
-  obs1:'#f0fdf4', obs2:'#f0fdf4',
+  obs1:'#f9fafb', obs2:'#f0fdf4',
   pansement:'#fffbeb',
 };
 
@@ -46,13 +46,13 @@ const PLAN = [
     null,
   ],
   [
-    {id:'obs1', label:'O1', nom:'Observation 1', fauteuil:true},
+    {id:'obs1', label:'O1', nom:'Observation - Lit', lit:true},
     {id:'lit2', label:'L2', nom:'Lit 2'},
     {id:'fauteuil1', label:'F1', nom:'Fauteuil 1', o2:true},
     {id:'brancard1', label:'B1', nom:'Brancard 1', urgent:true},
   ],
   [
-    {id:'obs2', label:'O2', nom:'Observation 2'},
+    {id:'obs2', label:'O2', nom:'Observation - Fauteuil', fauteuil:true},
     {id:'fauteuil2', label:'F2', nom:'Fauteuil 2', o2:true},
     {id:'lit1', label:'L1', nom:'Lit 1'},
     {id:'brancard2', label:'B2', nom:'Brancard 2', urgent:true},
@@ -141,20 +141,6 @@ export default function PageMedecin() {
 
           <div style={{width:sel?420:'100%',flexShrink:0,padding:'1.5rem',overflowY:'auto',transition:'width 0.25s'}}>
 
-            {/* POSTE */}
-            <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'10px 16px',marginBottom:'1rem',display:'flex',alignItems:'center',gap:20}}>
-              <div style={{display:'flex',alignItems:'center',gap:6}}>
-                <span style={{fontSize:16}}>PC</span><span style={{color:'#6b7280',fontSize:12}}>IDE</span>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:6}}>
-                <span style={{fontSize:16}}>PC</span><span style={{fontWeight:600,color:'#0d9488',fontSize:12}}>Medecin</span>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:6}}>
-                <span style={{fontSize:16}}>PC</span><span style={{color:'#6b7280',fontSize:12}}>AS</span>
-              </div>
-              <div style={{marginLeft:'auto',color:'#9ca3af',fontSize:11}}>Preau / Entree</div>
-            </div>
-
             {/* PLAN */}
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               {PLAN.map((row,ri)=>(
@@ -184,12 +170,11 @@ export default function PageMedecin() {
                         position:'relative', overflow:'hidden'
                       }}>
 
-                        <div style={{background:c,padding:'5px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                          <span style={{fontWeight:800,fontSize:13,color:'#fff'}}>{cell.label}</span>
+                        <div style={{padding:'8px 10px 4px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                          <span style={{fontWeight:800,fontSize:14,color:c}}>{cell.label}</span>
                           <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                            {p&&anomalie&&<span style={{fontSize:11,color:'#fff'}}>(!)</span>}
-                            {p&&<div style={{width:7,height:7,borderRadius:'50%',background:attente?'#fef08a':'#fff',opacity:0.9}}/>}
-                            {!p&&<span style={{fontSize:10,color:'#fff',opacity:0.7}}>{cell.o2?'O2':cell.fauteuil?'F':''}</span>}
+                            {p&&anomalie&&<span style={{fontSize:11,color:'#ef4444',fontWeight:700}}>(!)</span>}
+                            {p&&<div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/>}
                           </div>
                         </div>
 
