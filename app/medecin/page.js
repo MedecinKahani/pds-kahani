@@ -13,10 +13,10 @@ const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',t
 
 // Groupes de salles pour les contours
 const GROUPES = [
-  {ids:['pansement'], color:'#f59e0b'},
-  {ids:['obs1','obs2'], color:'#16a34a'},
-  {ids:['lit2','fauteuil1','fauteuil2','lit1'], color:'#9ca3af'},
-  {ids:['brancard1','brancard2'], color:'#ef4444'},
+  {ids:['pansement'],                            color:'#f59e0b', label:'Pansement'},
+  {ids:['obs1','obs2'],                          color:'#16a34a', label:'Observation'},
+  {ids:['lit2','fauteuil1','fauteuil2','lit1'],  color:'#6b7280', label:'Salle 2'},
+  {ids:['brancard1','brancard2'],                color:'#ef4444', label:'Dechocage'},
 ];
 
 // Ordre des cases dans le grid 4x3
@@ -188,7 +188,8 @@ export default function PageMedecin() {
               {/* SVG contours de salle */}
               <svg style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:10,overflow:'visible'}}>
                 {svgRects.map((r,i)=>(
-                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx="14" fill="none" stroke={r.color} strokeWidth="2.5" strokeOpacity="0.6"/>
+                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx="14"
+                    fill={r.color+'08'} stroke={r.color} strokeWidth="2" strokeOpacity="0.7"/>
                 ))}
               </svg>
 
