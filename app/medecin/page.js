@@ -144,7 +144,7 @@ export default function PageMedecin() {
 
       <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
-        {/* PLAN + FICHE */}
+        {/* PLAN FICHE */}
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingBottom:10,borderBottom:'1px solid #f3f4f6'}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#d1d5db'}}/>
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Préau</span>
@@ -159,7 +159,7 @@ export default function PageMedecin() {
             preau.map(p=>(
               <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'12px',marginBottom:8}}>
                 <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom}</div>
-                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.age} ans · {p.motifPrincipal}</div>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.age} ans - {p.motifPrincipal}</div>
                 <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>{duree(p.arrivee)}</div>
                 {p.sat&&<div style={{color:parseFloat(p.sat)<94?'#ef4444':'#6b7280',fontSize:11,marginTop:2}}>SpO2 {p.sat}%</div>}
                 <button onClick={async()=>{
@@ -169,7 +169,7 @@ export default function PageMedecin() {
                   width:'100%',marginTop:10,padding:'7px',borderRadius:8,
                   background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600
                 }}>
-                  Faire rentrer →
+                  Faire rentrer ->
                 </button>
               </div>
             ))
@@ -190,7 +190,7 @@ export default function PageMedecin() {
             <div style={{display:'flex',alignItems:'center',gap:6}}>
               <span style={{fontSize:16}}>🖥️</span><span style={{color:'#6b7280',fontSize:12}}>AS</span>
             </div>
-            <div style={{marginLeft:'auto',color:'#9ca3af',fontSize:11}}>← Préau / Entrée</div>
+            <div style={{marginLeft:'auto',color:'#9ca3af',fontSize:11}}>&lt;- Préau / Entrée</div>
           </div>
 
           {/* PLAN */}
@@ -232,7 +232,7 @@ export default function PageMedecin() {
                             <div style={{width:7,height:7,borderRadius:'50%',background:attente?'#fef08a':'#fff',opacity:0.9}}/>
                           </div>
                         )}
-                        {!p&&<span style={{fontSize:10,color:'#fff',opacity:0.7}}>{cell.o2?'O₂':cell.fauteuil?'🪑':''}</span>}
+                        {!p&&<span style={{fontSize:10,color:'#fff',opacity:0.7}}>{cell.o2?'O2':cell.fauteuil?'[F]':''}</span>}
                       </div>
 
                       {p?(
@@ -243,7 +243,7 @@ export default function PageMedecin() {
                           </div>
                           <div style={{display:'flex',gap:6,marginTop:3,flexWrap:'wrap'}}>
                             <span style={{color:'#6b7280',fontSize:11}}>{p.age} ans</span>
-                            {p.ipp&&<span style={{color:'#9ca3af',fontSize:11}}>· IPP {p.ipp}</span>}
+                            {p.ipp&&<span style={{color:'#9ca3af',fontSize:11}}>- IPP {p.ipp}</span>}
                           </div>
                           <div style={{color:'#374151',fontSize:11,marginTop:4,fontWeight:500}}>{p.motifPrincipal}</div>
                           {/* Constantes */}
@@ -283,7 +283,7 @@ export default function PageMedecin() {
 
           {/* LÉGENDE */}
           <div style={{display:'flex',gap:16,marginTop:12,flexWrap:'wrap'}}>
-            {[['#ef4444','Déchocage'],['#3b82f6','Lits'],['#8b5cf6','Fauteuils O₂'],['#10b981','Observation'],['#f59e0b','Pansement'],['#6b7280','Consultation']].map(([c,l])=>(
+            {[['#ef4444','Déchocage'],['#3b82f6','Lits'],['#8b5cf6','Fauteuils O2'],['#10b981','Observation'],['#f59e0b','Pansement'],['#6b7280','Consultation']].map(([c,l])=>(
               <div key={l} style={{display:'flex',alignItems:'center',gap:5}}>
                 <div style={{width:8,height:8,borderRadius:2,background:c}}/>
                 <span style={{color:'#9ca3af',fontSize:11}}>{l}</span>
@@ -303,7 +303,7 @@ export default function PageMedecin() {
                 </div>
                 <div>
                   <h2 style={{fontSize:18,fontWeight:700,color:'#111827'}}>{sel.nom} {sel.prenom}</h2>
-                  <div style={{fontSize:13,color:'#6b7280',marginTop:1}}>{sel.age} ans · {sel.sexe==='F'?'Femme':'Homme'} · IPP {sel.ipp||'—'}</div>
+                  <div style={{fontSize:13,color:'#6b7280',marginTop:1}}>{sel.age} ans - {sel.sexe==='F'?'Femme':'Homme'} - IPP {sel.ipp||'—'}</div>
                 </div>
               </div>
               <button onClick={()=>setSel(null)} style={{width:32,height:32,borderRadius:'50%',background:'#f3f4f6',color:'#6b7280',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
@@ -341,8 +341,8 @@ export default function PageMedecin() {
               <div style={{fontWeight:600,color:'#111827',fontSize:14}}>{sel.motifPrincipal||'—'}</div>
               {sel.douleur_eva&&<div style={{color:'#6b7280',fontSize:13,marginTop:4}}>EVA {sel.douleur_eva}/10</div>}
               {sel.fievre_depuis&&<div style={{color:'#f59e0b',fontSize:13,marginTop:4}}>Fièvre depuis : {sel.fievre_depuis}</div>}
-              {sel.plaie_vaccin&&<div style={{color:'#6b7280',fontSize:13,marginTop:4}}>Vaccin : {sel.plaie_vaccin} · Test tétanos : {sel.quicktest_tetanos||'non fait'}</div>}
-              {sel.bu_urine&&<div style={{color:'#8b5cf6',fontSize:13,marginTop:4}}>BU · bHCG : {sel.bhcg?'fait':'en attente'}</div>}
+              {sel.plaie_vaccin&&<div style={{color:'#6b7280',fontSize:13,marginTop:4}}>Vaccin : {sel.plaie_vaccin} - Test tétanos : {sel.quicktest_tetanos||'non fait'}</div>}
+              {sel.bu_urine&&<div style={{color:'#8b5cf6',fontSize:13,marginTop:4}}>BU - bHCG : {sel.bhcg?'fait':'en attente'}</div>}
               {sel.notes_as&&<div style={{color:'#6b7280',fontSize:13,marginTop:6,fontStyle:'italic',borderTop:'1px solid #e5e7eb',paddingTop:6}}>Note AS : {sel.notes_as}</div>}
             </div>
 
@@ -353,7 +353,7 @@ export default function PageMedecin() {
                 <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
                   {JSON.parse(sel.actes).map((a,i)=>(
                     <span key={i} style={{background:'#fff',border:'1px solid #99f6e4',color:'#0d9488',fontSize:11,padding:'3px 8px',borderRadius:99,fontWeight:500}}>
-                      {a.label} · {new Date(a.heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+                      {a.label} - {new Date(a.heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
                     </span>
                   ))}
                 </div>
@@ -420,7 +420,7 @@ export default function PageMedecin() {
         )}
         </div>
 
-        {/* PRÉAU — colonne droite fixe */}
+        {/* PREAU colonne droite */}
         <div style={{width:240,flexShrink:0,background:'#fff',borderLeft:'1px solid #e5e7eb',padding:'1rem',overflowY:'auto',display:'flex',flexDirection:'column'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,paddingBottom:10,borderBottom:'1px solid #f3f4f6'}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#d1d5db'}}/>
@@ -436,14 +436,14 @@ export default function PageMedecin() {
             preau.map(p=>(
               <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'12px',marginBottom:8}}>
                 <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom}</div>
-                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.age} ans · {p.motifPrincipal}</div>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.age} ans - {p.motifPrincipal}</div>
                 <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>{duree(p.arrivee)}</div>
                 {p.sat&&<div style={{color:parseFloat(p.sat)<94?'#ef4444':'#6b7280',fontSize:11,marginTop:2}}>SpO2 {p.sat}%</div>}
                 <button onClick={async()=>{
                   await patch(p.id,{statut:'attente_medecin',emplacement:p.emplacement_suggere||'lit1'});
                   setSel(p);load();
                 }} style={{width:'100%',marginTop:10,padding:'7px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600}}>
-                  Faire rentrer →
+                  Faire rentrer ->
                 </button>
               </div>
             ))
