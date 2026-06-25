@@ -809,6 +809,129 @@ export default function PageAS() {
             {form.symptome==='asthme'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
                 <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer l'asthme</div>
+
+                {/* Signe de lutte */}
+                <div style={{marginBottom:12}}>
+                  <label style={lbl}>Signe de lutte (tirage, n'arrive pas a parler) ?</label>
+                  <div style={{display:'flex',gap:8}}>
+                    {[['true','Oui - signe de lutte','#ef4444'],['false','Non','#16a34a']].map(([v,l,c])=>(
+                      <button key={v} onClick={()=>set('signe_lutte',v==='true')} style={{flex:1,padding:'10px',borderRadius:8,
+                        background:String(form.signe_lutte)===v?c:'#f9fafb',
+                        color:String(form.signe_lutte)===v?'#fff':'#374151',
+                        border:'2px solid '+(String(form.signe_lutte)===v?c:'#e5e7eb'),
+                        fontWeight:600,fontSize:13,cursor:'pointer'}}>{l}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Résultat selon sat + lutte */}
+                {form.sat?(
+                  (parseFloat(form.sat)<95||form.signe_lutte===true)?(
+                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:10,padding:'12px 14px'}}>
+                      <div style={{color:'#dc2626',fontWeight:700,fontSize:14,marginBottom:8}}>Asthme severe — F1 + O2 5L + Scope</div>
+                      <div style={{fontSize:12,color:'#374151',lineHeight:1.8}}>
+                        <div style={{fontWeight:600,color:'#ef4444',marginBottom:4}}>Protocole aerosol sous O2 5L/min :</div>
+                        <div>1er aerosol : Ventoline <b>{parseFloat(form.poids||99)<16?'2.5':'5'} mL</b> + Atrovent <b>{parseFloat(form.poids||99)<16?'0.25':'0.5'} mg</b></div>
+                        <div>2e aerosol : Ventoline <b>{parseFloat(form.poids||99)<16?'2.5':'5'} mL</b></div>
+                        <div>3e aerosol : Ventoline <b>{parseFloat(form.poids||99)<16?'2.5':'5'} mL</b></div>
+                        <div style={{marginTop:6,color:'#9ca3af',fontSize:11}}>Poids : {form.poids?form.poids+'kg':'non renseigne'} → {parseFloat(form.poids||99)<16?'<16kg (dose enfant)':'>16kg (dose adulte)'}</div>
+                        <div style={{marginTop:4,fontWeight:600}}>Reevaluation saturation + clinique apres chaque aerosol</div>
+                      </div>
+                    </div>
+                  ):(
+                    <div style={{background:'#f0fdf4',border:'2px solid #16a34a',borderRadius:10,padding:'12px 14px'}}>
+                      <div style={{color:'#15803d',fontWeight:700,fontSize:14,marginBottom:8}}>Asthme modere — O1 Observation + AIR</div>
+                      <div style={{fontSize:12,color:'#374151',lineHeight:1.8}}>
+                        <div style={{fontWeight:600,color:'#16a34a',marginBottom:4}}>Protocole aerosol sous AIR :</div>
+                        <div>1er aerosol : Ventoline <b>{parseFloat(form.poids||99)<16?'2.5':'5'} mL</b> + Atrovent <b>{parseFloat(form.poids||99)<16?'0.25':'0.5'} mg</b></div>
+                        <div>2e aerosol : Ventoline <b>{parseFloat(form.poids||99)<16?'2.5':'5'} mL</b></div>
+                        <div>3e aerosol : Ventoline <b>{parseFloat(form.poids||99)<16?'2.5':'5'} mL</b></div>
+                        <div style={{marginTop:6,color:'#9ca3af',fontSize:11}}>Poids : {form.poids?form.poids+'kg':'non renseigne'} → {parseFloat(form.poids||99)<16?'<16kg (dose enfant)':'>16kg (dose adulte)'}</div>
+                        <div style={{marginTop:4,fontWeight:600}}>Reevaluation saturation + clinique apres chaque aerosol</div>
+                        <div style={{color:'#ef4444',marginTop:4}}>Si sat descend sous 95% → passer sous O2 + F1</div>
+                      </div>
+                    </div>
+                  )
+                ):(
+                  <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'10px 12px'}}>
+                    <div style={{color:'#d97706',fontSize:12,fontWeight:600}}>Renseignez la saturation pour voir la recommandation</div>
+                    <div style={{color:'#d97706',fontSize:11,marginTop:2}}>Sans saturation : orienter vers O1 Observation par precaution</div>
+                  </div>
+                )}
+
+                {/* DRP enfant < 2 ans */}
+                {age!==null&&age<2&&(
+                  <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'10px 12px',marginTop:10}}>
+                    <div style={{color:'#1d4ed8',fontWeight:700,fontSize:12}}>Enfant &lt; 2 ans — DRP recommande</div>
+                    <button onClick={()=>set('drp',!form.drp)} style={{marginTop:6,padding:'6px 14px',borderRadius:6,background:form.drp?'#3b82f6':'#fff',color:form.drp?'#fff':'#374151',border:'1px solid '+(form.drp?'#3b82f6':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                      {form.drp?'✓ DRP realise':'DRP a realiser'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* VERTIGE */}
+            {form.symptome==='vertige'&&(
+              <div style={{marginTop:16,padding:14,background:'#eff6ff',borderRadius:10,border:'1px solid #bfdbfe'}}>
+                <div style={{color:'#1d4ed8',fontWeight:700,fontSize:13,marginBottom:10}}>Vertige / Malaise - Realiser dextro et hemocue</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Dextro (g/L)</label>
+                    <input type="number" step="0.1" value={form.dextro||''} onChange={e=>set('dextro',e.target.value)}
+                      placeholder="Ex: 1.0"
+                      style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
+                    {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE - Brancard 1 + alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie - Alerter medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie - Prevenir medecin</div>}
+                  </div>
+                  <div>
+                    <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
+                    <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)}
+                      placeholder="Ex: 12.0"
+                      style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE - Brancard 1 + alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie - Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee - Prevenir medecin</div>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PLAIE */}
+            {form.symptome==='plaie'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <label style={lbl}>Carnet de vaccination</label>
+                <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
+                  {[
+                    ['ok','Carnet present - vaccin lisible (1ere ou derniere page)','#16a34a','✓'],
+                    ['illisible','Carnet present mais illisible / incomplet','#f59e0b','⚠️'],
+                    ['absent','Pas de carnet','#ef4444','✗'],
+                  ].map(([v,l,c,ic])=>(
+                    <button key={v} onClick={()=>{set('plaie_vaccin',v);if(v!=='ok')set('quicktest','');}} style={{padding:'12px 16px',borderRadius:10,fontSize:13,background:form.plaie_vaccin===v?c+'15':'#f9fafb',color:form.plaie_vaccin===v?c:'#374151',border:'2px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:600,textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
+                      <span style={{fontSize:16}}>{ic}</span>{l}
+                    </button>
+                  ))}
+                </div>
+                {(form.plaie_vaccin==='illisible'||form.plaie_vaccin==='absent')&&(
+                  <div style={{background:'#fffbeb',border:'2px solid #f59e0b',borderRadius:10,padding:'12px 14px'}}>
+                    <div style={{color:'#d97706',fontWeight:700,fontSize:13,marginBottom:8}}>Quick Test Tetanos - A realiser maintenant</div>
+                    <div style={{display:'flex',gap:8}}>
+                      {['Negatif','Positif'].map(r=>(
+                        <button key={r} onClick={()=>set('quicktest',r)} style={{flex:1,padding:'10px',borderRadius:8,background:form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1.5px solid '+(form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                          {r==='Negatif'?'✓ Negatif':'✗ Positif'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ASTHME */}
+            {form.symptome==='asthme'&&(
+              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer l'asthme</div>
                 <div style={{background:'#f0fdf4',borderRadius:8,padding:'10px 12px',marginBottom:12,border:'1px solid #bbf7d0'}}>
                   <div style={{fontWeight:700,color:'#15803d',fontSize:12,marginBottom:6}}>Protocole aerosol (3 aerosols)</div>
                   <div style={{fontSize:11,color:'#166534',lineHeight:1.8}}>
