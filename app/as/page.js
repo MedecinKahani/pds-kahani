@@ -746,31 +746,49 @@ export default function PageAS() {
 
             {/* DETRESSE RESPIRATOIRE */}
             {form.symptome==='detresse_respi'&&(
-              <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <div style={{fontWeight:700,color:'#374151',fontSize:13,marginBottom:10}}>Evaluer la detresse</div>
-                <div style={{marginBottom:10}}>
-                  <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
-                  <div style={{display:'flex',gap:8}}>
-                    <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#f9fafb',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
-                      Oui — respire et parle
-                    </button>
-                    <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#f9fafb',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
-                      Non — difficultés
-                    </button>
+              <div style={{marginTop:16,borderRadius:10,overflow:'hidden',border:'1px solid #e5e7eb'}}>
+
+                {/* Etape 1 : saturation */}
+                {parseFloat(form.sat)<95&&form.sat?(
+                  <div style={{background:'#7f1d1d',padding:'14px'}}>
+                    <div style={{color:'#fff',fontWeight:800,fontSize:15,marginBottom:6}}>Saturation {form.sat}% — URGENCE</div>
+                    <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px',color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
+                      <div style={{fontWeight:700}}>Brancard 1 — O2 immediat — Appeler medecin et IDE</div>
+                      <div>Installer en B1 (ou B2 si occupe) — O2 masque — Position demi-assise</div>
+                    </div>
                   </div>
-                </div>
-                {form.signe_lutte!==''&&(
-                  form.signe_lutte===false?(
-                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
-                      <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Installer en Salle 2</div>
-                      <div style={{color:'#15803d',fontSize:12,marginTop:4}}>F2 ou L1 ou L2 disponible — Position demi-assise — Surveillance saturation</div>
+                ):(
+                  <div style={{padding:'14px',background:'#f9fafb'}}>
+                    {form.sat&&<div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 12px',marginBottom:12}}>
+                      <div style={{color:'#16a34a',fontSize:12,fontWeight:600}}>Saturation {form.sat}% — correcte</div>
+                    </div>}
+                    {!form.sat&&<div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginBottom:12}}>
+                      <div style={{color:'#d97706',fontSize:12}}>Saturation non renseignee — evaluer cliniquement</div>
+                    </div>}
+
+                    <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
+                    <div style={{display:'flex',gap:8}}>
+                      <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                        Oui — respire et parle
+                      </button>
+                      <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                        Non — difficultes
+                      </button>
                     </div>
-                  ):(
-                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
-                      <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Brancard 1 — O2 — Prevenir toute l'equipe</div>
-                      <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Installer en B1 (ou B2 si B1 occupe) — Mettre O2 — Alerter medecin et IDE immediatement</div>
-                    </div>
-                  )
+
+                    {form.signe_lutte===false&&form.signe_lutte!==''&&(
+                      <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px',marginTop:10}}>
+                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Salle 2 — Position demi-assise</div>
+                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>L1 ou L2 ou F2 selon disponibilite — Surveillance saturation</div>
+                      </div>
+                    )}
+                    {form.signe_lutte===true&&(
+                      <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px',marginTop:10}}>
+                        <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Brancard 1 ou 2 — O2 — Alerter equipe</div>
+                        <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Position demi-assise — O2 masque — Prevenir medecin et IDE</div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
