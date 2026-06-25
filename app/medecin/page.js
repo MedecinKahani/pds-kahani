@@ -117,7 +117,7 @@ export default function PageMedecin() {
                     (cell.id==='_as' && sessionRole==='as');
     return (
       <div key={cell.id} style={{
-        flex:1, minHeight:0, borderRadius:10,
+        flex:1, borderRadius:10,
         background:'#fff', border:'1.5px solid '+(showNom?cell.color+'55':'#e5e7eb'),
         display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center', gap:5,
@@ -148,7 +148,7 @@ export default function PageMedecin() {
         setSel(isSelected?null:p);
         if(p.statut==='attente_medecin') patch(p.id,{statut:'en_cours'});
       }} style={{
-        flex:1, minHeight:0,
+        flex:1,
         background: p ? '#fff' : bgVide,
         border: '2px solid '+(isSelected?c:p?c:c+'66'),
         borderRadius:10,
@@ -234,55 +234,37 @@ export default function PageMedecin() {
 
           <div style={{width:sel?440:'100%',flexShrink:0,padding:'1.25rem',overflowY:'auto',transition:'width 0.25s',display:'flex',flexDirection:'column',minHeight:0}}>
 
-            {/* GRILLE UNIQUE 4x3 avec contours salles via CSS grid-area */}
-            <div style={{
-              display:'grid',
-              gridTemplateColumns:'repeat(4,1fr)',
-              gridTemplateRows:'repeat(3,1fr)',
-              gap:8,
-              flex:1,
-              minHeight:0,
-              position:'relative'
-            }}>
-              {/* Contour P1 - row1 col1 */}
-              <div style={{
-                position:'absolute', pointerEvents:'none', zIndex:5,
-                top:0, left:0,
-                width:'calc((100% - 24px) / 4)',
-                height:'calc((100% - 16px) / 3)',
-                border:'2px solid #f59e0b88', borderRadius:12
-              }}/>
-              {/* Contour Observation - rows 2+3 col1 */}
-              <div style={{
-                position:'absolute', pointerEvents:'none', zIndex:5,
-                top:'calc((100% - 16px) / 3 + 8px)',
-                left:0,
-                width:'calc((100% - 24px) / 4)',
-                height:'calc(((100% - 16px) / 3) * 2 + 8px)',
-                border:'2px solid #16a34a88', borderRadius:12
-              }}/>
-              {/* Contour Salle 2 - rows 2+3 cols 2+3 */}
-              <div style={{
-                position:'absolute', pointerEvents:'none', zIndex:5,
-                top:'calc((100% - 16px) / 3 + 8px)',
-                left:'calc((100% - 24px) / 4 + 8px)',
-                width:'calc(((100% - 24px) / 4) * 2 + 8px)',
-                height:'calc(((100% - 16px) / 3) * 2 + 8px)',
-                border:'2px solid #9ca3af88', borderRadius:12
-              }}/>
-              {/* Contour Dechocage - rows 2+3 col4 */}
-              <div style={{
-                position:'absolute', pointerEvents:'none', zIndex:5,
-                top:'calc((100% - 16px) / 3 + 8px)',
-                right:0,
-                width:'calc((100% - 24px) / 4)',
-                height:'calc(((100% - 16px) / 3) * 2 + 8px)',
-                border:'2px solid #ef444488', borderRadius:12
-              }}/>
-
+            {/* Ligne 0 : P1 + postes - sans encadrement salle */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,flexShrink:0}}>
               {LIGNE0.map(cell => cell.poste ? renderPoste(cell) : renderCase(cell))}
-              {LIGNE1.map(cell => renderCase(cell))}
-              {LIGNE2.map(cell => renderCase(cell))}
+            </div>
+
+            {/* Lignes 1+2 : 4 colonnes groupées par salle */}
+            <div style={{display:'flex',gap:8,flex:1,minHeight:0,marginTop:8}}>
+
+              {/* Observation */}
+              <div style={{display:'flex',flexDirection:'column',gap:8,flex:1,
+                border:'2px solid #16a34a66',borderRadius:14,padding:6}}>
+                {renderCase(LIGNE1[0])}
+                {renderCase(LIGNE2[0])}
+              </div>
+
+              {/* Salle 2 */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,flex:2,
+                border:'2px solid #9ca3af66',borderRadius:14,padding:6}}>
+                {renderCase(LIGNE1[1])}
+                {renderCase(LIGNE1[2])}
+                {renderCase(LIGNE2[2])}
+                {renderCase(LIGNE2[1])}
+              </div>
+
+              {/* Dechocage */}
+              <div style={{display:'flex',flexDirection:'column',gap:8,flex:1,
+                border:'2px solid #ef444466',borderRadius:14,padding:6}}>
+                {renderCase(LIGNE1[3])}
+                {renderCase(LIGNE2[3])}
+              </div>
+
             </div>
 
           </div>
