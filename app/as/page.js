@@ -469,94 +469,77 @@ export default function PageAS() {
                 <div style={{fontWeight:600,color:'#374151',fontSize:13,marginBottom:10}}>Ou est la douleur ? (cliquez — selection multiple)</div>
 
                 <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:10}}>
-                  {/* SVG FACE */}
-                  <div style={{textAlign:'center',flexShrink:0}}>
-                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>FACE — cliquer</div>
-                    <svg width="110" height="300" viewBox="0 0 110 300" style={{display:'block'}}>
-                      {[
-                        // Tête
-                        {id:'tete', d:'M55,2 C43,2 35,12 35,24 C35,38 43,46 55,46 C67,46 75,38 75,24 C75,12 67,2 55,2 Z', label:'Tete', lx:55, ly:26},
-                        // Cou
-                        {id:'cou', d:'M47,46 L47,58 L63,58 L63,46 Z', label:'Cou', lx:55, ly:53},
-                        // Thorax
-                        {id:'thorax', d:'M22,58 L88,58 L92,118 L18,118 Z', label:'Thorax', lx:55, ly:88},
-                        // Bras gauche patient (droite ecran)
-                        {id:'bras_g', d:'M88,60 L100,64 L104,118 L90,114 Z', label:'Bras G', lx:97, ly:88},
-                        // Avant-bras gauche
-                        {id:'avant_bras_g', d:'M90,114 L104,118 L106,168 L92,164 Z', label:'AVB G', lx:99, ly:141},
-                        // Main gauche
-                        {id:'main_g', d:'M92,164 L106,168 L108,188 L90,184 Z', label:'Main G', lx:99, ly:176},
-                        // Bras droit patient (gauche ecran)
-                        {id:'bras_d', d:'M22,60 L10,64 L6,118 L20,114 Z', label:'Bras D', lx:13, ly:88},
-                        // Avant-bras droit
-                        {id:'avant_bras_d', d:'M20,114 L6,118 L4,168 L18,164 Z', label:'AVB D', lx:11, ly:141},
-                        // Main droite
-                        {id:'main_d', d:'M18,164 L4,168 L2,188 L20,184 Z', label:'Main D', lx:11, ly:176},
-                        // Abdomen
-                        {id:'abdomen', d:'M18,118 L92,118 L90,168 L20,168 Z', label:'Abdomen', lx:55, ly:143},
-                        // Bassin
-                        {id:'bassin', d:'M20,168 L90,168 L86,192 L24,192 Z', label:'Bassin', lx:55, ly:180},
-                        // Cuisse gauche patient (droite ecran)
-                        {id:'cuisse_g', d:'M55,192 L84,192 L82,248 L57,248 Z', label:'Cuisse G', lx:71, ly:220},
-                        // Cuisse droite patient (gauche ecran)
-                        {id:'cuisse_d', d:'M55,192 L26,192 L28,248 L53,248 Z', label:'Cuisse D', lx:39, ly:220},
-                        // Jambe gauche
-                        {id:'jambe_g', d:'M57,248 L82,248 L80,288 L59,288 Z', label:'Jambe G', lx:70, ly:268},
-                        // Jambe droite
-                        {id:'jambe_d', d:'M53,248 L28,248 L30,288 L51,288 Z', label:'Jambe D', lx:40, ly:268},
-                        // Pied gauche
-                        {id:'pied_g', d:'M59,288 L80,288 L84,300 L59,300 Z', label:'Pied G', lx:71, ly:295},
-                        // Pied droit
-                        {id:'pied_d', d:'M51,288 L30,288 L26,300 L51,300 Z', label:'Pied D', lx:39, ly:295},
-                      ].map(z=>{
-                        const sel=form.douleur_zones.includes(z.id);
-                        const rouge=z.id==='bras_g'||z.id==='avant_bras_g';
-                        return(
-                          <g key={z.id} onClick={()=>{
-                            const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
-                            set('douleur_zones',zones);
-                          }} style={{cursor:'pointer'}}>
-                            <path d={z.d} fill={sel?(rouge?'#ef4444':'#0d9488'):'#e2e8f0'} stroke={sel?(rouge?'#b91c1c':'#0f766e'):'#94a3b8'} strokeWidth="1.5" strokeLinejoin="round"/>
-                            <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle" fontSize="6" fill={sel?'#fff':'#64748b'} fontWeight={sel?'700':'500'}>{z.label}</text>
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  </div>
+                  {/* SCHEMA SIMPLIFIE */}
+                  <div style={{display:'flex',gap:8,flexShrink:0}}>
 
-                  {/* SVG DOS */}
-                  <div style={{textAlign:'center',flexShrink:0}}>
-                    <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>DOS — cliquer</div>
-                    <svg width="110" height="300" viewBox="0 0 110 300" style={{display:'block'}}>
-                      {[
-                        {id:'tete_dos', d:'M55,2 C43,2 35,12 35,24 C35,38 43,46 55,46 C67,46 75,38 75,24 C75,12 67,2 55,2 Z', label:'Tete', lx:55, ly:26},
-                        {id:'nuque', d:'M47,46 L47,58 L63,58 L63,46 Z', label:'Nuque', lx:55, ly:53},
-                        {id:'dos_haut', d:'M22,58 L88,58 L92,118 L18,118 Z', label:'Dos haut', lx:55, ly:88},
-                        {id:'bras_g_dos', d:'M88,60 L100,64 L104,118 L90,114 Z', label:'Bras G', lx:97, ly:88},
-                        {id:'avb_g_dos', d:'M90,114 L104,118 L106,168 L92,164 Z', label:'AVB G', lx:99, ly:141},
-                        {id:'bras_d_dos', d:'M22,60 L10,64 L6,118 L20,114 Z', label:'Bras D', lx:13, ly:88},
-                        {id:'avb_d_dos', d:'M20,114 L6,118 L4,168 L18,164 Z', label:'AVB D', lx:11, ly:141},
-                        {id:'dos_bas', d:'M18,118 L92,118 L90,168 L20,168 Z', label:'Dos bas', lx:55, ly:143},
-                        {id:'fesses', d:'M20,168 L90,168 L86,192 L24,192 Z', label:'Fesses', lx:55, ly:180},
-                        {id:'cuisse_g_dos', d:'M55,192 L84,192 L82,248 L57,248 Z', label:'Cuisse G', lx:71, ly:220},
-                        {id:'cuisse_d_dos', d:'M55,192 L26,192 L28,248 L53,248 Z', label:'Cuisse D', lx:39, ly:220},
-                        {id:'mollet_g', d:'M57,248 L82,248 L80,288 L59,288 Z', label:'Mollet G', lx:70, ly:268},
-                        {id:'mollet_d', d:'M53,248 L28,248 L30,288 L51,288 Z', label:'Mollet D', lx:40, ly:268},
-                        {id:'talon_g', d:'M59,288 L80,288 L84,300 L59,300 Z', label:'Talon G', lx:71, ly:295},
-                        {id:'talon_d', d:'M51,288 L30,288 L26,300 L51,300 Z', label:'Talon D', lx:39, ly:295},
-                      ].map(z=>{
-                        const sel=form.douleur_zones.includes(z.id);
-                        return(
-                          <g key={z.id} onClick={()=>{
-                            const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
-                            set('douleur_zones',zones);
-                          }} style={{cursor:'pointer'}}>
-                            <path d={z.d} fill={sel?'#8b5cf6':'#e2e8f0'} stroke={sel?'#6d28d9':'#94a3b8'} strokeWidth="1.5" strokeLinejoin="round"/>
-                            <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle" fontSize="6" fill={sel?'#fff':'#64748b'} fontWeight={sel?'700':'500'}>{z.label}</text>
-                          </g>
-                        );
-                      })}
-                    </svg>
+                    {/* Corps */}
+                    <div style={{textAlign:'center'}}>
+                      <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>Corps</div>
+                      <svg width="100" height="260" viewBox="0 0 100 260">
+                        {[
+                          {id:'tete',      d:'M50,2 C37,2 28,12 28,26 C28,40 37,50 50,50 C63,50 72,40 72,26 C72,12 63,2 50,2 Z', label:'Tete', lx:50, ly:27},
+                          {id:'thorax',    d:'M20,56 L80,56 L84,116 L16,116 Z', label:'Thorax', lx:50, ly:86},
+                          {id:'membre_g',  d:'M82,58 L96,62 L100,160 L84,156 Z', label:'Mbr G', lx:92, ly:108},
+                          {id:'membre_d',  d:'M18,58 L4,62 L0,160 L16,156 Z', label:'Mbr D', lx:8, ly:108},
+                          {id:'abdomen',   d:'M16,116 L84,116 L82,170 L18,170 Z', label:'Abdomen', lx:50, ly:143},
+                          {id:'mig',       d:'M50,170 L80,170 L78,258 L52,258 Z', label:'MIG', lx:66, ly:213},
+                          {id:'mid',       d:'M50,170 L20,170 L22,258 L48,258 Z', label:'MID', lx:34, ly:213},
+                        ].map(z=>{
+                          const sel=form.douleur_zones.includes(z.id);
+                          const rouge=z.id==='membre_g';
+                          return(
+                            <g key={z.id} onClick={()=>{
+                              const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                              set('douleur_zones',zones);
+                            }} style={{cursor:'pointer'}}>
+                              <path d={z.d}
+                                fill={sel?(rouge?'#ef4444':'#0d9488'):'#e2e8f0'}
+                                stroke={sel?(rouge?'#b91c1c':'#0f766e'):'#94a3b8'}
+                                strokeWidth="1.5" strokeLinejoin="round"/>
+                              <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle"
+                                fontSize="8" fill={sel?'#fff':'#475569'} fontWeight={sel?'700':'500'}>{z.label}</text>
+                            </g>
+                          );
+                        })}
+                        {/* Cou entre tete et thorax */}
+                        <path d="M42,50 L42,56 L58,56 L58,50 Z" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1"/>
+                      </svg>
+                    </div>
+
+                    {/* Visage */}
+                    <div style={{textAlign:'center'}}>
+                      <div style={{fontSize:9,color:'#9ca3af',marginBottom:2,fontWeight:600}}>Visage</div>
+                      <svg width="90" height="120" viewBox="0 0 90 120">
+                        {/* Tête ovale */}
+                        <ellipse cx="45" cy="55" rx="38" ry="48" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.5"/>
+                        {[
+                          {id:'oeil_g',   d:'M54,36 C54,31 64,31 64,36 C64,41 54,41 54,36 Z', label:'Oeil G', lx:59, ly:36},
+                          {id:'oeil_d',   d:'M26,36 C26,31 36,31 36,36 C36,41 26,41 26,36 Z', label:'Oeil D', lx:31, ly:36},
+                          {id:'oreille_g',d:'M83,45 C88,45 90,52 90,58 C90,64 88,70 83,70 L80,70 L80,45 Z', label:'O.G', lx:86, ly:58},
+                          {id:'oreille_d',d:'M7,45 C2,45 0,52 0,58 C0,64 2,70 7,70 L10,70 L10,45 Z', label:'O.D', lx:4, ly:58},
+                          {id:'nez',      d:'M45,48 L41,62 L49,62 Z', label:'Nez', lx:45, ly:60},
+                          {id:'gorge',    d:'M28,82 C28,74 62,74 62,82 C62,90 28,90 28,82 Z', label:'Gorge', lx:45, ly:82},
+                          {id:'dent',     d:'M33,72 C33,68 57,68 57,72 C57,76 33,76 33,72 Z', label:'Dent', lx:45, ly:72},
+                        ].map(z=>{
+                          const sel=form.douleur_zones.includes(z.id);
+                          return(
+                            <g key={z.id} onClick={()=>{
+                              const zones=sel?form.douleur_zones.filter(x=>x!==z.id):[...form.douleur_zones,z.id];
+                              set('douleur_zones',zones);
+                            }} style={{cursor:'pointer'}}>
+                              <path d={z.d}
+                                fill={sel?'#f59e0b':'#cbd5e1'}
+                                stroke={sel?'#d97706':'#94a3b8'}
+                                strokeWidth="1.5" strokeLinejoin="round"/>
+                              <text x={z.lx} y={z.ly} textAnchor="middle" dominantBaseline="middle"
+                                fontSize="7" fill={sel?'#fff':'#475569'} fontWeight={sel?'700':'500'}>{z.label}</text>
+                            </g>
+                          );
+                        })}
+                        {/* Cheveux */}
+                        <ellipse cx="45" cy="10" rx="35" ry="10" fill="#94a3b8"/>
+                      </svg>
+                    </div>
                   </div>
 
                                     {/* PANNEAU DROIT */}
