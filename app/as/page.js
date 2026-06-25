@@ -877,15 +877,23 @@ export default function PageAS() {
             {/* AUTRE */}
             {form.symptome==='autre'&&(
               <div style={{marginTop:16,padding:14,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                <label style={lbl}>Decrivez le symptome</label>
+                <label style={lbl}>Decrivez le motif de consultation</label>
                 <textarea value={form.symptome_autre||''} onChange={e=>set('symptome_autre',e.target.value)}
-                  placeholder="Decrivez le motif de consultation..."
-                  rows={3} style={{...inp,resize:'vertical'}}/>
-                {(cfcCol==='red'||csatCol==='red'||ctasCol==='red'||ctadCol==='red'||ctempCol==='red')&&(
-                  <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px',marginTop:8}}>
-                    <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Constante anormale detectee</div>
-                    <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Prevenir le medecin avant d'installer le patient</div>
-                  </div>
+                  placeholder="Ex: eruption cutanee, douleur dentaire, probleme administratif..."
+                  rows={3} style={{...inp,resize:'vertical',marginBottom:10}}/>
+                {form.symptome_autre&&(
+                  (cfcCol==='red'||csatCol==='red'||ctasCol==='red'||ctadCol==='red'||ctempCol==='red'||
+                   cfcCol==='orange'||csatCol==='orange'||ctasCol==='orange')?(
+                    <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Constante anormale — Prevenir le medecin</div>
+                      <div style={{color:'#ef4444',fontSize:12,marginTop:4}}>Installer en Lit 1 ou Lit 2 et alerter le medecin</div>
+                    </div>
+                  ):(
+                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px'}}>
+                      <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Constantes normales</div>
+                      <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Faire patienter en salle d'attente dehors (Preau)</div>
+                    </div>
+                  )
                 )}
               </div>
             )}
