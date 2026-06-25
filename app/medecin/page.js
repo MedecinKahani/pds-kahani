@@ -145,41 +145,47 @@ export default function PageMedecin() {
         <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
           <div style={{width:sel?420:'100%',flexShrink:0,padding:'1rem',display:'flex',flexDirection:'column',minHeight:0,transition:'width 0.25s'}}>
 
-            {/* Ligne 0 : postes */}
-            <div style={{display:'flex',gap:8,marginBottom:16,flexShrink:0,height:80}}>
-              <Salle color="#f59e0b" label="Pansement" style={{width:'25%',flexShrink:0,flexDirection:'row',alignItems:'center'}}>
-                <Case id="pansement" label="P1"/>
-              </Salle>
-              <div style={{flex:1,display:'flex',gap:8}}>
-                <Poste id="_ide" label="IDE" color="#6b7280"/>
-                <Poste id="_doc" label="Medecin" color="#0d9488"/>
-                <Poste id="_as" label="AS" color="#f59e0b"/>
-              </div>
-            </div>
-
-            {/* Lignes 1+2 : salles */}
+            {/* Layout principal : 4 colonnes séparées */}
             <div style={{display:'flex',gap:16,flex:1,minHeight:0}}>
 
-              <Salle color="#16a34a" label="Observation" style={{width:'25%',flexShrink:0}}>
-                <Case id="obs1" label="O1"/>
-                <Case id="obs2" label="O2"/>
-              </Salle>
+              {/* Col 1 : Pansement + Observation */}
+              <div style={{display:'flex',flexDirection:'column',gap:16,width:'25%',flexShrink:0}}>
+                <Salle color="#f59e0b" label="Pansement" style={{flex:1}}>
+                  <Case id="pansement" label="P1"/>
+                </Salle>
+                <Salle color="#16a34a" label="Observation" style={{flex:2}}>
+                  <Case id="obs1" label="O1"/>
+                  <Case id="obs2" label="O2"/>
+                </Salle>
+              </div>
 
-              <Salle color="#9ca3af" label="Salle 2" style={{flex:1,display:'flex',flexDirection:'column'}}>
-                <div style={{display:'flex',gap:6,flex:1}}>
-                  <Case id="lit2" label="L2"/>
-                  <Case id="fauteuil1" label="F1"/>
+              {/* Col 2+3 : Postes + Salle 2 */}
+              <div style={{display:'flex',flexDirection:'column',gap:16,flex:1}}>
+                <div style={{display:'flex',gap:8,flexShrink:0,flex:1}}>
+                  <Poste id="_ide" label="IDE" color="#6b7280"/>
+                  <Poste id="_doc" label="Medecin" color="#0d9488"/>
+                  <Poste id="_as" label="AS" color="#f59e0b"/>
                 </div>
-                <div style={{display:'flex',gap:6,flex:1}}>
-                  <Case id="fauteuil2" label="F2"/>
-                  <Case id="lit1" label="L1"/>
-                </div>
-              </Salle>
+                <Salle color="#9ca3af" label="Salle 2" style={{flex:2}}>
+                  <div style={{display:'flex',gap:6,flex:1}}>
+                    <Case id="lit2" label="L2"/>
+                    <Case id="fauteuil1" label="F1"/>
+                  </div>
+                  <div style={{display:'flex',gap:6,flex:1}}>
+                    <Case id="fauteuil2" label="F2"/>
+                    <Case id="lit1" label="L1"/>
+                  </div>
+                </Salle>
+              </div>
 
-              <Salle color="#ef4444" label="Dechocage" style={{width:'25%',flexShrink:0}}>
-                <Case id="brancard1" label="B1"/>
-                <Case id="brancard2" label="B2"/>
-              </Salle>
+              {/* Col 4 : Dechocage */}
+              <div style={{display:'flex',flexDirection:'column',gap:16,width:'25%',flexShrink:0}}>
+                <div style={{flex:1}}/>
+                <Salle color="#ef4444" label="Dechocage" style={{flex:2}}>
+                  <Case id="brancard1" label="B1"/>
+                  <Case id="brancard2" label="B2"/>
+                </Salle>
+              </div>
 
             </div>
           </div>
