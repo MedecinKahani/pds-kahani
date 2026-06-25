@@ -124,25 +124,25 @@ export default function PageMedecin() {
 
             {/* Motif */}
             <div style={{display:'flex',alignItems:'center',gap:5}}>
-              <span style={{fontSize:10,color:'#374151',fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.symptome||p.motifPrincipal||'--'}</span>
-              {p.douleur_eva&&<span style={{fontSize:9,color:'#9ca3af',flexShrink:0}}>· EVA {p.douleur_eva}/10</span>}
+              <span style={{fontSize:13,color:'#111827',fontWeight:700,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.symptome||p.motifPrincipal||'--'}</span>
+              {p.douleur_eva&&<span style={{fontSize:10,color:'#9ca3af',flexShrink:0}}>EVA {p.douleur_eva}/10</span>}
             </div>
 
-            {/* Constantes style Odaiji - icone + label + valeur */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:3}}>
+            {/* Constantes sur une ligne */}
+            <div style={{display:'flex',gap:3,flexWrap:'nowrap',overflow:'hidden'}}>
               {[
                 {k:'sat',v:p.sat,l:'SpO2',u:'%',icon:'💧'},
-                {k:'fc',v:p.fc,l:'FC',u:' bpm',icon:'❤️'},
-                {k:'tas',v:p.tas,l:'PAS',u:' mmHg',icon:'🩸'},
-                {k:'temp',v:p.temp,l:'T°',u:'°C',icon:'🌡️'},
+                {k:'fc',v:p.fc,l:'FC',u:'',icon:'❤️'},
+                {k:'tas',v:p.tas,l:'PAS',u:'',icon:'🩸'},
+                {k:'temp',v:p.temp,l:'T°',u:'°',icon:'🌡️'},
               ].filter(x=>x.v).map(({k,v,l,u,icon})=>{
                 const bad=isAnormal(v,k==='tas'?'ta_sys':k);
                 return(
-                  <div key={k} style={{background:bad?'#fef2f2':'#f9fafb',borderRadius:6,padding:'3px 6px',display:'flex',alignItems:'center',gap:3,border:'1px solid '+(bad?'#fecaca':'transparent')}}>
-                    <span style={{fontSize:9}}>{icon}</span>
+                  <div key={k} style={{background:bad?'#fef2f2':'#f9fafb',borderRadius:5,padding:'2px 5px',display:'flex',alignItems:'center',gap:2,border:'1px solid '+(bad?'#fecaca':'transparent'),flexShrink:0}}>
+                    <span style={{fontSize:8}}>{icon}</span>
                     <div>
-                      <div style={{fontSize:8,color:'#9ca3af',lineHeight:1}}>{l}</div>
-                      <div style={{fontSize:11,fontWeight:700,color:bad?'#ef4444':'#111827',lineHeight:1.2}}>{v}<span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                      <div style={{fontSize:7,color:'#9ca3af',lineHeight:1}}>{l}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:bad?'#ef4444':'#111827',lineHeight:1.2}}>{v}<span style={{fontSize:7,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
                     </div>
                   </div>
                 );
