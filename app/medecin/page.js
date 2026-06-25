@@ -79,7 +79,14 @@ export default function PageMedecin() {
       <div onClick={()=>{if(!p)return;setSel(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
         style={{background:p?'#fff':BG[id]||'#f9fafb',border:'1.5px solid '+(isSelected?c:'#e5e7eb'),borderRadius:10,cursor:p?'pointer':'default',transition:'border-color 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'none',position:'relative',overflow:'hidden',flex:1}}>
         <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <span style={{fontWeight:800,fontSize:13,color:c}}>{label}</span>
+          <div style={{display:'flex',alignItems:'baseline',gap:5}}>
+            <span style={{fontWeight:800,fontSize:13,color:c}}>{label}</span>
+            {!p&&<span style={{fontSize:9,color:c,opacity:0.5,fontWeight:500}}>{{
+              pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',
+              lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',
+              brancard1:'Brancard 1',brancard2:'Brancard 2'
+            }[id]}}</span>}
+          </div>
           {p&&<div style={{display:'flex',gap:3,alignItems:'center'}}>{anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}<div style={{width:6,height:6,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb'}}/></div>}
         </div>
         {p?(
