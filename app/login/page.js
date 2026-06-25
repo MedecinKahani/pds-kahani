@@ -11,89 +11,99 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     if (!matricule.trim()) return;
-    setChargement(true);
-    setErreur('');
+    setChargement(true); setErreur('');
     try {
       const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matricule: matricule.trim() })
       });
       const data = await res.json();
-      if (!res.ok) {
-        setErreur(data.error || 'Matricule non reconnu');
-        setChargement(false);
-        return;
-      }
+      if (!res.ok) { setErreur(data.error || 'Matricule non reconnu'); setChargement(false); return; }
       sessionStorage.setItem('pds_user', JSON.stringify(data.user));
       if (data.user.role === 'as') router.push('/as');
       else if (data.user.role === 'ide') router.push('/ide');
       else if (data.user.role === 'medecin') router.push('/medecin');
-    } catch {
-      setErreur('Erreur de connexion');
-      setChargement(false);
-    }
+    } catch { setErreur('Erreur de connexion'); setChargement(false); }
   }
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      background: '#0f172a', padding: '1rem'
+      minHeight: '100vh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', background: 'linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%)',
+      padding: '1rem'
     }}>
-      <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🏥</div>
-        <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 700, letterSpacing: '-0.5px' }}>PDS Kahani</h1>
-        <p style={{ color: '#94a3b8', fontSize: 15, marginTop: 6 }}>Permanence de soins — CMR Kahani</p>
-      </div>
-
-      <form onSubmit={handleLogin} style={{
-        background: '#1e293b', borderRadius: 16, padding: '2rem',
-        width: '100%', maxWidth: 360, border: '1px solid #334155'
-      }}>
-        <label style={{ display: 'block', color: '#cbd5e1', fontSize: 14, marginBottom: 8, fontWeight: 500 }}>
-          Matricule
-        </label>
-        <input
-          type="text"
-          value={matricule}
-          onChange={e => setMatricule(e.target.value.toUpperCase())}
-          placeholder="Ex: 123456"
-          autoFocus
-          style={{
-            width: '100%', padding: '14px 16px', borderRadius: 10,
-            border: erreur ? '2px solid #ef4444' : '1px solid #334155',
-            background: '#0f172a', color: '#fff', fontSize: 20,
-            letterSpacing: 4, textAlign: 'center', outline: 'none',
-            marginBottom: 16
-          }}
-        />
-        {erreur && (
+      <div style={{ width: '100%', maxWidth: 380 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
-            background: '#450a0a', border: '1px solid #b91c1c',
-            borderRadius: 8, padding: '10px 14px',
-            color: '#fca5a5', fontSize: 14, marginBottom: 16, textAlign: 'center'
+            width: 64, height: 64, borderRadius: '50%',
+            background: '#0d9488', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', margin: '0 auto 1rem',
+            boxShadow: '0 8px 24px rgba(13,148,136,0.3)'
           }}>
-            {erreur}
+            <span style={{ fontSize: 28 }}>🏥</span>
           </div>
-        )}
-        <button
-          type="submit"
-          disabled={chargement || !matricule.trim()}
-          style={{
-            width: '100%', padding: '14px', borderRadius: 10,
-            background: chargement || !matricule.trim() ? '#334155' : '#3b82f6',
-            color: '#fff', fontSize: 16, fontWeight: 600,
-            transition: 'background 0.2s', cursor: chargement ? 'wait' : 'pointer'
-          }}
-        >
-          {chargement ? 'Connexion...' : 'Se connecter'}
-        </button>
-      </form>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
+            PDS Kahani
+          </h1>
+          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
+            Permanence de soins — CMR Kahani
+          </p>
+        </div>
 
-      <p style={{ color: '#475569', fontSize: 12, marginTop: 24 }}>
-        CMR Kahani — Mayotte — v1.0
-      </p>
+        {/* Card */}
+        <div style={{
+          background: '#fff', borderRadius: 16,
+          padding: '2rem', boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <form onSubmit={handleLogin}>
+            <label style={{ display: 'block', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+              Votre matricule
+            </label>
+            <input
+              type="text"
+              value={matricule}
+              onChange={e => setMatricule(e.target.value.toUpperCase())}
+              placeholder="Ex : 023799"
+              autoFocus
+              style={{
+                width: '100%', padding: '14px 16px',
+                borderRadius: 10, border: erreur ? '2px solid #ef4444' : '1.5px solid #e5e7eb',
+                background: '#f9fafb', color: '#111827',
+                fontSize: 22, letterSpacing: 6, textAlign: 'center',
+                outline: 'none', marginBottom: 16,
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={e => { if (!erreur) e.target.style.borderColor = '#0d9488'; }}
+              onBlur={e => { if (!erreur) e.target.style.borderColor = '#e5e7eb'; }}
+            />
+
+            {erreur && (
+              <div style={{
+                background: '#fef2f2', border: '1px solid #fecaca',
+                borderRadius: 8, padding: '10px 14px',
+                color: '#dc2626', fontSize: 13, marginBottom: 16, textAlign: 'center'
+              }}>
+                {erreur}
+              </div>
+            )}
+
+            <button type="submit" disabled={chargement || !matricule.trim()} style={{
+              width: '100%', padding: 14, borderRadius: 10,
+              background: chargement || !matricule.trim() ? '#e5e7eb' : '#0d9488',
+              color: chargement || !matricule.trim() ? '#9ca3af' : '#fff',
+              fontSize: 15, fontWeight: 600, transition: 'all 0.2s'
+            }}>
+              {chargement ? 'Connexion...' : 'Se connecter →'}
+            </button>
+          </form>
+        </div>
+
+        <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 12, marginTop: 24 }}>
+          CMR Kahani · Mayotte · v1.0
+        </p>
+      </div>
     </div>
   );
 }
