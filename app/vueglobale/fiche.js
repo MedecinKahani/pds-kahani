@@ -208,8 +208,7 @@ ${ordonnance||'--'}
             ].map(({k,v,l,u,icon,fixed})=>{
               const c = fixed || (v&&v!=='--' ? colConst(v,k) : '#9ca3af');
               // Chercher si une nouvelle constante de ce type existe dans constPost
-              const labelKey = l.toLowerCase();
-              const nouvelles = constPost.filter(cp => cp.label.toLowerCase().includes(labelKey));
+              const nouvelles = constPost.filter(cp => cp.key===k || cp.label.toLowerCase().includes(l.toLowerCase()));
               const derniere = nouvelles[nouvelles.length-1];
               const cNew = derniere ? colConst(derniere.val, k) : null;
               return (
@@ -233,12 +232,33 @@ ${ordonnance||'--'}
               <select value={nouvConst.type} onChange={e=>setNouvConst(n=>({...n,type:e.target.value}))}
                 style={{fontSize:10,border:'none',background:'transparent',color:'#9ca3af',outline:'none',cursor:'pointer'}}>
                 <option value="">+ Constante</option>
-                {['Dextro g/L','Hémocue g/dL','TDR Palu','TDR Dengue','FC bpm','Sat %','T° °C','PAS mmHg'].map(x=><option key={x} value={x}>{x}</option>)}
+                <option value="fc">FC bpm</option>
+                <option value="ta">TA mmHg</option>
+                <option value="sat">Sat %</option>
+                <option value="temp">T° °C</option>
+                <option value="dextro">Dextro g/L</option>
+                <option value="hemocue">Hémocue g/dL</option>
+                <option value="tdr_palu">TDR Palu</option>
+                <option value="tdr_dengue">TDR Dengue</option>
               </select>
               {nouvConst.type&&<div style={{display:'flex',gap:3}}>
                 <input value={nouvConst.val} onChange={e=>setNouvConst(n=>({...n,val:e.target.value}))}
                   style={{flex:1,fontSize:11,border:'1px solid #e5e7eb',borderRadius:4,padding:'2px 4px',outline:'none'}} placeholder="valeur" autoFocus/>
-                <HBtn onClick={()=>{if(!nouvConst.val)return;const c=[...constPost,{label:nouvConst.type,val:nouvConst.val,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});setNouvConst({type:'',val:''}); }}
+                <HBtn onClick={()=>{
+                  if(!nouvConst.val) return;
+                  const k = nouvConst.type;
+                  const u = {fc:'bpm',ta:'mmHg',sat:'%',temp:'°C',dextro:'g/L',hemocue:'g/dL',tdr_palu:'',tdr_dengue:''}[k]||'';
+                  const l = {fc:'FC',ta:'TA',sat:'Sat',temp:'T°',dextro:'Dex',hemocue:'Hb',tdr_palu:'TDR Palu',tdr_dengue:'TDR Dengue'}[k]||k;
+                  // Si c'est dextro ou hemocue et pas de valeur initiale, mettre à jour le patient directement
+                  const noInit = (k==='dextro'&&(!p.dextro||p.dextro==='--'))||(k==='hemocue'&&(!p.hemocue||p.hemocue==='--'));
+                  if(noInit) {
+                    save({[k]:nouvConst.val});
+                  }
+                  const c=[...constPost,{label:l,key:k,val:nouvConst.val,unit:u,ts:Date.now()}];
+                  setConstPost(c);
+                  save({constantes_post:JSON.stringify(c)});
+                  setNouvConst({type:'',val:''});
+                }}
                   style={{padding:'2px 6px',borderRadius:4,background:'#0d9488',color:'#fff',border:'none',fontSize:10}}>✓</HBtn>
               </div>}
             </div>
