@@ -269,17 +269,22 @@ export default function FichePatient({patient, onClose, onUpdate, user}) {
 
           {onglet==='examen'&&(
             <div>
-              <div style={{marginBottom:10}}>
-                <label style={lbl}>Etat general</label>
-                <input value={examData.etat_general} onChange={e=>setExamData(d=>({...d,etat_general:e.target.value}))}
-                  placeholder="Ex: Patient conscient et oriente, etat general conserve..."
-                  style={inp}/>
+              {/* Case examen normal */}
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12,padding:'10px 12px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
+                onClick={()=>{
+                  const texteNormal = "Examen clinique sans anomalie. Neurologique : Glasgow 15, pas de deficit sensitivo-moteur. Cardio-vasculaire : bruits du coeur reguliers, pouls peripheriques perçus, pas d'oedeme. Pulmonaire : eupneique, murmures vesiculaires presents et symetriques. Abdominal : abdomen souple depressible indolore.";
+                  if(exam===texteNormal) setExam('');
+                  else setExam(texteNormal);
+                }}>
+                <div style={{width:20,height:20,borderRadius:5,border:'2px solid '+(exam.includes('sans anomalie')?'#16a34a':'#d1d5db'),background:exam.includes('sans anomalie')?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  {exam.includes('sans anomalie')&&<span style={{color:'#fff',fontSize:12,fontWeight:700}}>✓</span>}
+                </div>
+                <span style={{fontSize:13,fontWeight:600,color:'#16a34a'}}>Examen clinique normal</span>
               </div>
-              <ExamAppareil label="Neurologique" stateKey="neuro" data={examData} setData={setExamData}/>
-              <ExamAppareil label="Cardio-vasculaire" stateKey="cardio" data={examData} setData={setExamData}/>
-              <ExamAppareil label="Pulmonaire" stateKey="respi" data={examData} setData={setExamData}/>
-              <ExamAppareil label="Abdominal" stateKey="abdo" data={examData} setData={setExamData}/>
-              <button onClick={()=>save({exam_data:JSON.stringify(examData)})} style={{marginTop:8,padding:'7px 14px',borderRadius:7,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none'}}>
+              <textarea value={exam} onChange={e=>setExam(e.target.value)}
+                placeholder="Examen clinique..."
+                rows={10} style={{...inp,resize:'vertical'}}/>
+              <button onClick={()=>save({examen_clinique:exam})} style={{marginTop:8,padding:'7px 14px',borderRadius:7,background:'#0d9488',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none'}}>
                 Sauvegarder
               </button>
             </div>
