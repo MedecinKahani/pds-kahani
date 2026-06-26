@@ -152,8 +152,8 @@ export default function PageVueGlobale() {
           position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column',
           transition:'box-shadow 0.15s'
         }}
-        onMouseEnter={e=>{if(p)e.currentTarget.style.boxShadow='0 2px 12px rgba(0,0,0,0.08)';}}
-        onMouseLeave={e=>{e.currentTarget.style.boxShadow=isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none';}}>
+        onMouseEnter={e=>{if(p){e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.15)';e.currentTarget.style.transform='translateY(-1px)';}}}
+        onMouseLeave={e=>{e.currentTarget.style.boxShadow=isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none';e.currentTarget.style.transform='none';}}>
 
         {p ? (
           /* Bandeau intérieur coloré */
@@ -174,8 +174,16 @@ export default function PageVueGlobale() {
               <div style={{color:'#9ca3af',fontSize:11,marginTop:2,display:'flex',alignItems:'center',gap:4}}>
                 {p.age} ans
                 {p.ipp&&<>· {p.ipp}
-                  <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(p.ipp);}} title="Copier IPP"
-                    style={{background:'none',border:'none',cursor:'pointer',color:c,fontSize:10,padding:'0 2px',lineHeight:1}}>⎘</button>
+                  <span onClick={e=>{
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(p.ipp);
+                    const el=e.currentTarget;
+                    el.textContent='✓';
+                    el.style.color='#16a34a';
+                    el.style.background='#f0fdf4';
+                    setTimeout(()=>{el.textContent='□';el.style.color='#9ca3af';el.style.background='transparent';},1500);
+                  }} title="Copier IPP"
+                    style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',lineHeight:1,borderRadius:3,border:'1px solid #e5e7eb',background:'transparent',userSelect:'none'}}>□</span>
                 </>}
               </div>
             </div>
@@ -183,25 +191,20 @@ export default function PageVueGlobale() {
             {/* Motif */}
             <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{p.symptome||p.motifPrincipal||'--'}</div>
 
-            {/* Constantes FC PAS PAD (PAM) Sat T° */}
-            <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
+            {/* Constantes sur une seule ligne - font auto */}
+            <div style={{display:'flex',gap:3,overflow:'hidden',flexWrap:'nowrap',alignItems:'center'}}>
               {[
                 {k:'fc',v:p.fc,l:'FC'},
                 {k:'tas',v:p.tas,l:'PAS'},
                 {k:'tad',v:p.tad,l:'PAD'},
-              ].filter(x=>x.v).map(({k,v,l})=>{
-                const col=couleurConst(v,k);
-                return <span key={k} style={{fontSize:10,fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3}}>{l} {v}</span>;
-              })}
-              {pam&&<span style={{fontSize:10,fontWeight:600,color:pam<65?'#ef4444':'#0d9488',background:pam<65?'#fef2f2':'#f0fdfa',padding:'2px 4px',borderRadius:3}}>PAM {pam}</span>}
-              {[
+                pam?{k:'pam',v:pam,l:'PAM',custom:pam<65?{color:'#ef4444',bg:'#fef2f2'}:{color:'#0d9488',bg:'#f0fdfa'}}:null,
                 {k:'sat',v:p.sat,l:'Sat'},
                 {k:'temp',v:p.temp,l:'T°'},
-                {k:'dextro',v:p.dextro,l:'Dex'},
-                {k:'hemocue',v:p.hemocue,l:'Hb'},
-              ].filter(x=>x.v).map(({k,v,l})=>{
-                const col=couleurConst(v,k);
-                return <span key={k} style={{fontSize:10,fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3}}>{l} {v}</span>;
+                p.dextro?{k:'dextro',v:p.dextro,l:'Dex'}:null,
+                p.hemocue?{k:'hemocue',v:p.hemocue,l:'Hb'}:null,
+              ].filter(x=>x&&x.v).map(({k,v,l,custom})=>{
+                const col=custom||couleurConst(v,k);
+                return <span key={k} style={{fontSize:'clamp(7px,1vw,10px)',fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3,whiteSpace:'nowrap',flexShrink:1,minWidth:0}}>{l} {v}</span>;
               })}
             </div>
 
