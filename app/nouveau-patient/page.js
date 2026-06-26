@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 
 function calcAge(ddn) {
@@ -8,24 +8,19 @@ function calcAge(ddn) {
 }
 
 // Bouton avec hover intégré
-function Btn({ onClick, style, disabled, children }) {
-  const [hov, setHov] = useState(false);
+const Btn = memo(function Btn({ onClick, style, disabled, children }) {
+  const ref = useRef(null);
   return (
     <button
+      ref={ref}
       onClick={onClick} disabled={disabled}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        ...style,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        filter: hov && !disabled ? 'brightness(0.88)' : 'none',
-        transform: hov && !disabled ? 'scale(0.99)' : 'scale(1)',
-        transition: 'filter 0.1s, transform 0.1s',
-      }}>
+      onMouseEnter={() => { if(ref.current&&!disabled){ref.current.style.filter='brightness(0.88)';ref.current.style.transform='scale(0.99)'; }}}
+      onMouseLeave={() => { if(ref.current){ref.current.style.filter='none';ref.current.style.transform='scale(1)'; }}}
+      style={{ ...style, cursor: disabled ? 'not-allowed' : 'pointer', transition: 'filter 0.1s, transform 0.1s' }}>
       {children}
     </button>
   );
-}
+});
 
 const EMPLACEMENTS = [
   { id:'brancard1', l:'B1 — Brancard 1', c:'#ef4444' },
@@ -185,11 +180,11 @@ export default function NouveauPatient() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
             <div>
               <label style={lbl}>Nom</label>
-              <input defaultValue={form.nom} onBlur={e=>set('nom',e.target.value.toUpperCase())} onChange={e=>set('nom',e.target.value.toUpperCase())} style={inp} placeholder="NOM" autoComplete="off"/>
+              <input onBlur={e=>set('nom',e.target.value.toUpperCase())} style={inp} placeholder="NOM" autoComplete="off"/>
             </div>
             <div>
               <label style={lbl}>Prenom</label>
-              <input defaultValue={form.prenom} onBlur={e=>set('prenom',e.target.value)} onChange={e=>set('prenom',e.target.value)} style={inp} placeholder="Prenom" autoComplete="off"/>
+              <input onBlur={e=>set('prenom',e.target.value)} style={inp} placeholder="Prenom" autoComplete="off"/>
             </div>
             <div>
               <label style={lbl}>Date de naissance (JJ/MM/AAAA)</label>
@@ -225,7 +220,7 @@ export default function NouveauPatient() {
             </div>
             <div>
               <label style={lbl}>IPP</label>
-              <input defaultValue={form.ipp} onChange={e=>set('ipp',e.target.value)} onBlur={e=>set('ipp',e.target.value)} style={inp} placeholder="--" autoComplete="off"/>
+              <input onBlur={e=>set('ipp',e.target.value)} style={inp} placeholder="--" autoComplete="off"/>
             </div>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
