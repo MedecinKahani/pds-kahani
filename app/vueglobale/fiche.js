@@ -18,16 +18,27 @@ const EXAMENS = [
   { id:'bio_mam', label:'Prélèvement Mamoudzou',color:'#0284c7', sub:['NFS','CRP','Iono','Créatinine','BHC','Lipase','Sérologie','Bactério','PSA','Bilan anémie','Hémoculture','ECBU'] },
 ];
 
-const THERAPEUTIQUE = [
-  { group:'Antalgiques PO', color:'#0d9488', items:['Paracétamol 500mg PO','Paracétamol 1g PO','Ibuprofène 200mg PO','Ibuprofène 400mg PO','Tramadol 50mg PO','Tramadol 100mg PO','Acupan 20mg PO'] },
-  { group:'Antalgiques IV/IM', color:'#0891b2', items:['Perfalgan 1g IV','Kétoprofène 100mg IV','Acupan 20mg IV','Titration morphine 0.1mg/kg puis +3mg/5min EN<4','MEOPA'] },
-  { group:'Respiratoire', color:'#3b82f6', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)','Aérosol Ventoline 2.5mg','Aérosol Ventoline 5mg','Aérosol Atrovent 0.25mg','Aérosol Atrovent 0.5mg'] },
-  { group:'Cardiovasculaire', color:'#dc2626', items:['Adrénaline 0.5mg','Adrénaline 1mg','Kardegic 75mg PO','Lasilix 20mg PO','Lasilix 40mg PO','Lasilix 20mg IV','Lasilix 40mg IV','Loxen 10mg PO','Loxen IV','Risordan 1mg IV','Amlodipine 5mg PO'] },
-  { group:'Hydratation', color:'#0891b2', items:['NaCl 0.9% 500mL','NaCl 0.9% 1L','G5% 500mL','Ringer Lactate 500mL','Potassium 1g / 250mL / 1h min','Potassium 2g / 500mL / 2h min','Potassium 3g / 750mL / 3h min (scopé + GDS contrôle)'] },
-  { group:'Insuline', color:'#7c3aed', items:['Insuline __UI SC','Insuline __UI IV'] },
-  { group:'Antibiotiques', color:'#16a34a', items:['Amoxicilline 1g PO','Augmentin 1g PO','Azithromycine 500mg PO','Ceftriaxone 1g IM','Ceftriaxone 2g IV','Métronidazole 500mg IV'] },
-  { group:'Antiparasitaires', color:'#65a30d', items:['Artéméther-Luméfantrine (Coartem)','Artésunate IV','Albendazole 400mg'] },
-  { group:'Autres', color:'#6b7280', items:['Métoclopramide 10mg','Ondansétron 4mg','Oméprazole 20mg','Polaramine 2mg','Solumédrol 40mg IV','Méthylprednisolone __mg/kg IV','Spasfon 80mg'] },
+// Molécules sécurisées (rouge)
+const SECURISEES = ['Tramadol','Morphine','MEOPA','Kétoprofène'];
+function isSecurisee(label) { return SECURISEES.some(s => label.includes(s)); }
+
+const THERAPEUTIQUE_ADULTE = [
+  { group:'Antalgiques PO', items:['Paracétamol 500mg PO','Paracétamol 1g PO','Ibuprofène 200mg PO','Ibuprofène 400mg PO','Tramadol 50mg PO','Tramadol 100mg PO','Acupan 20mg PO'] },
+  { group:'Antalgiques IV/IM', items:['Perfalgan 1g IV','Kétoprofène 100mg IV','Acupan 20mg IV','Titration morphine 0.1mg/kg puis +3mg/5min EN<4','MEOPA'] },
+  { group:'Respiratoire', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)','Aérosol Ventoline 2.5mg','Aérosol Ventoline 5mg','Aérosol Atrovent 0.25mg','Aérosol Atrovent 0.5mg'] },
+  { group:'Cardiovasculaire', items:['Adrénaline 0.5mg','Adrénaline 1mg','Kardegic 75mg PO','Lasilix 20mg PO','Lasilix 40mg PO','Lasilix 20mg IV','Lasilix 40mg IV','Loxen 10mg PO','Loxen IV','Risordan 1mg IV','Amlodipine 5mg PO'] },
+  { group:'Antibiotiques', items:['Amoxicilline 1g PO','Augmentin 1g PO','Azithromycine 500mg PO','Ceftriaxone 1g IM','Ceftriaxone 2g IV','Métronidazole 500mg IV'] },
+  { group:'Antiparasitaires', items:['Artéméther-Luméfantrine (Coartem)','Artésunate IV','Albendazole 400mg'] },
+  { group:'Autres', items:['Métoclopramide 10mg','Ondansétron 4mg','Oméprazole 20mg','Polaramine 2mg','Solumédrol 40mg IV','Méthylprednisolone __mg/kg IV','Spasfon 80mg'] },
+];
+
+const THERAPEUTIQUE_PEDIATRIE = [
+  { group:'Antalgiques PO', items:['Paracétamol 15mg/kg/dose PO','Ibuprofène 10mg/kg/dose PO','Tramadol 1-2mg/kg PO'] },
+  { group:'Antalgiques IV', items:['Perfalgan 15mg/kg IV','Morphine 0.1mg/kg IV titration'] },
+  { group:'Respiratoire', items:['O2 lunettes (Sat>94%)','Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','MEOPA'] },
+  { group:'Antibiotiques', items:['Amoxicilline 50mg/kg/j PO en 3 prises','Augmentin 80mg/kg/j PO','Azithromycine 10mg/kg J1 puis 5mg/kg','Ceftriaxone 50-100mg/kg IV'] },
+  { group:'Antiparasitaires', items:['Artéméther-Luméfantrine selon poids','Albendazole 200mg si <10kg / 400mg si >10kg'] },
+  { group:'Autres', items:['Métoclopramide 0.1mg/kg','Ondansétron 0.15mg/kg','Paracétamol 15mg/kg/dose suppositoire','Dexaméthasone 0.15mg/kg IV'] },
 ];
 
 const SOINS = [
@@ -67,7 +78,17 @@ function useDebounce(fn, delay) {
 }
 
 const inp = { width:'100%', padding:'10px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:'system-ui', background:'#fff', resize:'vertical' };
-const EXAMEN_NORMAL = "Examen clinique sans anomalie. Neurologique : Glasgow 15, pas de déficit sensitivo-moteur. Cardio-vasculaire : bruits du coeur réguliers, pouls périphériques perçus, pas d'oedème. Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques. Abdominal : abdomen souple dépressible indolore.";
+const EXAMEN_NORMAL = `Neurologique : Glasgow 15, pas de déficit sensitivo-moteur, pas de signe méningé.
+Cardio-vasculaire : bruits du coeur réguliers, pouls périphériques perçus, pas d'oedème des membres inférieurs.
+Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas de signe de lutte.
+Abdominal : abdomen souple dépressible indolore, pas de défense, pas de masse palpable.`;
+
+const EXAMEN_NORMAL_PEDIATRIE = `Neurologique : conscient calme dans les bras des parents, 4 membres toniques, pas de déficit sensitivo-moteur.
+Fontanelle antérieure souple et dépressible.
+Cardio-vasculaire : bruits du coeur réguliers, TRC < 3 secondes, pas de pli cutané.
+Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas de signe de lutte.
+Abdominal : abdomen souple dépressible indolore.
+ORL : gorge et tympans propres.`;
 
 export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user }) {
   const p = patient || pProp;
@@ -82,6 +103,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [copied, setCopied] = useState(false);
   const [subOpen, setSubOpen] = useState({});
   const [collapsed, setCollapsed] = useState({examens:false, therapeutique:false, soins:false});
+  const [therapieTab, setTherapieTab] = useState('adulte');
   const [nouvConst, setNouvConst] = useState({ type:'', val:'' });
   const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
@@ -229,22 +251,31 @@ ${ordonnance||'--'}
         <div style={{flex:1,overflow:'auto',padding:14}}>
 
           {onglet==='anamnese'&&(
-            <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}} rows={14}
+            <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
               placeholder="Motif de consultation, histoire de la maladie, antécédents, traitements habituels..."
-              style={{...inp,height:'100%',minHeight:300}}/>
+              style={{...inp,height:'calc(100vh - 200px)',resize:'none'}}/>
           )}
 
           {onglet==='examen'&&(
             <div>
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10,padding:'10px 12px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
-                onClick={()=>{const v=exam===EXAMEN_NORMAL?'':EXAMEN_NORMAL;setExam(v);debouncedSave({examen_clinique:v});}}>
-                <div style={{width:20,height:20,borderRadius:5,border:'2px solid '+(exam===EXAMEN_NORMAL?'#16a34a':'#d1d5db'),background:exam===EXAMEN_NORMAL?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  {exam===EXAMEN_NORMAL&&<span style={{color:'#fff',fontSize:12,fontWeight:700}}>✓</span>}
+              <div style={{display:'flex',gap:8,marginBottom:10}}>
+                <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
+                  onClick={()=>{const v=exam===EXAMEN_NORMAL?'':EXAMEN_NORMAL;setExam(v);debouncedSave({examen_clinique:v});}}>
+                  <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL?'#16a34a':'#d1d5db'),background:exam===EXAMEN_NORMAL?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    {exam===EXAMEN_NORMAL&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                  </div>
+                  <span style={{fontSize:12,fontWeight:600,color:'#16a34a'}}>Examen normal adulte</span>
                 </div>
-                <span style={{fontSize:13,fontWeight:600,color:'#16a34a'}}>Examen clinique normal</span>
+                <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe',cursor:'pointer'}}
+                  onClick={()=>{const v=exam===EXAMEN_NORMAL_PEDIATRIE?'':EXAMEN_NORMAL_PEDIATRIE;setExam(v);debouncedSave({examen_clinique:v});}}>
+                  <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#d1d5db'),background:exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    {exam===EXAMEN_NORMAL_PEDIATRIE&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                  </div>
+                  <span style={{fontSize:12,fontWeight:600,color:'#3b82f6'}}>Examen normal &lt; 2 ans</span>
+                </div>
               </div>
-              <textarea value={exam} onChange={e=>{setExam(e.target.value);debouncedSave({examen_clinique:e.target.value});}} rows={12}
-                placeholder="Décrivez l'examen clinique..." style={{...inp,minHeight:280}}/>
+              <textarea value={exam} onChange={e=>{setExam(e.target.value);debouncedSave({examen_clinique:e.target.value});}}
+                placeholder="Décrivez l'examen clinique..." style={{...inp,height:'calc(100vh - 260px)',resize:'none'}}/>
             </div>
           )}
 
@@ -268,7 +299,7 @@ ${ordonnance||'--'}
                           style={{padding:'5px 10px',borderRadius:6,background:e.color+'18',color:e.color,border:'1.5px solid '+e.color+'66',fontSize:11,fontWeight:600}}>
                           {e.label} {subOpen[e.id]?'▲':'▼'}
                         </HBtn>
-                        {subOpen[e.id]&&<div style={{position:'absolute',top:'100%',left:0,zIndex:10,background:'#fff',border:'1px solid '+e.color+'44',borderRadius:8,padding:8,boxShadow:'0 4px 12px rgba(0,0,0,0.1)',minWidth:200}}>
+                        {subOpen[e.id]&&<div style={{position:'fixed',zIndex:500,background:'#fff',border:'1.5px solid '+e.color+'66',borderRadius:10,padding:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',minWidth:220,maxHeight:300,overflowY:'auto'}}>
                           {e.sub.map(s=>{
                             const deja2=prescriptions.find(r=>!r.fait&&r.texte===e.label+' : '+s);
                             if(deja2) return null;
@@ -292,22 +323,35 @@ ${ordonnance||'--'}
               </div>
 
               {/* THERAPEUTIQUE */}
-              <div style={{border:'1.5px solid #0d948833',borderRadius:10,overflow:'hidden'}}>
-                <div style={{background:'#0d948818',padding:'8px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
+              <div style={{border:'1.5px solid #ea580c44',borderRadius:10,overflow:'hidden'}}>
+                <div style={{background:'#ea580c18',padding:'8px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
                   onClick={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
-                  <span style={{fontWeight:700,color:'#0d9488',fontSize:13}}>💊 Thérapeutique</span>
-                  <span style={{color:'#0d9488',fontSize:14}}>{collapsed.therapeutique?'▶':'▼'}</span>
+                  <span style={{fontWeight:700,color:'#ea580c',fontSize:13}}>💊 Thérapeutique</span>
+                  <span style={{color:'#ea580c',fontSize:14}}>{collapsed.therapeutique?'▶':'▼'}</span>
                 </div>
                 {!collapsed.therapeutique&&<div style={{padding:'10px 12px'}}>
-                  {THERAPEUTIQUE.map(grp=>(
+                  {/* Sous-onglets Adulte / Pédiatrie */}
+                  <div style={{display:'flex',gap:6,marginBottom:10}}>
+                    {['adulte','pediatrie'].map(t=>(
+                      <button key={t} onClick={()=>setTherapieTab(t)}
+                        style={{padding:'4px 12px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',border:'1.5px solid '+(therapieTab===t?'#ea580c':'#e5e7eb'),background:therapieTab===t?'#ea580c':'#fff',color:therapieTab===t?'#fff':'#6b7280'}}>
+                        {t==='adulte'?'Adulte':'Pédiatrie'}
+                      </button>
+                    ))}
+                  </div>
+                  {(therapieTab==='adulte'?THERAPEUTIQUE_ADULTE:THERAPEUTIQUE_PEDIATRIE).map(grp=>(
                     <div key={grp.group} style={{marginBottom:10}}>
-                      <div style={{fontSize:10,fontWeight:700,color:grp.color,marginBottom:5,textTransform:'uppercase',letterSpacing:0.5}}>{grp.group}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:'#9a3412',marginBottom:5,textTransform:'uppercase',letterSpacing:0.5}}>{grp.group}</div>
                       <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
                         {grp.items.map(item=>{
-                          const deja=prescriptions.find(r=>!r.fait&&r.texte===item);
+                          const deja=prescriptions.find(r=>!r.fait&&r.texte.startsWith(item.split('__')[0]));
                           if(deja) return null;
+                          const rouge=isSecurisee(item);
                           return <HBtn key={item} onClick={()=>ajouterPrescription(item,'therapeutique')}
-                            style={{padding:'5px 10px',borderRadius:6,background:grp.color+'15',color:grp.color,border:'1.5px solid '+grp.color+'55',fontSize:11,fontWeight:600}}>
+                            style={{padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:600,
+                              background:rouge?'#fef2f2':'#fff7ed',
+                              color:rouge?'#dc2626':'#9a3412',
+                              border:'1.5px solid '+(rouge?'#fecaca':'#fed7aa')}}>
                             {item}
                           </HBtn>;
                         })}
@@ -315,11 +359,35 @@ ${ordonnance||'--'}
                     </div>
                   ))}
                   <AutreLibre categorie="therapeutique" onAjouter={ajouterPrescription}/>
+
+                  {/* Hydratation interactive */}
+                  <div style={{marginTop:10,padding:10,background:'#f0f9ff',borderRadius:8,border:'1px solid #bae6fd'}}>
+                    <div style={{fontSize:10,fontWeight:700,color:'#0369a1',marginBottom:6,textTransform:'uppercase'}}>Hydratation</div>
+                    <HydratationSelector onAjouter={ajouterPrescription}/>
+                    <div style={{marginTop:6}}>
+                      <div style={{fontSize:10,fontWeight:700,color:'#7c3aed',marginBottom:4}}>Potassium</div>
+                      {[['1g','250mL','1h'],['2g','500mL','2h'],['3g','750mL','3h (scopé + GDS contrôle)']].map(([g,v,d])=>{
+                        const label=`Potassium ${g} / ${v} / ${d} min`;
+                        const deja=prescriptions.find(r=>!r.fait&&r.texte===label);
+                        if(deja) return null;
+                        return <HBtn key={g} onClick={()=>ajouterPrescription(label,'therapeutique')}
+                          style={{padding:'4px 10px',borderRadius:5,fontSize:10,fontWeight:600,background:'#f5f3ff',color:'#7c3aed',border:'1px solid #ddd6fe',marginRight:5,marginBottom:4}}>
+                          K+ {g}
+                        </HBtn>;
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Insuline interactive */}
+                  <div style={{marginTop:8,padding:10,background:'#fdf4ff',borderRadius:8,border:'1px solid #e9d5ff'}}>
+                    <div style={{fontSize:10,fontWeight:700,color:'#7c3aed',marginBottom:6,textTransform:'uppercase'}}>Insuline</div>
+                    <InsulineSelector onAjouter={ajouterPrescription}/>
+                  </div>
                 </div>}
               </div>
 
               {/* SOINS */}
-              <div style={{border:'1.5px solid #f59e0b33',borderRadius:10,overflow:'hidden'}}>
+              <div style={{border:'1.5px solid #eab30844',borderRadius:10,overflow:'hidden'}}>
                 <div style={{background:'#f59e0b18',padding:'8px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
                   onClick={()=>setCollapsed(c=>({...c,soins:!c.soins}))}>
                   <span style={{fontWeight:700,color:'#d97706',fontSize:13}}>🩹 Soins</span>
@@ -374,12 +442,16 @@ ${ordonnance||'--'}
             const globalIdx = prescriptions.indexOf(r);
             const bc = r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
             return (
-              <div key={i} style={{background:'#fff',border:'1.5px solid '+bc+'55',borderRadius:8,padding:'7px 10px',marginBottom:5,display:'flex',alignItems:'flex-start',gap:6}}>
+              <div key={i} style={{background:'#fff',border:'1.5px solid '+bc+'55',borderRadius:8,padding:'7px 10px',marginBottom:5,display:'flex',alignItems:'flex-start',gap:5}}>
                 <span style={{fontSize:11,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
                 <div style={{flex:1,fontSize:11,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
-                <HBtn onClick={()=>cocherFait(globalIdx)}
-                  style={{flexShrink:0,width:22,height:22,borderRadius:5,border:'1.5px solid #16a34a',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,color:'#16a34a',padding:0}}>
+                <HBtn onClick={()=>cocherFait(globalIdx)} title="Marquer réalisé"
+                  style={{flexShrink:0,width:20,height:20,borderRadius:4,border:'1.5px solid #16a34a',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#16a34a',padding:0}}>
                   ✓
+                </HBtn>
+                <HBtn onClick={async()=>{const rx=prescriptions.filter((_,j)=>j!==globalIdx);setPrescriptions(rx);await save({prescriptions:JSON.stringify(rx)});}} title="Supprimer"
+                  style={{flexShrink:0,width:20,height:20,borderRadius:4,border:'1.5px solid #ef4444',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#ef4444',padding:0}}>
+                  ✕
                 </HBtn>
               </div>
             );
@@ -420,6 +492,56 @@ function AutreLibre({ categorie, onAjouter }) {
         style={{padding:'4px 10px',borderRadius:5,background:'#0d9488',color:'#fff',border:'none',fontSize:11,fontWeight:600,cursor:'pointer'}}>OK</button>
       <button onClick={()=>{setOpen(false);setVal('');}}
         style={{padding:'4px 8px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
+    </div>
+  );
+}
+
+function HydratationSelector({ onAjouter }) {
+  const [sol, setSol] = useState('');
+  const [qte, setQte] = useState('');
+  const [dur, setDur] = useState('');
+  if (!sol) return (
+    <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+      {['NaCl 0.9%','G5%','G10%','G30%','Ringer Lactate'].map(s=>(
+        <HBtn key={s} onClick={()=>setSol(s)}
+          style={{padding:'4px 10px',borderRadius:5,fontSize:10,fontWeight:600,background:'#e0f2fe',color:'#0369a1',border:'1px solid #bae6fd'}}>
+          {s}
+        </HBtn>
+      ))}
+    </div>
+  );
+  return (
+    <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+      <span style={{fontSize:11,fontWeight:600,color:'#0369a1'}}>{sol}</span>
+      <input value={qte} onChange={e=>setQte(e.target.value)} placeholder="mL" style={{width:60,padding:'3px 6px',borderRadius:5,border:'1px solid #bae6fd',fontSize:11,outline:'none'}}/>
+      <input value={dur} onChange={e=>setDur(e.target.value)} placeholder="durée" style={{width:70,padding:'3px 6px',borderRadius:5,border:'1px solid #bae6fd',fontSize:11,outline:'none'}}/>
+      <HBtn onClick={()=>{if(qte&&dur){onAjouter(`${sol} ${qte}mL sur ${dur}`,'therapeutique');setSol('');setQte('');setDur('');}}}
+        style={{padding:'3px 10px',borderRadius:5,background:'#0369a1',color:'#fff',border:'none',fontSize:10,fontWeight:600}}>OK</HBtn>
+      <HBtn onClick={()=>setSol('')} style={{padding:'3px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:10}}>✕</HBtn>
+    </div>
+  );
+}
+
+function InsulineSelector({ onAjouter }) {
+  const [voie, setVoie] = useState('');
+  const [ui, setUi] = useState('');
+  if (!voie) return (
+    <div style={{display:'flex',gap:4}}>
+      {['SC','IV'].map(v=>(
+        <HBtn key={v} onClick={()=>setVoie(v)}
+          style={{padding:'4px 14px',borderRadius:5,fontSize:11,fontWeight:600,background:'#f5f3ff',color:'#7c3aed',border:'1px solid #ddd6fe'}}>
+          Insuline {v}
+        </HBtn>
+      ))}
+    </div>
+  );
+  return (
+    <div style={{display:'flex',gap:6,alignItems:'center'}}>
+      <span style={{fontSize:11,fontWeight:600,color:'#7c3aed'}}>Insuline {voie}</span>
+      <input value={ui} onChange={e=>setUi(e.target.value)} placeholder="nb UI" style={{width:60,padding:'3px 6px',borderRadius:5,border:'1px solid #ddd6fe',fontSize:11,outline:'none'}}/>
+      <HBtn onClick={()=>{if(ui){onAjouter(`Insuline ${ui} UI ${voie}`,'therapeutique');setVoie('');setUi('');}}}
+        style={{padding:'3px 10px',borderRadius:5,background:'#7c3aed',color:'#fff',border:'none',fontSize:10,fontWeight:600}}>OK</HBtn>
+      <HBtn onClick={()=>setVoie('')} style={{padding:'3px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:10}}>✕</HBtn>
     </div>
   );
 }
