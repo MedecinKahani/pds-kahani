@@ -278,12 +278,13 @@ export default function PageVueGlobale() {
 
           </div>
         ):(
-          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:120,gap:6}}>
-            <span style={{fontSize:11,color:'#d1d5db',fontWeight:600}}>{label}</span>
+          <div style={{margin:5,borderRadius:8,border:'1.5px dashed '+c,background:cbg,flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:100,gap:4}}>
+            <span style={{fontSize:12,fontWeight:700,color:c}}>{label}</span>
+            <span style={{fontSize:10,color:c+'99'}}>{LEGENDES[id]}</span>
             <button onClick={e=>{e.stopPropagation();router.push('/nouveau-patient?emplacement='+id);}}
-              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'18';}}
-              onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.background='transparent';}}
-              style={{width:32,height:32,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
+              onMouseEnter={e=>{e.currentTarget.style.opacity='1';}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.5';}}
+              style={{width:28,height:28,borderRadius:7,background:'#fff',border:'1.5px solid '+c,color:c,fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.5,transition:'opacity 0.15s',marginTop:4}}>+</button>
           </div>
         )}
       </div>
