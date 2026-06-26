@@ -51,6 +51,11 @@ export async function POST(req) {
       return Response.json({ ok: true, patients: all });
     }
 
+    if (action === 'delete') {
+      await kv.del(`patient:${id}`);
+      return Response.json({ ok: true });
+    }
+
     if (action === 'discharge') {
       const { id } = body;
       const patient = await kv.hgetall(`patient:${id}`);
