@@ -24,17 +24,17 @@ const LEGENDES = {pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',lit1:
 
 // Couleurs par case
 const C = {
-  pansement:'#f59e0b', obs1:'#3b82f6', obs2:'#16a34a',
+  pansement:'#f59e0b', obs1:'#8b5cf6', obs2:'#8b5cf6',
   lit1:'#3b82f6', lit2:'#3b82f6', fauteuil1:'#16a34a', fauteuil2:'#16a34a',
   brancard1:'#ef4444', brancard2:'#ef4444'
 };
 const C_BG = {
-  pansement:'#fffbeb', obs1:'#f8fbff', obs2:'#f8fff9',
+  pansement:'#fffbeb', obs1:'#f5f3ff', obs2:'#f5f3ff',
   lit1:'#f8fbff', lit2:'#f8fbff', fauteuil1:'#f8fff9', fauteuil2:'#f8fff9',
   brancard1:'#fff8f8', brancard2:'#fff8f8'
 };
 const C_DIV = {
-  pansement:'#fde68a', obs1:'#bfdbfe', obs2:'#bbf7d0',
+  pansement:'#fde68a', obs1:'#ddd6fe', obs2:'#ddd6fe',
   lit1:'#bfdbfe', lit2:'#bfdbfe', fauteuil1:'#bbf7d0', fauteuil2:'#bbf7d0',
   brancard1:'#fecaca', brancard2:'#fecaca'
 };
