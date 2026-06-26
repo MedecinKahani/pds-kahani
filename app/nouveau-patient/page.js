@@ -116,6 +116,7 @@ export default function PageAS() {
   const [patients, setPatients] = useState([]);
   const [vue, setVue] = useState('nouveau');
   const [showVue, setShowVue] = useState(false);
+  const [showEmplacement, setShowEmplacement] = useState(false);
 
   const [form, setForm] = useState({
     sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
@@ -197,7 +198,7 @@ export default function PageAS() {
     const hasOrangeConst = [cfcCol, csatCol, ctasCol, ctadCol, ctempCol].includes('orange');
 
     if (!hasRedConst && !hasOrangeConst && s !== 'coma') {
-      return { place: 'preau', label: 'Salle d\'attente dehors', urgence: false, msg: 'Constantes normales - faire patienter dehors.' };
+      return { place: 'dehors', label: 'Salle d\'attente dehors', urgence: false, msg: 'Constantes normales - faire patienter dehors.' };
     }
 
     if (hasRedConst) {
@@ -208,18 +209,18 @@ export default function PageAS() {
     if (libre('lit1')) return { place: 'lit1', label: 'L1 - Lit 1', urgence: false, msg: null };
     if (libre('lit2')) return { place: 'lit2', label: 'L2 - Lit 2', urgence: false, msg: null };
     if (libre('obs1')) return { place: 'obs1', label: 'O1 - Observation', urgence: false, msg: null };
-    return { place: 'preau', label: 'Salle d\'attente dehors', urgence: false, msg: 'Toutes les places sont occupees - faire patienter dehors.' };
+    return { place: 'dehors', label: 'Salle d\'attente dehors', urgence: false, msg: 'Toutes les places sont occupees - faire patienter dehors.' };
   }
 
   const placement = form.symptome ? calcPlacement() : null;
 
-  async function creerPatient() {
-    const p = placement || { place: 'preau' };
+  async function creerPatient(emplacementForce=null) {
+    const p = placement || { place: 'dehors' };
     const patient = {
       ...form,
       age,
-      statut: p.place === 'preau' ? 'preau' : 'attente_medecin',
-      emplacement: p.place === 'preau' ? null : p.place,
+      statut: emplacementForce ? 'attente_medecin' : (p.place === 'dehors' ? 'dehors' : 'attente_medecin'),
+      emplacement: emplacementForce || (p.place === 'dehors' ? null : p.place),
       emplacement_suggere: p.place,
       creePar: user.matricule,
     };
@@ -919,10 +920,41 @@ export default function PageAS() {
               style={{...inp,resize:'vertical',fontFamily:'system-ui'}}/>
           </div>
 
-          <button onClick={creerPatient} disabled={!form.nom||!form.sexe||!form.symptome}
-            style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
+          <button onClick={()=>creerPatient(null)} disabled={!form.nom||!form.sexe||!form.symptome}
+            style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer',border:'none'}}>
             Enregistrer le patient
           </button>
+
+          {(form.nom&&form.sexe&&form.symptome)&&(
+            <div style={{marginTop:8}}>
+              <button onClick={()=>setShowEmplacement(!showEmplacement)}
+                style={{background:'none',border:'none',color:'#6b7280',fontSize:12,cursor:'pointer',textDecoration:'underline',padding:0}}>
+                Enregistrer et placer à un endroit différent {showEmplacement?'▲':'▼'}
+              </button>
+              {showEmplacement&&(
+                <div style={{marginTop:8,padding:12,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                    {[
+                      {id:'brancard1',l:'B1 - Brancard 1',c:'#ef4444'},
+                      {id:'brancard2',l:'B2 - Brancard 2',c:'#ef4444'},
+                      {id:'fauteuil1',l:'F1 - Fauteuil 1',c:'#16a34a'},
+                      {id:'fauteuil2',l:'F2 - Fauteuil 2',c:'#16a34a'},
+                      {id:'obs1',l:'O1 - Observation 1',c:'#3b82f6'},
+                      {id:'obs2',l:'O2 - Observation 2',c:'#16a34a'},
+                      {id:'lit1',l:'L1 - Lit 1',c:'#3b82f6'},
+                      {id:'lit2',l:'L2 - Lit 2',c:'#3b82f6'},
+                      {id:'pansement',l:'P1 - Pansement',c:'#f59e0b'},
+                    ].map(({id,l,c})=>(
+                      <button key={id} onClick={()=>creerPatient(id)}
+                        style={{padding:'8px 12px',borderRadius:8,background:'#fff',border:'2px solid '+c,color:c,fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
