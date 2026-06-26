@@ -59,9 +59,7 @@ export default function PageVueGlobale() {
     const ps=d.patients||[];
     setPatients(ps);
     if(sel){const u=ps.find(p=>p.id===sel.id);if(u)setSel(u);}
-    // FIX : mettre à jour ficheOuverte depuis Redis à chaque polling
-    if(ficheOuverte){const u=ps.find(p=>p.id===ficheOuverte.id);if(u)setFicheOuverte(u);}
-  },[sel?.id, ficheOuverte?.id]);
+  },[sel?.id]);
 
   useEffect(()=>{
     const s=sessionStorage.getItem('pds_user');
