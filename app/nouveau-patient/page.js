@@ -116,7 +116,6 @@ export default function PageAS() {
   const [patients, setPatients] = useState([]);
   const [vue, setVue] = useState('nouveau');
   const [showVue, setShowVue] = useState(false);
-  const [showEmplacement, setShowEmplacement] = useState(false);
 
   const [form, setForm] = useState({
     sexe: '', nom: '', prenom: '', ddn: '', ipp: '',
@@ -198,7 +197,7 @@ export default function PageAS() {
     const hasOrangeConst = [cfcCol, csatCol, ctasCol, ctadCol, ctempCol].includes('orange');
 
     if (!hasRedConst && !hasOrangeConst && s !== 'coma') {
-      return { place: 'dehors', label: 'Salle d\'attente dehors', urgence: false, msg: 'Constantes normales - faire patienter dehors.' };
+      return { place: 'preau', label: 'Salle d\'attente dehors', urgence: false, msg: 'Constantes normales - faire patienter dehors.' };
     }
 
     if (hasRedConst) {
@@ -209,18 +208,18 @@ export default function PageAS() {
     if (libre('lit1')) return { place: 'lit1', label: 'L1 - Lit 1', urgence: false, msg: null };
     if (libre('lit2')) return { place: 'lit2', label: 'L2 - Lit 2', urgence: false, msg: null };
     if (libre('obs1')) return { place: 'obs1', label: 'O1 - Observation', urgence: false, msg: null };
-    return { place: 'dehors', label: 'Salle d\'attente dehors', urgence: false, msg: 'Toutes les places sont occupees - faire patienter dehors.' };
+    return { place: 'preau', label: 'Salle d\'attente dehors', urgence: false, msg: 'Toutes les places sont occupees - faire patienter dehors.' };
   }
 
   const placement = form.symptome ? calcPlacement() : null;
 
-  async function creerPatient(emplacementForce=null) {
-    const p = placement || { place: 'dehors' };
+  async function creerPatient() {
+    const p = placement || { place: 'preau' };
     const patient = {
       ...form,
       age,
-      statut: emplacementForce ? 'attente_medecin' : (p.place === 'dehors' ? 'dehors' : 'attente_medecin'),
-      emplacement: emplacementForce || (p.place === 'dehors' ? null : p.place),
+      statut: p.place === 'preau' ? 'preau' : 'attente_medecin',
+      emplacement: p.place === 'preau' ? null : p.place,
       emplacement_suggere: p.place,
       creePar: user.matricule,
     };
@@ -231,7 +230,7 @@ export default function PageAS() {
     const d = await r.json();
     if (d.ok) {
       setPatients(d.patients);
-      router.push('/vueglobale');
+      setVue('liste');
       setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',dextro:'',hemocue:'',douleur_zones:[],douleur_eva:5,nausee:'',tache_corps:'',fievre_jours:'',bu_resultat:'',bhcg_resultat:'',fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
@@ -245,7 +244,58 @@ export default function PageAS() {
     <div style={{ minHeight:'100vh', background:'#f3f4f6', fontFamily:'system-ui' }}>
 
       {/* NAV */}
+      <nav style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'0 1.5rem', display:'flex', alignItems:'center', justifyContent:'space-between', height:56, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ width:32, height:32, borderRadius:'50%', background:'#f59e0b', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:14, fontWeight:700 }}>AS</div>
+          <div>
+            <div style={{ fontWeight:700, fontSize:15, color:'#111827' }}>PDS Kahani</div>
+            <div style={{ fontSize:10, color:'#6b7280' }}>Aide-soignant</div>
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
+          <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => router.push('/admin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Ajouter agent</button>
+          <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
+          <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
+        </div>
+      </nav>
 
+      {vue === 'liste' && (
+        <div style={{ maxWidth:700, margin:'0 auto', padding:'1.5rem' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Patients ({patients.length})</h2>
+            <button onClick={() => setVue('nouveau')} style={{ padding:'10px 20px', borderRadius:10, background:'#0d9488', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer' }}>
+              + Nouveau patient
+            </button>
+          </div>
+          {patients.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'4rem 0', background:'#fff', borderRadius:12, border:'1px solid #e5e7eb' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{margin:'0 auto 10px',display:'block',opacity:0.2}}>
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div style={{color:'#9ca3af',fontSize:13}}>Aucun patient en ce moment</div>
+            </div>
+          ) : patients.map(p => (
+            <div key={p.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:'14px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <div style={{ fontWeight:700, color:'#111827', fontSize:15 }}>{p.nom} {p.prenom} <span style={{ color:'#9ca3af', fontWeight:400, fontSize:13 }}>{p.age} ans</span></div>
+                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.statut==='preau'?"Salle d'attente dehors":p.emplacement||'--'}</div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
+                <button onClick={async()=>{
+                  if(!confirm('Supprimer '+p.nom+' '+p.prenom+' ?')) return;
+                  await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:p.id})});
+                  load();
+                }} style={{padding:'4px 10px',borderRadius:6,background:'#fef2f2',color:'#dc2626',fontSize:11,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {vue === 'nouveau' && (
         <div style={{ maxWidth:820, margin:'0 auto', padding:'1.5rem' }}>
@@ -265,7 +315,7 @@ export default function PageAS() {
 
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
             <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Nouveau patient</h2>
-            <button onClick={() => router.push('/vueglobale')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</button>
+            <button onClick={() => setVue('liste')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</button>
           </div>
 
           {/* IDENTITE */}
@@ -737,8 +787,10 @@ export default function PageAS() {
 
                     {form.signe_lutte===false&&form.signe_lutte!==''&&(
                       <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px',marginTop:10}}>
-                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Salle 2 — Position demi-assise</div>
-                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>L1 ou L2 ou F2 selon disponibilite — Surveillance saturation</div>
+                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>
+                          {libre('fauteuil2')?'F2 - Fauteuil 2':libre('lit2')?'L2 - Lit 2':libre('lit1')?'L1 - Lit 1':libre('fauteuil1')?'F1 - Fauteuil 1':'Salle 2'}
+                        </div>
+                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Position demi-assise — Surveillance saturation</div>
                       </div>
                     )}
                     {form.signe_lutte===true&&(
@@ -833,15 +885,16 @@ export default function PageAS() {
                       style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
                     {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE — Brancard 1 + alerter medecin</div>}
                     {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie — Alerter medecin</div>}
-                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&parseFloat(form.dextro)<=2.5&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>Dextro {form.dextro} — Faire cetonemie + prevenir medecin</div>}
                   </div>
                   <div>
                     <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
                     <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)} placeholder="--"
                       style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
-                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE — Brancard 1 + alerter medecin</div>}
-                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie — Alerter medecin</div>}
-                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee — Prevenir medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE ({form.hemocue} g/dL) — Allonger patient B1 ou B2, a defaut L1 ou L2 — Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<=10.9&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie {form.hemocue} g/dL — Prevenir medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>10.9&&<div style={{color:'#16a34a',fontSize:11,marginTop:3,fontWeight:600}}>Hemoglobine normale ({form.hemocue} g/dL)</div>}
                   </div>
                 </div>
               </div>
@@ -920,41 +973,10 @@ export default function PageAS() {
               style={{...inp,resize:'vertical',fontFamily:'system-ui'}}/>
           </div>
 
-          <button onClick={()=>creerPatient(null)} disabled={!form.nom||!form.sexe||!form.symptome}
-            style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer',border:'none'}}>
+          <button onClick={creerPatient} disabled={!form.nom||!form.sexe||!form.symptome}
+            style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
             Enregistrer le patient
           </button>
-
-          {(form.nom&&form.sexe&&form.symptome)&&(
-            <div style={{marginTop:8}}>
-              <button onClick={()=>setShowEmplacement(!showEmplacement)}
-                style={{background:'none',border:'none',color:'#6b7280',fontSize:12,cursor:'pointer',textDecoration:'underline',padding:0}}>
-                Enregistrer et placer à un endroit différent {showEmplacement?'▲':'▼'}
-              </button>
-              {showEmplacement&&(
-                <div style={{marginTop:8,padding:12,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb'}}>
-                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                    {[
-                      {id:'brancard1',l:'B1 - Brancard 1',c:'#ef4444'},
-                      {id:'brancard2',l:'B2 - Brancard 2',c:'#ef4444'},
-                      {id:'fauteuil1',l:'F1 - Fauteuil 1',c:'#16a34a'},
-                      {id:'fauteuil2',l:'F2 - Fauteuil 2',c:'#16a34a'},
-                      {id:'obs1',l:'O1 - Observation 1',c:'#3b82f6'},
-                      {id:'obs2',l:'O2 - Observation 2',c:'#16a34a'},
-                      {id:'lit1',l:'L1 - Lit 1',c:'#3b82f6'},
-                      {id:'lit2',l:'L2 - Lit 2',c:'#3b82f6'},
-                      {id:'pansement',l:'P1 - Pansement',c:'#f59e0b'},
-                    ].map(({id,l,c})=>(
-                      <button key={id} onClick={()=>creerPatient(id)}
-                        style={{padding:'8px 12px',borderRadius:8,background:'#fff',border:'2px solid '+c,color:c,fontSize:12,fontWeight:600,cursor:'pointer'}}>
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
