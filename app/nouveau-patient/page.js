@@ -230,7 +230,7 @@ export default function PageAS() {
     const d = await r.json();
     if (d.ok) {
       setPatients(d.patients);
-      setVue('liste');
+      const sess=JSON.parse(sessionStorage.getItem('pds_user')||'{}'); router.push('/vueglobale');
       setForm({ sexe:'',nom:'',prenom:'',ddn:'',ipp:'',allergie:'',allergie_detail:'',medicaments_today:'',medicaments_detail:'',fc:'',sat:'',tas:'',tad:'',temp:'',poids:'',taille:'',symptome:'',symptome_autre:'',signe_lutte:'',respire:'',dextro:'',hemocue:'',douleur_zones:[],douleur_eva:5,nausee:'',tache_corps:'',fievre_jours:'',bu_resultat:'',bhcg_resultat:'',fievre_depuis:'',plaie_vaccin:'',quicktest:'',ecg_fait:false,bu_fait:false,bhcg_fait:false,notes:'' });
     }
   }
@@ -255,6 +255,7 @@ export default function PageAS() {
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
           <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => router.push('/admin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Ajouter agent</button>
           <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
           <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
         </div>
@@ -279,9 +280,18 @@ export default function PageAS() {
             <div key={p.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:'14px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
                 <div style={{ fontWeight:700, color:'#111827', fontSize:15 }}>{p.nom} {p.prenom} <span style={{ color:'#9ca3af', fontWeight:400, fontSize:13 }}>{p.age} ans</span></div>
-                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.emplacement || "Salle d'attente dehors"}</div>
+                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.statut==='preau'?"Salle d'attente dehors":p.emplacement||'--'}</div>
               </div>
-              <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
+                <button onClick={async()=>{
+                  if(!confirm('Supprimer '+p.nom+' '+p.prenom+' ?')) return;
+                  await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:p.id})});
+                  load();
+                }} style={{padding:'4px 10px',borderRadius:6,background:'#fef2f2',color:'#dc2626',fontSize:11,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
+                  Supprimer
+                </button>
+              </div>
             </div>
           ))}
         </div>
