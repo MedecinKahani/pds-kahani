@@ -201,29 +201,34 @@ export default function PageVueGlobale() {
         {p ? (
           <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'7px 8px',display:'flex',flexDirection:'column',gap:3,flex:1,overflow:'hidden'}}>
 
-            {/* Ligne 1 : label | identité | sexe */}
-            <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
-              <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,minWidth:28,flexShrink:0}}>{label}</div>
-              <div style={{flex:1,textAlign:'center'}}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:11,lineHeight:1.2}}>{p.prenom} {p.nom}</div>
-                <div style={{color:'#6b7280',fontSize:9,marginTop:0}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
-                {p.ipp&&<div style={{color:'#9ca3af',fontSize:8,marginTop:0,display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
-                  IPP : {p.ipp}
-                  <span onClick={e=>{
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(p.ipp);
-                    const el=e.currentTarget;
-                    el.textContent='✓';el.style.color='#16a34a';el.style.background='#f0fdf4';
-                    setTimeout(()=>{el.textContent='□';el.style.color='#9ca3af';el.style.background='transparent';},1500);
-                  }} style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
-                </div>}
-              </div>
-              <div style={{fontSize:16,color:c,flexShrink:0,lineHeight:1}}>{sexeSymbol}</div>
-            </div>
+            {/* Haut : [L2 + identité gauche] | [motif + sexe droite] */}
+            <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
 
-            {/* Motif sans guillemets */}
-            <div style={{textAlign:'center',padding:'2px 0'}}>
-              <div style={{fontSize:11,fontWeight:700,color:'#111827'}}>{labelSymptome(p)}</div>
+              {/* Gauche : label + identité */}
+              <div style={{display:'flex',gap:6,alignItems:'flex-start',flex:1,minWidth:0}}>
+                <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.prenom} {p.nom}</div>
+                  <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
+                  {p.ipp&&<div style={{color:'#9ca3af',fontSize:8,marginTop:1,display:'flex',alignItems:'center',gap:2}}>
+                    {p.ipp}
+                    <span onClick={e=>{
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(p.ipp);
+                      const el=e.currentTarget;
+                      el.textContent='✓';el.style.color='#16a34a';el.style.background='#f0fdf4';
+                      setTimeout(()=>{el.textContent='□';el.style.color='#9ca3af';el.style.background='transparent';},1500);
+                    }} style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
+                  </div>}
+                </div>
+              </div>
+
+              {/* Droite : motif + sexe */}
+              <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:2,flexShrink:0,maxWidth:'45%'}}>
+                <div style={{fontSize:16,color:c,lineHeight:1}}>{sexeSymbol}</div>
+                <div style={{fontSize:12,fontWeight:700,color:'#111827',textAlign:'right',lineHeight:1.2}}>{labelSymptome(p)}</div>
+              </div>
+
             </div>
 
             {/* Constantes 2 colonnes + prescriptions */}
