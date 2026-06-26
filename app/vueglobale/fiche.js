@@ -545,13 +545,12 @@ ${ordonnance||'--'}
                     </HBtn>;
                   })}
                   <AutreLibre categorie="soin" onAjouter={ajouterPrescription}/>
-                </div>}
-              </div>
+                </div>
+              }
             </div>
+          </div>
+            )
           )}
-
-          )}
-
           {onglet==='evolution'&&(
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div>
