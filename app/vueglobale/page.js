@@ -331,13 +331,15 @@ export default function PageVueGlobale() {
 
             {/* FICHE OUVERTE AU-DESSUS DU PLAN */}
             {ficheOuverte&&(
-              <div style={{marginBottom:12,flexShrink:0}}>
-                <FichePatient
-                  patient={ficheOuverte}
-                  onClose={()=>setFicheOuverte(null)}
-                  onUpdate={()=>{load();}}
-                  user={user}
-                />
+              <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.3)',zIndex:200}}
+                onClick={e=>{if(e.target===e.currentTarget)setFicheOuverte(null);}}>
+                <div style={{position:'absolute',top:0,right:0,bottom:0,width:'60vw',minWidth:720,background:'#fff',boxShadow:'-4px 0 32px rgba(0,0,0,0.18)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                  <FichePatient
+                    patient={ficheOuverte}
+                    onClose={()=>setFicheOuverte(null)}
+                    onUpdate={()=>{load();}}
+                    user={user}
+                  />
                 </div>
               </div>
             )}
