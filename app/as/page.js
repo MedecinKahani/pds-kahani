@@ -280,9 +280,18 @@ export default function PageAS() {
             <div key={p.id} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:'14px 16px', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
                 <div style={{ fontWeight:700, color:'#111827', fontSize:15 }}>{p.nom} {p.prenom} <span style={{ color:'#9ca3af', fontWeight:400, fontSize:13 }}>{p.age} ans</span></div>
-                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.emplacement || "Salle d'attente dehors"}</div>
+                <div style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>{p.symptome || p.motifPrincipal} · {p.statut==='preau'?"Salle d'attente dehors":p.emplacement||'--'}</div>
               </div>
-              <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
+                <button onClick={async()=>{
+                  if(!confirm('Supprimer '+p.nom+' '+p.prenom+' ?')) return;
+                  await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:p.id})});
+                  load();
+                }} style={{padding:'4px 10px',borderRadius:6,background:'#fef2f2',color:'#dc2626',fontSize:11,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
+                  Supprimer
+                </button>
+              </div>
             </div>
           ))}
         </div>
