@@ -550,7 +550,6 @@ ${ordonnance||'--'}
             </div>
           )}
 
-            )
           )}
 
           {onglet==='evolution'&&(
