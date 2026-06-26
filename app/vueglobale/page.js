@@ -29,8 +29,8 @@ const C = {
   brancard1:'#ef4444', brancard2:'#ef4444'
 };
 const BG = {
-  pansement:'#fffbeb', obs1:'#f9fafb', obs2:'#f0fdf4',
-  lit1:'#f9fafb', lit2:'#f9fafb', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
+  pansement:'#fffbeb', obs1:'#eff6ff', obs2:'#f0fdf4',
+  lit1:'#eff6ff', lit2:'#eff6ff', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
   brancard1:'#fef2f2', brancard2:'#fef2f2'
 };
 
