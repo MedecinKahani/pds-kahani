@@ -114,7 +114,7 @@ export default function PageAS() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [patients, setPatients] = useState([]);
-  const [vue, setVue] = useState('liste');
+  const [vue, setVue] = useState('nouveau');
   const [showVue, setShowVue] = useState(false);
 
   const [form, setForm] = useState({
