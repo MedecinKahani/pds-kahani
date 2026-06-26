@@ -442,18 +442,13 @@ export default function PageVueGlobale() {
       </div>
       {/* FICHE OVERLAY */}
       {ficheOuverte&&(
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,display:'flex'}}>
-          {/* Fond grisé cliquable */}
-          <div style={{width:'30%',background:'rgba(0,0,0,0.4)',cursor:'pointer'}} onClick={()=>setFicheOuverte(null)}/>
-          {/* Panneau fiche */}
-          <div style={{flex:1,background:'#fff',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'-4px 0 32px rgba(0,0,0,0.2)'}}>
-            <FichePatient
-              patient={ficheOuverte}
-              onClose={()=>setFicheOuverte(null)}
-              onUpdate={()=>{load();}}
-              user={user}
-            />
-          </div>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,background:'#fff',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+          <FichePatient
+            patient={ficheOuverte}
+            onClose={()=>setFicheOuverte(null)}
+            onUpdate={()=>{load();}}
+            user={user}
+          />
         </div>
       )}
     </div>
