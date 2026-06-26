@@ -113,7 +113,6 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   async function save(patch) {
     await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action:'update', id:p.id, patch }) });
-    onUpdate?.();
   }
 
   const debouncedSave = useDebounce(save, 800);
