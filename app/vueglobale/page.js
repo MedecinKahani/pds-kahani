@@ -268,8 +268,14 @@ export default function PageVueGlobale() {
               <div style={{gridColumn:1,gridRow:1,display:'flex'}}>
                 <Case id="pansement" label="P1"/>
               </div>
-              <div style={{gridColumn:'2/5',gridRow:1,display:'flex',alignItems:'center',justifyContent:'flex-end',padding:'0 8px'}}>
-                <span style={{fontSize:12,color:'#9ca3af'}}></span>
+              <div style={{gridColumn:2,gridRow:1,display:'flex'}}>
+                <Poste id="_ide" label="IDE" color="#3b82f6"/>
+              </div>
+              <div style={{gridColumn:3,gridRow:1,display:'flex'}}>
+                <Poste id="_med" label="Medecin" color="#0d9488"/>
+              </div>
+              <div style={{gridColumn:4,gridRow:1,display:'flex'}}>
+                <Poste id="_as" label="AS" color="#f59e0b"/>
               </div>
 
               {/* Encadré Observation - col1 rows 2+3 */}
