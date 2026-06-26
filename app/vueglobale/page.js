@@ -134,14 +134,9 @@ export default function PageVueGlobale() {
   function catPrescriptions(prescriptions) {
     const cats = {examens:[], therapeutique:[], soins:[]};
     prescriptions.filter(rx=>!rx.fait).forEach(rx => {
-      const t = (rx.texte||'').toLowerCase();
-      if(t.includes('ecg')||t.includes('dextro')||t.includes('hemocue')||t.includes('tdr')||t.includes('bu ')||t.includes('bhcg')||t.includes('biologie')||t.includes('tube')||t.includes('gaz')||t.includes('nfs')||t.includes('crp')) {
-        cats.examens.push(rx);
-      } else if(t.includes('aerosol')||t.includes('perf')||t.includes('vvp')||t.includes('paracetamol')||t.includes('perfalgan')||t.includes('morphine')||t.includes('ketoprof')||t.includes('ventoline')||t.includes('atrovent')||t.includes('salbutamol')||t.includes('tramadol')||t.includes('ibuprofene')||t.includes('o2')||t.includes('oxygene')) {
-        cats.therapeutique.push(rx);
-      } else {
-        cats.soins.push(rx);
-      }
+      if(rx.categorie === 'examen') cats.examens.push(rx);
+      else if(rx.categorie === 'therapeutique') cats.therapeutique.push(rx);
+      else cats.soins.push(rx);
     });
     return cats;
   }
