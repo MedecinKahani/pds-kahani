@@ -56,7 +56,7 @@ export default function PageMedecin() {
     const s=sessionStorage.getItem('pds_user');
     if(!s){router.push('/login');return;}
     const u=JSON.parse(s);
-    if(u.role!=='medecin'){router.push('/');return;}
+    // tous les roles acceptes
     setUser(u);load();
     const iv=setInterval(load,8000);
     return()=>clearInterval(iv);
@@ -233,7 +233,7 @@ export default function PageMedecin() {
           <div><div style={{fontWeight:700,fontSize:15,color:'#111827'}}>PDS Kahani</div><div style={{fontSize:10,color:'#6b7280'}}>Medecin</div></div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:14}}>
-          <div style={{textAlign:'right'}}><div style={{fontWeight:600,color:'#111827',fontSize:13}}>Dr {user.nom}</div><div style={{fontSize:11,color:'#6b7280'}}>{user.matricule}</div></div>
+          <div style={{textAlign:'right'}}><div style={{fontWeight:600,color:'#111827',fontSize:13}}>{user.nom}</div><div style={{fontSize:11,color:'#6b7280'}}>{user.role} · {user.matricule}</div></div>
           <button onClick={()=>router.back()} style={{width:34,height:34,borderRadius:'50%',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#374151'}}>←</button>
           <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',fontSize:12,border:'1px solid #e5e7eb'}}>Admin</button>
           <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb'}}>Deconnexion</button>
@@ -270,14 +270,8 @@ export default function PageMedecin() {
               <div style={{gridColumn:1,gridRow:1,display:'flex'}}>
                 <Case id="pansement" label="P1"/>
               </div>
-              <div style={{gridColumn:2,gridRow:1,display:'flex'}}>
-                <Poste id="_ide" label="IDE" color="#6b7280"/>
-              </div>
-              <div style={{gridColumn:3,gridRow:1,display:'flex'}}>
-                <Poste id="_doc" label="Medecin" color="#0d9488"/>
-              </div>
-              <div style={{gridColumn:4,gridRow:1,display:'flex'}}>
-                <Poste id="_as" label="AS" color="#f59e0b"/>
+              <div style={{gridColumn:'2/5',gridRow:1,display:'flex',alignItems:'center',justifyContent:'flex-end',padding:'0 8px'}}>
+                <span style={{fontSize:12,color:'#9ca3af'}}></span>
               </div>
 
               {/* Encadré Observation - col1 rows 2+3 */}
