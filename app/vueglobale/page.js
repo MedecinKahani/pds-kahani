@@ -330,19 +330,6 @@ export default function PageVueGlobale() {
           <div style={{width:'100%',flexShrink:0,padding:'1rem',display:'flex',flexDirection:'column',minHeight:0}}>
 
             {/* FICHE OUVERTE AU-DESSUS DU PLAN */}
-            {ficheOuverte&&(
-              <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.3)',zIndex:200}}
-                onClick={e=>{if(e.target===e.currentTarget)setFicheOuverte(null);}}>
-                <div style={{position:'absolute',top:0,right:0,bottom:0,width:'60vw',minWidth:720,background:'#fff',boxShadow:'-4px 0 32px rgba(0,0,0,0.18)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                  <FichePatient
-                    patient={ficheOuverte}
-                    onClose={()=>setFicheOuverte(null)}
-                    onUpdate={()=>{load();}}
-                    user={user}
-                  />
-                </div>
-              </div>
-            )}
             )}
 
             {/* Grid 4 colonnes x 3 rangées avec encadrés span */}
@@ -454,6 +441,20 @@ export default function PageVueGlobale() {
           </div>
         </div>
       </div>
+      {/* FICHE OVERLAY */}
+      {ficheOuverte&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.3)',zIndex:200}}
+          onClick={e=>{if(e.target===e.currentTarget)setFicheOuverte(null);}}>
+          <div style={{position:'absolute',top:0,right:0,bottom:0,width:'62vw',minWidth:720,background:'#fff',boxShadow:'-4px 0 32px rgba(0,0,0,0.18)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+            <FichePatient
+              patient={ficheOuverte}
+              onClose={()=>setFicheOuverte(null)}
+              onUpdate={()=>{load();}}
+              user={user}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
