@@ -94,112 +94,144 @@ export default function PageVueGlobale() {
     return {color:'#ef4444', bg:'#fef2f2', label:'>6h'};
   }
 
+  function couleurConst(val, k) {
+    const NORMES = {sat:[94,100],fc:[50,100],tas:[90,150],tad:[60,95],temp:[36,38.4],dextro:[0.7,2.0],hemocue:[8,18]};
+    const v = parseFloat(val); if(isNaN(v)) return null;
+    const [mn,mx] = NORMES[k]||[0,9999];
+    if(v>=mn && v<=mx) return '#16a34a';
+    // Orange si légèrement hors norme
+    const marge = (mx-mn)*0.15;
+    if(v>=mn-marge && v<=mx+marge) return '#f59e0b';
+    return '#ef4444';
+  }
+
+  function catPrescriptions(prescriptions) {
+    const cats = {examens:[], therapeutique:[], soins:[]};
+    prescriptions.forEach(rx => {
+      const t = (rx.texte||'').toLowerCase();
+      if(t.includes('ecg')||t.includes('dextro')||t.includes('hemocue')||t.includes('tdr')||t.includes('bu ')||t.includes('bhcg')||t.includes('biologie')||t.includes('tube')||t.includes('gaz')||t.includes('nfs')) {
+        cats.examens.push(rx);
+      } else if(t.includes('aerosol')||t.includes('perf')||t.includes('vvp')||t.includes('paracetamol')||t.includes('perfalgan')||t.includes('morphine')||t.includes('ketoprof')||t.includes('ventoline')||t.includes('atrovent')||t.includes('salbutamol')||t.includes('tramadol')||t.includes('ibuprofene')||t.includes('omeprazole')||t.includes('o2')||t.includes('oxygene')) {
+        cats.therapeutique.push(rx);
+      } else {
+        cats.soins.push(rx);
+      }
+    });
+    return cats;
+  }
+
   function Case({id,label}){
     const p=enSalle.find(x=>x.emplacement===id);
     const c=C[id]||'#9ca3af';
-    const attente=p?.statut==='attente_medecin';
-    const anomalie=p&&hasAnomalie(p);
     const isSelected=ficheOuverte?.id===p?.id;
     const dureeInfo = p ? couleurDuree(p.arrivee) : null;
-    const actes = safeJSON(p?.actes);
     const prescriptions = safeJSON(p?.prescriptions);
+    const enAttente = prescriptions.filter(rx=>!rx.fait);
+    const cats = catPrescriptions(enAttente);
+    const hasExamens = cats.examens.length > 0;
+    const hasThera = cats.therapeutique.length > 0;
+    const hasSoins = cats.soins.length > 0;
+    const aExaminer = p && prescriptions.length === 0;
+
+    // PAM
+    const pam = p?.tas && p?.tad ? Math.round(parseFloat(p.tad)+(parseFloat(p.tas)-parseFloat(p.tad))/3) : null;
+
+    async function cocherFait(rxIndex) {
+      const rxs = [...prescriptions];
+      rxs[rxIndex] = {...rxs[rxIndex], fait:true, faitPar:user?.matricule, faitA:Date.now()};
+      await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rxs)}})});
+      load();
+    }
 
     return(
-      <div onClick={()=>{if(!p)return;setFicheOuverte(ficheOuverte?.id===p.id?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
-        style={{background:p?'#fff':BG[id]||'#fafafa',border:'2px solid '+(isSelected?c:p?c+'55':'#efefef'),borderRadius:12,cursor:p?'pointer':'default',transition:'all 0.15s',boxShadow:isSelected?'0 0 0 3px '+c+'22':'0 1px 3px rgba(0,0,0,0.04)',position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column'}}>
+      <div onClick={()=>{if(!p)return;setFicheOuverte(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
+        style={{
+          background:p?'#fff':BG[id]||'#fafafa',
+          border: p ? '2px solid #ef4444' : '1.5px solid #efefef',
+          borderRadius:12,cursor:p?'pointer':'default',
+          boxShadow:isSelected?'0 0 0 3px rgba(239,68,68,0.2)':'0 1px 3px rgba(0,0,0,0.04)',
+          position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column'
+        }}>
 
         {/* Bande couleur top */}
         <div style={{height:3,background:p?c:c+'33',flexShrink:0}}/>
 
-        {/* Label emplacement */}
-        <div style={{padding:'6px 10px 0',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-          <div style={{display:'flex',alignItems:'center',gap:5}}>
-            <span style={{fontWeight:800,fontSize:11,color:c,letterSpacing:0.5}}>{label}</span>
-            {!p&&<span style={{fontSize:9,color:'#c4c4c4'}}>{LEGENDES[id]}</span>}
+        {/* Label */}
+        <div style={{padding:'5px 8px 0',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:4}}>
+            <span style={{fontWeight:800,fontSize:11,color:c}}>{label}</span>
+            {!p&&<span style={{fontSize:8,color:'#c4c4c4'}}>{LEGENDES[id]}</span>}
           </div>
-          {p&&<div style={{display:'flex',gap:4,alignItems:'center'}}>
-            {anomalie&&<span style={{fontSize:10,color:'#ef4444',fontWeight:700}}>!</span>}
-            <div style={{width:7,height:7,borderRadius:'50%',background:statutColor[p.statut]||'#e5e7eb',flexShrink:0}}/>
+          {p&&<div style={{display:'flex',gap:3,alignItems:'center'}}>
+            {aExaminer&&<span style={{fontSize:8,fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'1px 5px',borderRadius:3}}>À EXAMINER</span>}
+            <div style={{background:dureeInfo.bg,color:dureeInfo.color,fontSize:8,fontWeight:700,padding:'1px 5px',borderRadius:99}}>{dureeInfo.label}</div>
           </div>}
         </div>
 
         {p ? (
-          <div style={{padding:'6px 10px 8px',flex:1,display:'flex',flexDirection:'column',gap:5,overflow:'hidden'}}>
+          <div style={{padding:'4px 8px 6px',flex:1,display:'flex',flexDirection:'column',gap:3,overflow:'hidden'}}>
 
-            {/* Identite style Odaiji */}
-            <div style={{borderBottom:'1px solid #f3f4f6',paddingBottom:5}}>
-              <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-              <div style={{display:'flex',gap:8,marginTop:2}}>
-                <span style={{color:'#6b7280',fontSize:10}}>{p.age} ans</span>
-                {p.ipp&&<span style={{color:'#9ca3af',fontSize:10}}>{p.ipp}</span>}
-              </div>
+            {/* Identite */}
+            <div style={{borderBottom:'1px solid #f3f4f6',paddingBottom:3}}>
+              <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2}}>{p.nom} {p.prenom}</div>
+              <div style={{color:'#9ca3af',fontSize:9,marginTop:1}}>{p.age} ans{p.ipp?' · '+p.ipp:''}</div>
             </div>
 
             {/* Motif */}
-            <div style={{display:'flex',alignItems:'center',gap:5}}>
-              <span style={{fontSize:13,color:'#111827',fontWeight:700,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.symptome||p.motifPrincipal||'--'}</span>
-              {p.douleur_eva&&<span style={{fontSize:10,color:'#9ca3af',flexShrink:0}}>EVA {p.douleur_eva}/10</span>}
-            </div>
+            <div style={{fontSize:11,color:'#374151',fontWeight:600}}>{p.symptome||p.motifPrincipal||'--'}</div>
 
             {/* Constantes sur une ligne */}
-            <div style={{display:'flex',gap:3,flexWrap:'nowrap',overflow:'hidden'}}>
+            <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
               {[
-                {k:'sat',v:p.sat,l:'SpO2',u:'%',icon:'💧'},
-                {k:'fc',v:p.fc,l:'FC',u:'',icon:'❤️'},
-                {k:'tas',v:p.tas,l:'PAS',u:'',icon:'🩸'},
-                {k:'temp',v:p.temp,l:'T°',u:'°',icon:'🌡️'},
-              ].filter(x=>x.v).map(({k,v,l,u,icon})=>{
-                const bad=isAnormal(v,k==='tas'?'ta_sys':k);
+                {k:'fc',v:p.fc,l:'FC'},
+                {k:'tas',v:p.tas,l:'PAS'},
+                {k:'tad',v:p.tad,l:'PAD'},
+                pam?{k:'pam',v:pam,l:'PAM',custom:pam<65?'#ef4444':'#0d9488'}:null,
+                {k:'sat',v:p.sat,l:'SpO2'},
+                {k:'temp',v:p.temp,l:'T°'},
+                p.dextro?{k:'dextro',v:p.dextro,l:'Dex'}:null,
+                p.hemocue?{k:'hemocue',v:p.hemocue,l:'Hb'}:null,
+              ].filter(Boolean).map((item,i)=>{
+                const col = item.custom || (item.k==='pam'?null:couleurConst(item.v,item.k));
                 return(
-                  <div key={k} style={{background:bad?'#fef2f2':'#f9fafb',borderRadius:5,padding:'2px 5px',display:'flex',alignItems:'center',gap:2,border:'1px solid '+(bad?'#fecaca':'transparent'),flexShrink:0}}>
-                    <span style={{fontSize:8}}>{icon}</span>
-                    <div>
-                      <div style={{fontSize:7,color:'#9ca3af',lineHeight:1}}>{l}</div>
-                      <div style={{fontSize:10,fontWeight:700,color:bad?'#ef4444':'#111827',lineHeight:1.2}}>{v}<span style={{fontSize:7,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
-                    </div>
-                  </div>
+                  <span key={i} style={{fontSize:8,fontWeight:600,color:col||'#6b7280',background:col?col+'18':'#f3f4f6',padding:'1px 4px',borderRadius:3,whiteSpace:'nowrap'}}>
+                    {item.l} {item.v}
+                  </span>
                 );
               })}
             </div>
 
-            {/* Actes & prescriptions */}
-            {(actes.length>0||prescriptions.length>0)&&(
-              <div style={{borderTop:'1px solid #f3f4f6',paddingTop:4}}>
-                <div style={{fontSize:8,color:'#9ca3af',marginBottom:2,textTransform:'uppercase',letterSpacing:0.5}}>Soins</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:2}}>
-                  {prescriptions.slice(0,2).map((rx,i)=>(
-                    <span key={i} style={{fontSize:8,color:'#2563eb',background:'#eff6ff',padding:'1px 5px',borderRadius:3,fontWeight:500,maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{rx.texte}</span>
-                  ))}
-                  {actes.slice(0,3).map((a,i)=>(
-                    <span key={i} style={{fontSize:8,color:'#16a34a',background:'#f0fdf4',padding:'1px 5px',borderRadius:3,fontWeight:500}}>✓ {a.label}</span>
-                  ))}
-                </div>
+            {/* Catégories prescriptions en attente */}
+            {(hasExamens||hasThera||hasSoins)&&(
+              <div style={{display:'flex',gap:4,marginTop:1}} onClick={e=>e.stopPropagation()}>
+                {hasExamens&&<span title={cats.examens.map(r=>r.texte).join(', ')} style={{fontSize:12,cursor:'default'}}>🔬</span>}
+                {hasThera&&<span title={cats.therapeutique.map(r=>r.texte).join(', ')} style={{fontSize:12,cursor:'default'}}>💊</span>}
+                {hasSoins&&<span title={cats.soins.map(r=>r.texte).join(', ')} style={{fontSize:12,cursor:'default'}}>🩹</span>}
               </div>
             )}
-
-            {/* Duree + sortie */}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto',gap:4}}>
-              {attente&&<span style={{fontSize:8,fontWeight:700,color:'#d97706',background:'#fef3c7',padding:'1px 6px',borderRadius:3}}>EN ATTENTE</span>}
-              <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 8px',borderRadius:99,border:'1px solid '+dureeInfo.color+'33'}}>{dureeInfo.label}</div>
-              <button onClick={async e=>{
-                e.stopPropagation();
-                if(!confirm('Confirmer la sortie de '+p.nom+' '+p.prenom+' ?')) return;
-                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
-                load();
-              }} style={{padding:'2px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:700,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>
-                Sortie
-              </button>
-            </div>
 
           </div>
         ):(
           <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
             <button onClick={e=>{e.stopPropagation();router.push('/nouveau-patient?emplacement='+id);}}
-              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderStyle='solid';e.currentTarget.style.background=c+'18';}}
-              onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.borderStyle='dashed';e.currentTarget.style.background='transparent';}}
-              style={{width:30,height:30,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
+              onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'18';}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.background='transparent';}}
+              style={{width:28,height:28,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
           </div>
         )}
+
+        {/* Bouton sortie */}
+        {p&&<div style={{padding:'0 8px 5px',display:'flex',justifyContent:'flex-end'}} onClick={e=>e.stopPropagation()}>
+          <button onClick={async e=>{
+            e.stopPropagation();
+            if(!confirm('Sortie de '+p.nom+' '+p.prenom+' ?')) return;
+            await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
+            load();
+          }} style={{padding:'2px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:8,fontWeight:700,border:'1px solid #e5e7eb',cursor:'pointer'}}>
+            Sortie
+          </button>
+        </div>}
       </div>
     );
   }
