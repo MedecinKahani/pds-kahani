@@ -93,6 +93,23 @@ export default function PageVueGlobale() {
   const preau=patients.filter(p=>p.statut==='preau');
   const enSalle=patients.filter(p=>p.statut!=='preau');
 
+  function labelSymptome(p) {
+    const map = {
+      coma:'Coma / Inconscience', detresse_respi:'Detresse respiratoire',
+      asthme:'Asthme', douleur:'Douleur', fievre:'Fievre',
+      vertige:'Vertige / Malaise', plaie:'Plaie', autre:'Autre'
+    };
+    let label = map[p?.symptome] || p?.symptome || '--';
+    if(p?.symptome==='douleur') {
+      try {
+        const zones = typeof p?.douleur_zones==='string' ? JSON.parse(p.douleur_zones) : (p?.douleur_zones||[]);
+        if(zones && zones.length>0) label += ' — '+zones.slice(0,2).map(z=>z.replace(/_/g,' ')).join(', ');
+      } catch(e){}
+    }
+    if(p?.symptome_autre) label = p.symptome_autre;
+    return label;
+  }
+
   function couleurDuree(ts) {
     const h = (Date.now()-parseInt(ts)) / 3600000;
     if (h < 1) return {color:'#16a34a', label:'<1h'};
