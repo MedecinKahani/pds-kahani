@@ -90,8 +90,8 @@ export default function PageVueGlobale() {
   }
 
   if(!user)return null;
-  const preau=patients.filter(p=>p.statut==='preau');
-  const enSalle=patients.filter(p=>p.statut!=='preau');
+  const preau=patients.filter(p=>p.statut==='dehors');
+  const enSalle=patients.filter(p=>p.statut!=='dehors');
 
   function labelSymptome(p) {
     const map = {
@@ -412,11 +412,11 @@ export default function PageVueGlobale() {
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
             {preau.map(p=>{
               const placesLibres=[
-                {id:'lit1',l:'L1 - Lit 1'},{id:'lit2',l:'L2 - Lit 2'},
-                {id:'obs1',l:'O1 - Obs'},{id:'obs2',l:'O2 - Obs'},
-                {id:'fauteuil1',l:'F1 - Fauteuil'},{id:'fauteuil2',l:'F2 - Fauteuil'},
-                {id:'brancard1',l:'B1 - Brancard'},{id:'brancard2',l:'B2 - Brancard'},
-                {id:'pansement',l:'P1 - Pansement'},
+                {id:'brancard1',l:'B1'},{id:'brancard2',l:'B2'},
+                {id:'fauteuil1',l:'F1'},{id:'fauteuil2',l:'F2'},
+                {id:'obs1',l:'O1'},{id:'obs2',l:'O2'},
+                {id:'lit1',l:'L1'},{id:'lit2',l:'L2'},
+                {id:'pansement',l:'P1'},
               ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
               return(
               <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0}}>
