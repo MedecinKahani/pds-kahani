@@ -108,6 +108,10 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
 
+  useEffect(() => {
+    setPrescriptions(safeJSON(p.prescriptions, []));
+  }, [p.prescriptions]);
+
   const pam = p.tas && p.tad ? Math.round(parseFloat(p.tad) + (parseFloat(p.tas) - parseFloat(p.tad)) / 3) : null;
 
   async function save(patch) {
