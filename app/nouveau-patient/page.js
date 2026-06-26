@@ -237,29 +237,38 @@ export default function NouveauPatient() {
         {/* Constantes */}
         <Section title="📊 Constantes vitales">
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:10 }}>
-            {[
-              { k:'fc',   l:'FC',          u:'bpm',  type:'number', step:'1'   },
-              { k:'sat',  l:'SpO2',        u:'%',    type:'number', step:'1'   },
-              { k:'temp', l:'Temperature', u:'°C',   type:'number', step:'0.1' },
-              { k:'tas',  l:'PAS',         u:'mmHg', type:'number', step:'1'   },
-              { k:'tad',  l:'PAD',         u:'mmHg', type:'number', step:'1'   },
-            ].map(({ k, l, u, step }) => {
-              const v = form[k];
-              const colSat = k==='sat' && v ? COULEURS[NORMES_SAT(v)] : null;
-              const colFC  = k==='fc' && v ? (parseFloat(v)<50||parseFloat(v)>100 ? '#ef4444' : '#16a34a') : null;
-              const colTAS = k==='tas' && v ? (parseFloat(v)<90||parseFloat(v)>150 ? '#ef4444' : '#16a34a') : null;
-              const col = colSat || colFC || colTAS;
-              return (
-                <div key={k} style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-                  <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>{l} <span style={{ fontSize:10 }}>{u}</span></label>
-                  <input type="number" step={step} value={v} onChange={e=>set(k,e.target.value)} placeholder="--"
-                    style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700,
-                      color: v ? (col||'#111827') : '#d1d5db', outline:'none', padding:0 }}/>
-                </div>
-              );
-            })}
             <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAM <span style={{ fontSize:10 }}>mmHg</span></label>
+              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>FC <span style={{fontSize:10}}>bpm</span></label>
+              <input type="number" step="1" value={form.fc} onChange={e=>set('fc',e.target.value)} placeholder="--"
+                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
+                  color: form.fc ? (parseFloat(form.fc)<50||parseFloat(form.fc)>100?'#ef4444':'#16a34a') : '#d1d5db' }}/>
+            </div>
+            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
+              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>SpO2 <span style={{fontSize:10}}>%</span></label>
+              <input type="number" step="1" min="0" max="100" value={form.sat} onChange={e=>set('sat',e.target.value)} placeholder="--"
+                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
+                  color: form.sat ? COULEURS[NORMES_SAT(form.sat)||'green'] : '#d1d5db' }}/>
+            </div>
+            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
+              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>Temperature <span style={{fontSize:10}}>°C</span></label>
+              <input type="number" step="0.1" value={form.temp} onChange={e=>set('temp',e.target.value)} placeholder="--"
+                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
+                  color: form.temp ? (parseFloat(form.temp)<36||parseFloat(form.temp)>38.4?'#ef4444':'#16a34a') : '#d1d5db' }}/>
+            </div>
+            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
+              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAS <span style={{fontSize:10}}>mmHg</span></label>
+              <input type="number" step="1" value={form.tas} onChange={e=>set('tas',e.target.value)} placeholder="--"
+                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
+                  color: form.tas ? (parseFloat(form.tas)<90||parseFloat(form.tas)>150?'#ef4444':'#16a34a') : '#d1d5db' }}/>
+            </div>
+            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
+              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAD <span style={{fontSize:10}}>mmHg</span></label>
+              <input type="number" step="1" value={form.tad} onChange={e=>set('tad',e.target.value)} placeholder="--"
+                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
+                  color: form.tad ? (parseFloat(form.tad)<60||parseFloat(form.tad)>95?'#ef4444':'#16a34a') : '#d1d5db' }}/>
+            </div>
+            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
+              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAM <span style={{fontSize:10}}>mmHg</span></label>
               <div style={{ fontSize:22, fontWeight:700, color: pam ? (pam<65?'#ef4444':'#16a34a') : '#d1d5db' }}>{pam||'--'}</div>
               {pam&&pam<65&&<div style={{fontSize:10,color:'#ef4444',fontWeight:600}}>Choc — Alerter medecin</div>}
             </div>
