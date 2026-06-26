@@ -234,7 +234,7 @@ ${ordonnance||'--'}
               );
             })}
             {/* Ajouter constante */}
-            <div style={{borderRadius:8,padding:'6px 10px',border:'1.5px dashed #e5e7eb',display:'flex',flexDirection:'column',justifyContent:'center',gap:4}}>
+            <div onMouseEnter={e=>e.currentTarget.style.borderColor='#0d9488'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'} style={{borderRadius:8,padding:'6px 10px',border:'1.5px dashed #e5e7eb',display:'flex',flexDirection:'column',justifyContent:'center',gap:4,transition:'border-color 0.15s'}}>
               <select value={nouvConst.type} onChange={e=>setNouvConst(n=>({...n,type:e.target.value}))}
                 style={{fontSize:10,border:'none',background:'transparent',color:'#9ca3af',outline:'none',cursor:'pointer'}}>
                 <option value="">+ Constante</option>
@@ -488,8 +488,8 @@ ${ordonnance||'--'}
         </div>
       </div>
 
-      {/* COLONNE DROITE */}
-      <div style={{width:240,borderLeft:'1px solid #e5e7eb',background:'#fafafa',display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
+      {/* COLONNE DROITE — masquée pour IDE */}
+      {user?.role !== 'ide' && <div style={{width:240,borderLeft:'1px solid #e5e7eb',background:'#fafafa',display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
         <div style={{padding:'10px 12px',borderBottom:'1px solid #e5e7eb',fontWeight:700,fontSize:12,color:'#374151'}}>
           Prescriptions <span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:10,padding:'1px 6px',marginLeft:4}}>{enAttente.length}</span>
         </div>
@@ -524,7 +524,7 @@ ${ordonnance||'--'}
             ))}
           </>}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
