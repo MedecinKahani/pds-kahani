@@ -363,7 +363,7 @@ export default function PageAS() {
                   <div style={{fontSize:10,color:'#9ca3af',marginBottom:6,display:'flex',alignItems:'center',gap:4,textTransform:'uppercase',letterSpacing:0.5}}>
                     <span>{icon}</span><span>{l}</span>
                   </div>
-                  <input type="number" step="0.1" value={form[k]} onChange={e=>set(k,e.target.value)} placeholder="--"
+                  <input type="number" step={k==='sat'||k==='fc'?'1':'0.1'} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder="--"
                     style={{width:'100%',border:'none',background:'transparent',fontSize:20,fontWeight:700,color:form[k]?(col?COLORS[col]:'#111827'):'#d1d5db',outline:'none',padding:0}}/>
                   <div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>{u}</div>
                   {col==='red'&&<div style={{fontSize:9,color:COLORS.red,marginTop:3,fontWeight:600}}>ANOMALIE</div>}
@@ -765,8 +765,8 @@ export default function PageAS() {
                       <div style={{color:'#d97706',fontSize:12}}>Saturation non renseignee — evaluer cliniquement</div>
                     </div>}
 
-                    <label style={{...lbl,opacity:0.4}}>Le patient arrive a respirer et parle normalement ?</label>
-                    <div style={{display:'flex',gap:8,opacity:0.4,pointerEvents:'none'}}>
+                    <label style={{...lbl,opacity:0.4,marginTop:8}}>Le patient arrive a respirer et parle normalement ? (non applicable - sat basse)</label>
+                    <div style={{display:'flex',gap:8,opacity:0.35,pointerEvents:'none'}}>
                       <button style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',border:'2px solid #e5e7eb',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>
                         Oui — respire et parle
                       </button>
