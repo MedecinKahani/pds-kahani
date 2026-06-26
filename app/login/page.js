@@ -30,8 +30,8 @@ export default function Login() {
       sessionStorage.setItem('pds_user', JSON.stringify(data.user));
       const role = data.user.role;
 
-      if (role === 'as') router.push('/as');
-      else if (role === 'ide') router.push('/ide');
+      if (role === 'as') router.push('/medecin');
+      else if (role === 'ide') router.push('/medecin');
       else if (role === 'medecin') router.push('/medecin');
       else if (role === 'cadre' || role === 'chef') router.push('/medecin');
       else { setErreur('Role non reconnu'); setChargement(false); }
