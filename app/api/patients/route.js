@@ -52,7 +52,8 @@ export async function POST(req) {
     }
 
     if (action === 'delete') {
-      await kv.del(`patient:${id}`);
+      const { id: delId } = body;
+      await kv.del(`patient:${delId}`);
       return Response.json({ ok: true });
     }
 
