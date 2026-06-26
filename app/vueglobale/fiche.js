@@ -263,16 +263,22 @@ ${ordonnance||'--'}
               </div>}
             </div>
           </div>
-          {/* Résultats examens */}
-          {(p.tdr_palu||p.tdr_dengue||p.bu_resultat||p.bhcg_resultat||constPost.length>0)&&(
-            <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
-              {p.tdr_palu&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.tdr_palu==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_palu==='Positif'?'#ef4444':'#16a34a'}}>Palu {p.tdr_palu}</span>}
-              {p.tdr_dengue&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.tdr_dengue==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_dengue==='Positif'?'#ef4444':'#16a34a'}}>Dengue {p.tdr_dengue}</span>}
-              {p.bu_resultat&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:'#eff6ff',color:'#3b82f6'}}>BU {p.bu_resultat}</span>}
-              {p.bhcg_resultat&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.bhcg_resultat==='Positif'?'#fef2f2':'#f0fdf4',color:p.bhcg_resultat==='Positif'?'#ef4444':'#16a34a'}}>bHCG {p.bhcg_resultat}</span>}
-              {constPost.map((c,i)=><span key={i} style={{fontSize:10,fontWeight:600,color:'#374151',background:'#f3f4f6',padding:'2px 7px',borderRadius:99}}>{c.label} {c.val}</span>)}
-            </div>
-          )}
+          {/* Résultats examens uniquement - pas les constantes de base */}
+          {(()=>{
+            const CONST_BASE = ['fc','ta','sat','temp','dextro','hemocue'];
+            const extrasPost = constPost.filter(c => !CONST_BASE.includes(c.key));
+            const hasExtras = p.tdr_palu||p.tdr_dengue||p.bu_resultat||p.bhcg_resultat||extrasPost.length>0;
+            if(!hasExtras) return null;
+            return (
+              <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
+                {p.tdr_palu&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.tdr_palu==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_palu==='Positif'?'#ef4444':'#16a34a'}}>Palu {p.tdr_palu}</span>}
+                {p.tdr_dengue&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.tdr_dengue==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_dengue==='Positif'?'#ef4444':'#16a34a'}}>Dengue {p.tdr_dengue}</span>}
+                {p.bu_resultat&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:'#eff6ff',color:'#3b82f6'}}>BU {p.bu_resultat}</span>}
+                {p.bhcg_resultat&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.bhcg_resultat==='Positif'?'#fef2f2':'#f0fdf4',color:p.bhcg_resultat==='Positif'?'#ef4444':'#16a34a'}}>bHCG {p.bhcg_resultat}</span>}
+                {extrasPost.map((c,i)=><span key={i} style={{fontSize:10,fontWeight:600,color:'#374151',background:'#f3f4f6',padding:'2px 7px',borderRadius:99}}>{c.label} {c.val}</span>)}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ONGLETS */}
