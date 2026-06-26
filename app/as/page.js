@@ -256,6 +256,7 @@ export default function PageAS() {
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
           <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
+          <button onClick={() => router.push('/admin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Ajouter agent</button>
           <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
           <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
         </div>
