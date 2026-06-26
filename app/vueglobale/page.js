@@ -163,23 +163,14 @@ export default function PageVueGlobale() {
     const p=enSalle.find(x=>x.emplacement===id);
     const c=C[id]||'#9ca3af';
     const cbg=C_BG[id]||'#fff';
-    const cdiv=C_DIV[id]||'#e5e7eb';
     const isSelected=ficheOuverte?.id===p?.id;
-    const dureeInfo = p ? couleurDuree(p.arrivee) : null;
     const prescriptions = safeJSON(p?.prescriptions);
     const cats = catPrescriptions(prescriptions);
     const hasExamens = cats.examens.length > 0;
     const hasThera = cats.therapeutique.length > 0;
     const hasSoins = cats.soins.length > 0;
-    const aExaminer = p && prescriptions.length === 0;
     const pam = p?.tas && p?.tad ? Math.round(parseFloat(p.tad)+(parseFloat(p.tas)-parseFloat(p.tad))/3) : null;
-
-    const cv = (v,k) => {
-      const col = couleurConst(v,k);
-      return col ? col.color : '#374151';
-    };
-
-    const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme' ? '♂' : p?.sexe==='F'||p?.sexe==='Femme' ? '♀' : '';
+    const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme'?'♂':p?.sexe==='F'||p?.sexe==='Femme'?'♀':'';
 
     return(
       <div onClick={()=>{if(!p)return;setFicheOuverte(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
@@ -191,18 +182,15 @@ export default function PageVueGlobale() {
         onMouseLeave={e=>{e.currentTarget.style.boxShadow=isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none';e.currentTarget.style.transform='none';}}>
 
         {p ? (
-          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'10px 12px',display:'flex',flexDirection:'column',gap:6,flex:1}}>
+          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'10px 12px',display:'flex',flexDirection:'column',gap:5,flex:1,overflow:'hidden'}}>
 
-            {/* Ligne 1 : B1 | NOM Prénom + DDN + IPP | sexe */}
+            {/* Ligne 1 : label | identité | sexe */}
             <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
-              {/* Label emplacement */}
               <div style={{fontWeight:800,fontSize:20,color:c,lineHeight:1,minWidth:28,flexShrink:0}}>{label}</div>
-
-              {/* Identité centree */}
               <div style={{flex:1,textAlign:'center'}}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:14,lineHeight:1.2}}>{p.prenom} {p.nom}</div>
-                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
-                {p.ipp&&<div style={{color:'#9ca3af',fontSize:10,marginTop:1,display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2}}>{p.prenom} {p.nom}</div>
+                <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
+                {p.ipp&&<div style={{color:'#9ca3af',fontSize:9,marginTop:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
                   IPP : {p.ipp}
                   <span onClick={e=>{
                     e.stopPropagation();
@@ -210,56 +198,44 @@ export default function PageVueGlobale() {
                     const el=e.currentTarget;
                     el.textContent='✓';el.style.color='#16a34a';el.style.background='#f0fdf4';
                     setTimeout(()=>{el.textContent='□';el.style.color='#9ca3af';el.style.background='transparent';},1500);
-                  }} style={{cursor:'pointer',color:'#9ca3af',fontSize:11,padding:'0 4px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
+                  }} style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
                 </div>}
               </div>
-
-              {/* Sexe */}
-              <div style={{fontSize:22,color:c,flexShrink:0,lineHeight:1}}>{sexeSymbol}</div>
+              <div style={{fontSize:20,color:c,flexShrink:0,lineHeight:1}}>{sexeSymbol}</div>
             </div>
 
-            {/* Durée */}
-            <div style={{display:'flex',justifyContent:'flex-end',marginTop:-4}}>
-              {aExaminer&&<span style={{fontSize:10,fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'2px 6px',borderRadius:3,marginRight:4}}>À EXAMINER</span>}
-              <span style={{fontSize:10,fontWeight:700,color:dureeInfo.color,background:dureeInfo.color+'18',padding:'2px 6px',borderRadius:99}}>{dureeInfo.label}</span>
+            {/* Motif sans guillemets */}
+            <div style={{textAlign:'center',padding:'4px 0'}}>
+              <div style={{fontSize:13,fontWeight:700,color:'#111827'}}>{labelSymptome(p)}</div>
             </div>
 
-            {/* Motif */}
-            <div style={{borderTop:'1px solid '+cdiv,borderBottom:'1px solid '+cdiv,padding:'6px 0',textAlign:'center'}}>
-              <div style={{fontSize:14,fontWeight:700,color:'#111827',fontStyle:'italic'}}>"{p.symptome||p.motifPrincipal||'--'}"</div>
-            </div>
-
-            {/* Bas : constantes gauche | prescriptions + sortie droite */}
-            <div style={{display:'flex',gap:8,alignItems:'flex-end'}}>
-
-              {/* Constantes 2 colonnes */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'3px 8px',flex:1}}>
+            {/* Constantes 2 colonnes + prescriptions */}
+            <div style={{display:'flex',gap:8,alignItems:'flex-start',flex:1}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'3px 6px',flex:1}}>
                 {[
-                  {k:'fc',  v:p.fc,     l:'FC',    u:'bpm', icon:'🫀'},
-                  {k:'tas', v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas, l:'TA',   u:'mmHg',icon:'🩸'},
-                  {k:'sat', v:p.sat,    l:'Sat',   u:'%',   icon:'💧'},
-                  {k:'temp',v:p.temp,   l:'T°',    u:'°C',  icon:'🌡️'},
-                  {k:'dextro',v:p.dextro, l:'Dex', u:'g/L', icon:'🍬'},
-                  {k:'hemocue',v:p.hemocue,l:'Hb', u:'g/dL',icon:'🔴'},
+                  {k:'fc',   v:p.fc,    l:'FC',  u:'bpm', icon:'🫀'},
+                  {k:'tas',  v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas||'--', l:'TA', u:'mmHg', icon:'🩸'},
+                  {k:'sat',  v:p.sat,   l:'Sat', u:'%',   icon:'💧'},
+                  {k:'temp', v:p.temp,  l:'T°',  u:'°C',  icon:'🌡️'},
+                  {k:'dextro',  v:p.dextro||'--',  l:'Dex', u:'g/L',  icon:'🍬'},
+                  {k:'hemocue', v:p.hemocue||'--', l:'Hb',  u:'g/dL', icon:'🔴'},
                 ].map(({k,v,l,u,icon})=>{
-                  const col = v ? couleurConst(k==='tas'?p.tas:v, k==='tas'?'tas':k) : null;
+                  const col = (v&&v!=='--') ? couleurConst(k==='tas'?p.tas:v, k==='tas'?'tas':k) : null;
                   return(
-                    <div key={k} style={{background:'#f9fafb',borderRadius:6,padding:'3px 6px',border:'0.5px solid #f0f0f0'}}>
-                      <div style={{fontSize:8,color:'#9ca3af',display:'flex',alignItems:'center',gap:2}}>
-                        <span style={{fontSize:10}}>{icon}</span>{l}
-                      </div>
-                      <div style={{fontSize:12,fontWeight:700,color:col?.color||'#374151'}}>{v||'--'} <span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                    <div key={k} style={{background:'rgba(255,255,255,0.7)',borderRadius:5,padding:'3px 5px',border:'0.5px solid rgba(0,0,0,0.06)'}}>
+                      <div style={{fontSize:8,color:'#9ca3af',display:'flex',alignItems:'center',gap:2}}><span style={{fontSize:9}}>{icon}</span>{l}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:col?.color||'#374151',whiteSpace:'nowrap'}}>{v||'--'} <span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
                     </div>
                   );
                 })}
               </div>
 
               {/* Prescriptions + Sortie */}
-              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,flexShrink:0}}>
-                <div style={{display:'flex',gap:6}}>
-                  {hasExamens&&<span style={{fontSize:22}} title="Examens complementaires">🔬</span>}
-                  {hasThera&&<span style={{fontSize:22}} title="Traitement">💊</span>}
-                  {hasSoins&&<span style={{fontSize:22}} title="Soins">🩹</span>}
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',gap:6,flexShrink:0,alignSelf:'stretch'}}>
+                <div style={{display:'flex',flexDirection:'column',gap:4,alignItems:'center'}}>
+                  {hasExamens&&<span style={{fontSize:20}}>🔬</span>}
+                  {hasThera&&<span style={{fontSize:20}}>💊</span>}
+                  {hasSoins&&<span style={{fontSize:20}}>🩹</span>}
                 </div>
                 <button onClick={async e=>{
                   e.stopPropagation();
@@ -267,7 +243,7 @@ export default function PageVueGlobale() {
                   imprimerSortie(p);
                   await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
                   load();
-                }} style={{padding:'4px 10px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:11,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer',whiteSpace:'nowrap'}}>
+                }} style={{padding:'3px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:10,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
                   Sortie →
                 </button>
               </div>
