@@ -338,6 +338,7 @@ export default function PageVueGlobale() {
                   onUpdate={()=>{load();}}
                   user={user}
                 />
+                </div>
               </div>
             )}
 
