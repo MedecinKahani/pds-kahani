@@ -34,7 +34,7 @@ const BG = {
   brancard1:'#fef2f2', brancard2:'#fef2f2'
 };
 
-export default function PageMedecin() {
+export default function PageVueGlobale() {
   const router = useRouter();
   const [user,setUser] = useState(null);
   const [patients,setPatients] = useState([]);
