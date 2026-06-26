@@ -788,8 +788,10 @@ export default function PageAS() {
 
                     {form.signe_lutte===false&&form.signe_lutte!==''&&(
                       <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px',marginTop:10}}>
-                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>Salle 2 — Position demi-assise</div>
-                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>L1 ou L2 ou F2 selon disponibilite — Surveillance saturation</div>
+                        <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>
+                          {libre('fauteuil2')?'F2 - Fauteuil 2':libre('lit2')?'L2 - Lit 2':libre('lit1')?'L1 - Lit 1':libre('fauteuil1')?'F1 - Fauteuil 1':'Salle 2'}
+                        </div>
+                        <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Position demi-assise — Surveillance saturation</div>
                       </div>
                     )}
                     {form.signe_lutte===true&&(
@@ -884,15 +886,16 @@ export default function PageAS() {
                       style={{...inp,borderColor:form.dextro&&(parseFloat(form.dextro)<0.7||parseFloat(form.dextro)>2)?'#ef4444':'#bfdbfe'}}/>
                     {form.dextro&&parseFloat(form.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE — Brancard 1 + alerter medecin</div>}
                     {form.dextro&&parseFloat(form.dextro)>=0.5&&parseFloat(form.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie — Alerter medecin</div>}
-                    {form.dextro&&parseFloat(form.dextro)>2&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2&&parseFloat(form.dextro)<=2.5&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
+                    {form.dextro&&parseFloat(form.dextro)>2.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>Dextro {form.dextro} — Faire cetonemie + prevenir medecin</div>}
                   </div>
                   <div>
                     <label style={{...lbl,color:'#3b82f6'}}>Hemocue (g/dL)</label>
                     <input type="number" step="0.1" value={form.hemocue||''} onChange={e=>set('hemocue',e.target.value)} placeholder="--"
                       style={{...inp,borderColor:form.hemocue&&parseFloat(form.hemocue)<8?'#ef4444':'#bfdbfe'}}/>
-                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE — Brancard 1 + alerter medecin</div>}
-                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<10&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie — Alerter medecin</div>}
-                    {form.hemocue&&parseFloat(form.hemocue)>=10&&parseFloat(form.hemocue)<12&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Anemie moderee — Prevenir medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)<7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>ANEMIE SEVERE ({form.hemocue} g/dL) — Allonger patient B1 ou B2, a defaut L1 ou L2 — Alerter medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>=7&&parseFloat(form.hemocue)<=10.9&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Anemie {form.hemocue} g/dL — Prevenir medecin</div>}
+                    {form.hemocue&&parseFloat(form.hemocue)>10.9&&<div style={{color:'#16a34a',fontSize:11,marginTop:3,fontWeight:600}}>Hemoglobine normale ({form.hemocue} g/dL)</div>}
                   </div>
                 </div>
               </div>
