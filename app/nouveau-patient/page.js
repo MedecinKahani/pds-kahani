@@ -135,15 +135,14 @@ export default function NouveauPatient() {
   async function enregistrer(emplacementForce = null) {
     const v = vals.current;
     const p = emplacementForce ? { place: emplacementForce } : (placement || { place: 'dehors' });
-    const body = {
-      action: 'create',
+    const patient = {
       nom: v.nom, prenom: v.prenom, sexe: v.sexe, ddn: v.ddn, ipp: v.ipp, age: calcAge(v.ddn)||'',
       allergie: v.allergie, allergie_detail: v.allergie_detail,
       medicaments_today: v.medicaments_today, medicaments_detail: v.medicaments_detail,
       fc: v.fc, sat: v.sat, temp: v.temp, tas: v.tas, tad: v.tad,
       poids: v.poids, taille: v.taille,
       symptome: v.symptome, symptome_autre: v.symptome_autre,
-      signe_lutte: v.signe_lutte, respire: v.respire,
+      signe_lutte: String(v.signe_lutte), respire: String(v.respire),
       douleur_zones: JSON.stringify(v.douleur_zones), douleur_eva: v.douleur_eva,
       nausee: v.nausee, tache_corps: v.tache_corps,
       fievre_depuis: v.fievre_depuis, tdr_palu: v.tdr_palu, tdr_dengue: v.tdr_dengue,
@@ -152,13 +151,13 @@ export default function NouveauPatient() {
       bhcg_fait: v.bhcg_fait, bhcg_resultat: v.bhcg_resultat,
       plaie_vaccin: v.plaie_vaccin, quicktest: v.quicktest,
       drp: v.drp, ecg_fait: v.ecg_fait, notes: v.notes,
-      arrivee: Date.now(),
       statut: emplacementForce ? 'attente_medecin' : (p.place !== 'dehors' ? 'attente_medecin' : 'dehors'),
       emplacement: emplacementForce ? emplacementForce : (p.place !== 'dehors' ? p.place : null),
       emplacement_suggere: p.place,
       creePar: user?.matricule || '',
     };
-    await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'create', patient }) });
     router.push('/vueglobale');
   }
 
