@@ -234,6 +234,7 @@ export default function PageMedecin() {
         </div>
         <div style={{display:'flex',alignItems:'center',gap:14}}>
           <div style={{textAlign:'right'}}><div style={{fontWeight:600,color:'#111827',fontSize:13}}>Dr {user.nom}</div><div style={{fontSize:11,color:'#6b7280'}}>{user.matricule}</div></div>
+          <button onClick={()=>router.back()} style={{width:34,height:34,borderRadius:'50%',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#374151'}}>←</button>
           <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',fontSize:12,border:'1px solid #e5e7eb'}}>Admin</button>
           <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb'}}>Deconnexion</button>
         </div>
