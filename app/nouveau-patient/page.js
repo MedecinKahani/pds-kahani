@@ -110,6 +110,17 @@ function dureePresence(ts) {
 }
 
 // v2
+function HBtn({onClick, style, disabled, children}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <HBtn onClick={onClick} disabled={disabled}
+      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{...style, filter:hov&&!disabled?'brightness(0.88)':'none', transform:hov&&!disabled?'scale(0.98)':'scale(1)', transition:'filter 0.1s, transform 0.1s'}}>
+      {children}
+    </HBtn>
+  );
+}
+
 export default function PageAS() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -255,10 +266,10 @@ export default function PageAS() {
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
-          <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
-          <button onClick={() => router.push('/admin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Ajouter agent</button>
-          <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
-          <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
+          <HBtn onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</HBtn>
+          <HBtn onClick={() => router.push('/admin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Ajouter agent</HBtn>
+          <HBtn onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</HBtn>
+          <HBtn onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</HBtn>
         </div>
       </nav>
 
@@ -266,9 +277,9 @@ export default function PageAS() {
         <div style={{ maxWidth:700, margin:'0 auto', padding:'1.5rem' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
             <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Patients ({patients.length})</h2>
-            <button onClick={() => setVue('nouveau')} style={{ padding:'10px 20px', borderRadius:10, background:'#0d9488', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            <HBtn onClick={() => setVue('nouveau')} style={{ padding:'10px 20px', borderRadius:10, background:'#0d9488', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer' }}>
               + Nouveau patient
-            </button>
+            </HBtn>
           </div>
           {patients.length === 0 ? (
             <div style={{ textAlign:'center', padding:'4rem 0', background:'#fff', borderRadius:12, border:'1px solid #e5e7eb' }}>
@@ -285,13 +296,13 @@ export default function PageAS() {
               </div>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <span style={{ fontSize:11, color:'#9ca3af' }}>{dureePresence(parseInt(p.arrivee))}</span>
-                <button onClick={async()=>{
+                <HBtn onClick={async()=>{
                   if(!confirm('Supprimer '+p.nom+' '+p.prenom+' ?')) return;
                   await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:p.id})});
                   load();
                 }} style={{padding:'4px 10px',borderRadius:6,background:'#fef2f2',color:'#dc2626',fontSize:11,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
                   Supprimer
-                </button>
+                </HBtn>
               </div>
             </div>
           ))}
@@ -316,7 +327,7 @@ export default function PageAS() {
 
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
             <h2 style={{ fontSize:18, fontWeight:700, color:'#111827' }}>Nouveau patient</h2>
-            <button onClick={() => setVue('liste')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</button>
+            <HBtn onClick={() => setVue('liste')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:13, border:'1px solid #e5e7eb', cursor:'pointer' }}>Annuler</HBtn>
           </div>
 
           {/* IDENTITE */}
@@ -332,7 +343,7 @@ export default function PageAS() {
                   {[['M','Homme','👨'],['F','Femme','👩']].map(([v,l,e]) => (
                     <button key={v} onClick={() => set('sexe', v)} style={{ flex:1, padding:'10px', borderRadius:8, background:form.sexe===v?'#0d9488':'#f9fafb', color:form.sexe===v?'#fff':'#374151', border:'1.5px solid '+(form.sexe===v?'#0d9488':'#e5e7eb'), fontSize:14, fontWeight:600, cursor:'pointer' }}>
                       {e} {l}
-                    </button>
+                    </HBtn>
                   ))}
                 </div>
               </div>
@@ -434,7 +445,7 @@ export default function PageAS() {
                   {['Oui','Non','Inconnu'].map(v=>(
                     <button key={v} onClick={()=>set('allergie',v)} style={{flex:1,padding:'8px',borderRadius:8,background:form.allergie===v?(v==='Oui'?'#fef2f2':'#f9fafb'):'#f9fafb',border:'1.5px solid '+(form.allergie===v?(v==='Oui'?'#ef4444':'#0d9488'):'#e5e7eb'),color:form.allergie===v?(v==='Oui'?'#ef4444':'#0d9488'):'#374151',fontSize:13,fontWeight:600,cursor:'pointer'}}>
                       {v}
-                    </button>
+                    </HBtn>
                   ))}
                 </div>
                 {form.allergie==='Oui'&&<input value={form.allergie_detail} onChange={e=>set('allergie_detail',e.target.value)} placeholder="Preciser..." style={{...inp,marginTop:8,borderColor:'#ef4444'}}/>}
@@ -445,7 +456,7 @@ export default function PageAS() {
                   {['Oui','Non'].map(v=>(
                     <button key={v} onClick={()=>set('medicaments_today',v)} style={{flex:1,padding:'8px',borderRadius:8,background:form.medicaments_today===v?'#f0fdfa':'#f9fafb',border:'1.5px solid '+(form.medicaments_today===v?'#0d9488':'#e5e7eb'),color:form.medicaments_today===v?'#0d9488':'#374151',fontSize:13,fontWeight:600,cursor:'pointer'}}>
                       {v}
-                    </button>
+                    </HBtn>
                   ))}
                 </div>
                 {form.medicaments_today==='Oui'&&<input value={form.medicaments_detail} onChange={e=>set('medicaments_detail',e.target.value)} placeholder="Lesquels ?" style={{...inp,marginTop:8}}/>}
@@ -469,7 +480,7 @@ export default function PageAS() {
                 }}>
                   <span style={{fontSize:22}}>{s.icon}</span>
                   <span style={{fontSize:11,fontWeight:600,color:form.symptome===s.id?'#0d9488':'#374151',textAlign:'center',lineHeight:1.2}}>{s.label}</span>
-                </button>
+                </HBtn>
               ))}
             </div>
 
@@ -559,7 +570,7 @@ export default function PageAS() {
                             <label style={{fontSize:11,color:'#374151',fontWeight:600,display:'block',marginBottom:4}}>Nausees ou vomissements ?</label>
                             <div style={{display:'flex',gap:6}}>
                               {['Oui','Non'].map(v=>(
-                                <button key={v} onClick={()=>set('nausee',v)} style={{flex:1,padding:'6px',borderRadius:6,background:form.nausee===v?(v==='Oui'?'#ef4444':'#16a34a'):'#fff',color:form.nausee===v?'#fff':'#374151',border:'1px solid '+(form.nausee===v?(v==='Oui'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>{v}</button>
+                                <button key={v} onClick={()=>set('nausee',v)} style={{flex:1,padding:'6px',borderRadius:6,background:form.nausee===v?(v==='Oui'?'#ef4444':'#16a34a'):'#fff',color:form.nausee===v?'#fff':'#374151',border:'1px solid '+(form.nausee===v?(v==='Oui'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>{v}</HBtn>
                               ))}
                             </div>
                           </div>
@@ -567,7 +578,7 @@ export default function PageAS() {
                             <label style={{fontSize:11,color:'#374151',fontWeight:600,display:'block',marginBottom:4}}>Nouvelle tache sur la peau ?</label>
                             <div style={{display:'flex',gap:6}}>
                               {['Oui','Non'].map(v=>(
-                                <button key={v} onClick={()=>set('tache_corps',v)} style={{flex:1,padding:'6px',borderRadius:6,background:form.tache_corps===v?(v==='Oui'?'#ef4444':'#16a34a'):'#fff',color:form.tache_corps===v?'#fff':'#374151',border:'1px solid '+(form.tache_corps===v?(v==='Oui'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>{v}</button>
+                                <button key={v} onClick={()=>set('tache_corps',v)} style={{flex:1,padding:'6px',borderRadius:6,background:form.tache_corps===v?(v==='Oui'?'#ef4444':'#16a34a'):'#fff',color:form.tache_corps===v?'#fff':'#374151',border:'1px solid '+(form.tache_corps===v?(v==='Oui'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>{v}</HBtn>
                               ))}
                             </div>
                           </div>
@@ -585,9 +596,9 @@ export default function PageAS() {
                       <div style={{background:'#fef2f2',border:'2px solid #ef4444',borderRadius:8,padding:'10px 12px'}}>
                         <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Bras gauche — Faire ECG</div>
                         <div style={{color:'#ef4444',fontSize:12,marginTop:3}}>Allonger + appeler medecin immediatement</div>
-                        <button onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        <HBtn onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
                           {form.ecg_fait?'✓ ECG realise':'Marquer ECG realise'}
-                        </button>
+                        </HBtn>
                       </div>
                     )}
 
@@ -596,9 +607,9 @@ export default function PageAS() {
                       <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px'}}>
                         <div style={{color:'#dc2626',fontWeight:700,fontSize:13}}>Douleur thoracique</div>
                         <div style={{color:'#ef4444',fontSize:12,marginTop:3}}>Allonger + ECG + prevenir medecin</div>
-                        <button onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                        <HBtn onClick={()=>set('ecg_fait',!form.ecg_fait)} style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:form.ecg_fait?'#16a34a':'#fff',color:form.ecg_fait?'#fff':'#374151',border:'1px solid '+(form.ecg_fait?'#16a34a':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
                           {form.ecg_fait?'✓ ECG realise':'ECG a faire'}
-                        </button>
+                        </HBtn>
                       </div>
                     )}
 
@@ -608,8 +619,8 @@ export default function PageAS() {
                         <div style={{color:'#7c3aed',fontWeight:700,fontSize:13}}>Douleur abdo — Femme</div>
                         <div style={{color:'#8b5cf6',fontSize:12,marginTop:3}}>Donner pot a urine pour BU et bHCG urinaire</div>
                         <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
-                          <button onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bu_fait?'✓ BU fait':'BU'}</button>
-                          <button onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bhcg_fait?'✓ bHCG fait':'bHCG'}</button>
+                          <HBtn onClick={()=>set('bu_fait',!form.bu_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bu_fait?'#7c3aed':'#fff',color:form.bu_fait?'#fff':'#374151',border:'1px solid '+(form.bu_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bu_fait?'✓ BU fait':'BU'}</HBtn>
+                          <HBtn onClick={()=>set('bhcg_fait',!form.bhcg_fait)} style={{padding:'4px 10px',borderRadius:6,background:form.bhcg_fait?'#7c3aed':'#fff',color:form.bhcg_fait?'#fff':'#374151',border:'1px solid '+(form.bhcg_fait?'#7c3aed':'#e5e7eb'),fontSize:11,fontWeight:600,cursor:'pointer'}}>{form.bhcg_fait?'✓ bHCG fait':'bHCG'}</HBtn>
                         </div>
                         {form.bu_fait&&<div style={{marginTop:6}}>
                           <input value={form.bu_resultat||''} onChange={e=>set('bu_resultat',e.target.value)}
@@ -620,7 +631,7 @@ export default function PageAS() {
                             {['Negatif','Positif'].map(r=>(
                               <button key={r} onClick={()=>set('bhcg_resultat',r)} style={{flex:1,padding:'6px',borderRadius:6,background:form.bhcg_resultat===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.bhcg_resultat===r?'#fff':'#374151',border:'1px solid '+(form.bhcg_resultat===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
                                 bHCG {r}
-                              </button>
+                              </HBtn>
                             ))}
                           </div>
                           {form.bhcg_resultat==='Positif'&&<div style={{color:'#ef4444',fontWeight:700,fontSize:12,marginTop:4}}>bHCG + — Prevenir medecin immediatement</div>}
@@ -650,7 +661,7 @@ export default function PageAS() {
                             color:form.douleur_eva===o.id?'#fff':o.color,
                             border:'2px solid '+(form.douleur_eva===o.id?o.color:o.border),
                             fontWeight:700, fontSize:14,
-                          }}>{o.label}</button>
+                          }}>{o.label}</HBtn>
                         ))}
                       </div>
                     </div>
@@ -667,7 +678,7 @@ export default function PageAS() {
                   {['Quelques heures','1 jour','2-3 jours','Plus de 3 jours'].map(d=>(
                     <button key={d} onClick={()=>set('fievre_depuis',d)} style={{padding:'8px 14px',borderRadius:99,fontSize:12,background:form.fievre_depuis===d?'#0d9488':'#fff',color:form.fievre_depuis===d?'#fff':'#374151',border:'1px solid '+(form.fievre_depuis===d?'#0d9488':'#e5e7eb'),cursor:'pointer'}}>
                       {d}
-                    </button>
+                    </HBtn>
                   ))}
                 </div>
                 {(form.fievre_depuis==='2-3 jours'||form.fievre_depuis==='Plus de 3 jours')&&(
@@ -678,7 +689,7 @@ export default function PageAS() {
                         {['Negatif','Positif'].map(r=>(
                           <button key={r} onClick={()=>set('tdr_palu',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.tdr_palu===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_palu===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
                             {r==='Positif'?'✗ Positif':'✓ Negatif'}
-                          </button>
+                          </HBtn>
                         ))}
                       </div>
                       {form.tdr_palu==='Positif'&&<div style={{color:'#ef4444',fontSize:11,marginTop:4,fontWeight:600}}>Paludisme + — Prevenir medecin</div>}
@@ -689,7 +700,7 @@ export default function PageAS() {
                         {['Negatif','Positif'].map(r=>(
                           <button key={r} onClick={()=>set('tdr_dengue',r)} style={{flex:1,padding:'9px',borderRadius:8,background:form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#fff',color:form.tdr_dengue===r?'#fff':'#374151',border:'1.5px solid '+(form.tdr_dengue===r?(r==='Positif'?'#f59e0b':'#16a34a'):'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
                             {r==='Positif'?'✗ Positif':'✓ Negatif'}
-                          </button>
+                          </HBtn>
                         ))}
                       </div>
                       {form.tdr_dengue==='Positif'&&<div style={{color:'#f59e0b',fontSize:11,marginTop:4,fontWeight:600}}>Dengue + — Prevenir medecin</div>}
@@ -710,12 +721,12 @@ export default function PageAS() {
                 <div style={{color:'#fff',fontWeight:800,fontSize:15,marginBottom:10}}>URGENCE VITALE</div>
                 <div style={{color:'#fef2f2',fontSize:13,marginBottom:12,fontWeight:600}}>Le patient respire-t-il ?</div>
                 <div style={{display:'flex',gap:8,marginBottom:12}}>
-                  <button onClick={()=>set('respire','non')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='non'?'#ef4444':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='non'?'#ef4444':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
+                  <HBtn onClick={()=>set('respire','non')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='non'?'#ef4444':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='non'?'#ef4444':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
                     NON - Ne respire pas
-                  </button>
-                  <button onClick={()=>set('respire','oui')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
+                  </HBtn>
+                  <HBtn onClick={()=>set('respire','oui')} style={{flex:1,padding:'12px',borderRadius:8,background:form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.1)',color:'#fff',fontWeight:700,fontSize:13,border:'2px solid '+(form.respire==='oui'?'#16a34a':'rgba(255,255,255,0.3)'),cursor:'pointer'}}>
                     OUI - Respire
-                  </button>
+                  </HBtn>
                 </div>
                 {form.respire==='non'&&(
                   <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px'}}>
@@ -778,12 +789,12 @@ export default function PageAS() {
 
                     <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
                     <div style={{display:'flex',gap:8}}>
-                      <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      <HBtn onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
                         Oui — respire et parle
-                      </button>
-                      <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      </HBtn>
+                      <HBtn onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
                         Non — difficultes
-                      </button>
+                      </HBtn>
                     </div>
 
                     {form.signe_lutte===false&&form.signe_lutte!==''&&(
@@ -814,20 +825,20 @@ export default function PageAS() {
                     <div style={{color:'#fff',fontWeight:800,fontSize:14,marginBottom:4}}>Saturation {form.sat}% — F1 + O2 + Appeler medecin</div>
                     <label style={{...lbl,color:'rgba(255,255,255,0.4)',marginBottom:6}}>Le patient arrive a respirer et parle normalement ?</label>
                     <div style={{display:'flex',gap:8,opacity:0.35,pointerEvents:'none'}}>
-                      <button style={{flex:1,padding:'9px',borderRadius:8,background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)',border:'2px solid rgba(255,255,255,0.2)',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>Oui — respire et parle</button>
-                      <button style={{flex:1,padding:'9px',borderRadius:8,background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)',border:'2px solid rgba(255,255,255,0.2)',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>Non — difficultes</button>
+                      <button style={{flex:1,padding:'9px',borderRadius:8,background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)',border:'2px solid rgba(255,255,255,0.2)',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>Oui — respire et parle</HBtn>
+                      <button style={{flex:1,padding:'9px',borderRadius:8,background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)',border:'2px solid rgba(255,255,255,0.2)',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>Non — difficultes</HBtn>
                     </div>
                   </div>
                 ):(
                 <div style={{padding:'12px 14px',background:'#f9fafb',borderBottom:'1px solid #e5e7eb'}}>
                   <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
                   <div style={{display:'flex',gap:8}}>
-                    <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                    <HBtn onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
                       Oui — respire et parle
-                    </button>
-                    <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                    </HBtn>
+                    <HBtn onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
                       Non — difficultes
-                    </button>
+                    </HBtn>
                   </div>
                 </div>
                 )}
@@ -861,9 +872,9 @@ export default function PageAS() {
                 {age!==null&&age<2&&(
                   <div style={{background:'#eff6ff',borderTop:'1px solid #bfdbfe',padding:'10px 14px'}}>
                     <div style={{color:'#1d4ed8',fontWeight:700,fontSize:12}}>Enfant &lt; 2 ans — DRP recommande</div>
-                    <button onClick={()=>set('drp',!form.drp)} style={{marginTop:6,padding:'6px 14px',borderRadius:6,background:form.drp?'#3b82f6':'#fff',color:form.drp?'#fff':'#374151',border:'1px solid '+(form.drp?'#3b82f6':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                    <HBtn onClick={()=>set('drp',!form.drp)} style={{marginTop:6,padding:'6px 14px',borderRadius:6,background:form.drp?'#3b82f6':'#fff',color:form.drp?'#fff':'#374151',border:'1px solid '+(form.drp?'#3b82f6':'#e5e7eb'),fontSize:12,fontWeight:600,cursor:'pointer'}}>
                       {form.drp?'✓ DRP realise':'DRP a realiser'}
-                    </button>
+                    </HBtn>
                   </div>
                 )}
               </div>
@@ -907,7 +918,7 @@ export default function PageAS() {
                   ].map(([v,l,c,ic])=>(
                     <button key={v} onClick={()=>{set('plaie_vaccin',v);if(v!=='ok')set('quicktest','');}} style={{padding:'12px 16px',borderRadius:10,fontSize:13,background:form.plaie_vaccin===v?c+'15':'#f9fafb',color:form.plaie_vaccin===v?c:'#374151',border:'2px solid '+(form.plaie_vaccin===v?c:'#e5e7eb'),cursor:'pointer',fontWeight:600,textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
                       <span style={{fontSize:16}}>{ic}</span>{l}
-                    </button>
+                    </HBtn>
                   ))}
                 </div>
                 {(form.plaie_vaccin==='illisible'||form.plaie_vaccin==='absent')&&(
@@ -917,7 +928,7 @@ export default function PageAS() {
                       {['Negatif','Positif'].map(r=>(
                         <button key={r} onClick={()=>set('quicktest',r)} style={{flex:1,padding:'10px',borderRadius:8,background:form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:form.quicktest===r?'#fff':'#374151',border:'1.5px solid '+(form.quicktest===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb'),fontSize:13,fontWeight:700,cursor:'pointer'}}>
                           {r==='Negatif'?'✓ Negatif':'✗ Positif'}
-                        </button>
+                        </HBtn>
                       ))}
                     </div>
                   </div>
@@ -968,17 +979,17 @@ export default function PageAS() {
               style={{...inp,resize:'vertical',fontFamily:'system-ui'}}/>
           </div>
 
-          <button onClick={()=>creerPatient(null)} disabled={!form.nom||!form.sexe||!form.symptome}
+          <HBtn onClick={()=>creerPatient(null)} disabled={!form.nom||!form.sexe||!form.symptome}
             style={{width:'100%',padding:'14px',borderRadius:12,background:(!form.nom||!form.sexe||!form.symptome)?'#e5e7eb':'#0d9488',color:(!form.nom||!form.sexe||!form.symptome)?'#9ca3af':'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}}>
             Enregistrer le patient
-          </button>
+          </HBtn>
 
           {(form.nom&&form.sexe&&form.symptome)&&(
             <div style={{marginTop:10,textAlign:'center'}}>
-              <button onClick={()=>setShowEmplacement(v=>!v)}
+              <HBtn onClick={()=>setShowEmplacement(v=>!v)}
                 style={{background:'none',border:'none',color:'#9ca3af',fontSize:12,cursor:'pointer',textDecoration:'underline',padding:0}}>
                 Choisir un emplacement different {showEmplacement?'▲':'▼'}
-              </button>
+              </HBtn>
               {showEmplacement&&(
                 <div style={{marginTop:10,padding:12,background:'#f9fafb',borderRadius:10,border:'1px solid #e5e7eb',textAlign:'left'}}>
                   <div style={{fontSize:12,color:'#6b7280',marginBottom:8,fontWeight:600}}>Selectionner un emplacement :</div>
@@ -997,7 +1008,7 @@ export default function PageAS() {
                       <button key={id} onClick={()=>creerPatient(id)}
                         style={{padding:'8px 14px',borderRadius:8,background:'#fff',border:'2px solid '+c,color:c,fontSize:12,fontWeight:600,cursor:'pointer'}}>
                         {l}
-                      </button>
+                      </HBtn>
                     ))}
                   </div>
                 </div>
@@ -1013,7 +1024,7 @@ export default function PageAS() {
           <div style={{background:'#fff',flex:1,margin:'60px 20px 20px',borderRadius:16,overflow:'hidden',display:'flex',flexDirection:'column',boxShadow:'0 24px 48px rgba(0,0,0,0.3)'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
               <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Vue d'ensemble — PDS Kahani</span>
-              <button onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>×</button>
+              <HBtn onClick={()=>setShowVue(false)} style={{width:32,height:32,borderRadius:'50%',background:'#e5e7eb',color:'#374151',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'none',fontWeight:700}}>×</HBtn>
             </div>
             <iframe src="/vueglobale" style={{flex:1,border:'none',width:'100%'}}/>
           </div>
