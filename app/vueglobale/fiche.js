@@ -94,7 +94,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const p = patient || pProp;
   if (!p) return null;
 
-  const [onglet, setOnglet] = useState('anamnese');
+  const [onglet, setOnglet] = useState(user?.role==='ide' ? 'prescription' : 'anamnese');
   const [anamnese, setAnamnese] = useState(p.anamnese || '');
   const [exam, setExam] = useState(p.examen_clinique || '');
   const [evolution, setEvolution] = useState(p.evolution || '');
@@ -326,6 +326,102 @@ ${ordonnance||'--'}
           )}
 
           {onglet==='prescription'&&(
+            user?.role==='ide' ? (
+              /* VUE IDE : prescriptions en grand plein écran */
+              <div style={{display:'flex',gap:12,height:'100%'}}>
+                {/* Examens */}
+                <div style={{flex:1,border:'2px solid #7c3aed33',borderRadius:12,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                  <div style={{background:'#7c3aed18',padding:'12px 16px',borderBottom:'1px solid #7c3aed22',flexShrink:0}}>
+                    <span style={{fontWeight:700,color:'#7c3aed',fontSize:14}}>🔬 Examens complémentaires</span>
+                  </div>
+                  <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
+                    {prescriptions.filter(r=>r.categorie==='examen').length===0&&(
+                      <div style={{color:'#9ca3af',fontSize:13,textAlign:'center',marginTop:20}}>Aucun examen prescrit</div>
+                    )}
+                    {prescriptions.filter(r=>r.categorie==='examen').map((r,i)=>{
+                      const globalIdx=prescriptions.indexOf(r);
+                      return (
+                        <div key={i} onClick={()=>{if(!r.fait)cocherFait(globalIdx);}}
+                          style={{padding:'14px 16px',borderRadius:10,border:r.fait?'1px solid #e5e7eb':'2px solid #7c3aed66',
+                            background:r.fait?'#f9fafb':'#fff',cursor:r.fait?'default':'pointer',
+                            opacity:r.fait?0.5:1,display:'flex',alignItems:'center',gap:10,
+                            transition:'all 0.15s'}}
+                          onMouseEnter={e=>{if(!r.fait)e.currentTarget.style.background='#f5f3ff';}}
+                          onMouseLeave={e=>{e.currentTarget.style.background=r.fait?'#f9fafb':'#fff';}}>
+                          <div style={{width:24,height:24,borderRadius:6,border:r.fait?'none':'2px solid #7c3aed',
+                            background:r.fait?'#7c3aed':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            {r.fait&&<span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>}
+                          </div>
+                          <span style={{fontSize:14,fontWeight:r.fait?400:600,color:r.fait?'#9ca3af':'#374151',
+                            textDecoration:r.fait?'line-through':'none'}}>{r.texte}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Thérapeutique */}
+                <div style={{flex:1,border:'2px solid #ea580c33',borderRadius:12,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                  <div style={{background:'#ea580c18',padding:'12px 16px',borderBottom:'1px solid #ea580c22',flexShrink:0}}>
+                    <span style={{fontWeight:700,color:'#ea580c',fontSize:14}}>💊 Thérapeutique</span>
+                  </div>
+                  <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
+                    {prescriptions.filter(r=>r.categorie==='therapeutique').length===0&&(
+                      <div style={{color:'#9ca3af',fontSize:13,textAlign:'center',marginTop:20}}>Aucun traitement prescrit</div>
+                    )}
+                    {prescriptions.filter(r=>r.categorie==='therapeutique').map((r,i)=>{
+                      const globalIdx=prescriptions.indexOf(r);
+                      return (
+                        <div key={i} onClick={()=>{if(!r.fait)cocherFait(globalIdx);}}
+                          style={{padding:'14px 16px',borderRadius:10,border:r.fait?'1px solid #e5e7eb':'2px solid #ea580c66',
+                            background:r.fait?'#f9fafb':'#fff',cursor:r.fait?'default':'pointer',
+                            opacity:r.fait?0.5:1,display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
+                          onMouseEnter={e=>{if(!r.fait)e.currentTarget.style.background='#fff7ed';}}
+                          onMouseLeave={e=>{e.currentTarget.style.background=r.fait?'#f9fafb':'#fff';}}>
+                          <div style={{width:24,height:24,borderRadius:6,border:r.fait?'none':'2px solid #ea580c',
+                            background:r.fait?'#ea580c':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            {r.fait&&<span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>}
+                          </div>
+                          <span style={{fontSize:14,fontWeight:r.fait?400:600,color:r.fait?'#9ca3af':'#374151',
+                            textDecoration:r.fait?'line-through':'none'}}>{r.texte}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Soins */}
+                <div style={{flex:1,border:'2px solid #d9770633',borderRadius:12,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                  <div style={{background:'#d9770618',padding:'12px 16px',borderBottom:'1px solid #d9770622',flexShrink:0}}>
+                    <span style={{fontWeight:700,color:'#d97706',fontSize:14}}>🩹 Soins</span>
+                  </div>
+                  <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
+                    {prescriptions.filter(r=>r.categorie==='soin').length===0&&(
+                      <div style={{color:'#9ca3af',fontSize:13,textAlign:'center',marginTop:20}}>Aucun soin prescrit</div>
+                    )}
+                    {prescriptions.filter(r=>r.categorie==='soin').map((r,i)=>{
+                      const globalIdx=prescriptions.indexOf(r);
+                      return (
+                        <div key={i} onClick={()=>{if(!r.fait)cocherFait(globalIdx);}}
+                          style={{padding:'14px 16px',borderRadius:10,border:r.fait?'1px solid #e5e7eb':'2px solid #d9770666',
+                            background:r.fait?'#f9fafb':'#fff',cursor:r.fait?'default':'pointer',
+                            opacity:r.fait?0.5:1,display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
+                          onMouseEnter={e=>{if(!r.fait)e.currentTarget.style.background='#fffbeb';}}
+                          onMouseLeave={e=>{e.currentTarget.style.background=r.fait?'#f9fafb':'#fff';}}>
+                          <div style={{width:24,height:24,borderRadius:6,border:r.fait?'none':'2px solid #d97706',
+                            background:r.fait?'#d97706':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            {r.fait&&<span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>}
+                          </div>
+                          <span style={{fontSize:14,fontWeight:r.fait?400:600,color:r.fait?'#9ca3af':'#374151',
+                            textDecoration:r.fait?'line-through':'none'}}>{r.texte}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
 
               {/* EXAMENS */}
@@ -452,6 +548,9 @@ ${ordonnance||'--'}
                 </div>}
               </div>
             </div>
+          )}
+
+            )
           )}
 
           {onglet==='evolution'&&(
