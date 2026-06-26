@@ -22,7 +22,6 @@ function duree(ts){const m=Math.floor((Date.now()-parseInt(ts))/60000);return m<
 const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
 const LEGENDES = {pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
 
-// Couleurs par case
 const C = {
   pansement:'#f59e0b', obs1:'#8b5cf6', obs2:'#8b5cf6',
   lit1:'#3b82f6', lit2:'#3b82f6', fauteuil1:'#16a34a', fauteuil2:'#16a34a',
@@ -60,13 +59,14 @@ export default function PageVueGlobale() {
     const ps=d.patients||[];
     setPatients(ps);
     if(sel){const u=ps.find(p=>p.id===sel.id);if(u)setSel(u);}
-  },[sel?.id]);
+    // FIX : mettre à jour ficheOuverte depuis Redis à chaque polling
+    if(ficheOuverte){const u=ps.find(p=>p.id===ficheOuverte.id);if(u)setFicheOuverte(u);}
+  },[sel?.id, ficheOuverte?.id]);
 
   useEffect(()=>{
     const s=sessionStorage.getItem('pds_user');
     if(!s){router.push('/login');return;}
     const u=JSON.parse(s);
-    // tous les roles acceptes
     setUser(u);load();
     const iv=setInterval(load,8000);
     return()=>clearInterval(iv);
@@ -205,10 +205,7 @@ export default function PageVueGlobale() {
         {p ? (
           <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'7px 8px',display:'flex',flexDirection:'column',gap:3,flex:1,overflow:'hidden'}}>
 
-            {/* Haut : [L2 + identité gauche] | [motif + sexe droite] */}
             <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
-
-              {/* Gauche : label + identité */}
               <div style={{display:'flex',gap:6,alignItems:'flex-start',flex:1,minWidth:0}}>
                 <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
                 <div style={{minWidth:0}}>
@@ -226,16 +223,12 @@ export default function PageVueGlobale() {
                   </div>}
                 </div>
               </div>
-
-              {/* Droite : motif + sexe */}
               <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:2,flexShrink:0,maxWidth:'45%'}}>
                 <div style={{fontSize:16,color:c,lineHeight:1}}>{sexeSymbol}</div>
                 <div style={{fontSize:12,fontWeight:700,color:'#111827',textAlign:'right',lineHeight:1.2}}>{labelSymptome(p)}</div>
               </div>
-
             </div>
 
-            {/* Constantes 2 colonnes + prescriptions */}
             <div style={{display:'flex',gap:8,alignItems:'flex-start',flex:1}}>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 4px',flex:1}}>
                 {[
@@ -257,7 +250,6 @@ export default function PageVueGlobale() {
                 })}
               </div>
 
-              {/* Prescriptions + Sortie */}
               <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',gap:6,flexShrink:0,alignSelf:'stretch'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:4,alignItems:'center'}}>
                   {hasExamens&&<span style={{fontSize:16}}>🔬</span>}
@@ -302,7 +294,6 @@ export default function PageVueGlobale() {
     );
   }
 
-  // Salle = un bloc avec bordure colorée, titre discret, cases internes
   function Salle({color, label, children, style={}}){
     return(
       <div style={{border:'2px solid '+color+'99',borderRadius:14,padding:6,display:'flex',flexDirection:'column',gap:6,...style}}>
@@ -329,9 +320,6 @@ export default function PageVueGlobale() {
         <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
           <div style={{width:'100%',flexShrink:0,padding:'1rem',display:'flex',flexDirection:'column',minHeight:0}}>
 
-            {/* FICHE OUVERTE AU-DESSUS DU PLAN */}
-
-            {/* Grid 4 colonnes x 3 rangées avec encadrés span */}
             <div style={{
               display:'grid',
               gridTemplateColumns:'1fr 1fr 1fr 1fr',
@@ -341,7 +329,6 @@ export default function PageVueGlobale() {
               minHeight:0,
               position:'relative',
             }}>
-              {/* Cases ligne 0 */}
               <div style={{gridColumn:1,gridRow:1,display:'flex'}}>
                 <Case id="pansement" label="P1"/>
               </div>
@@ -355,7 +342,6 @@ export default function PageVueGlobale() {
                 <Poste id="_as" label="AS" color="#f59e0b"/>
               </div>
 
-              {/* Encadré Observation - col1 rows 2+3 */}
               <div style={{
                 gridColumn:1, gridRow:'2/4',
                 border:'2px solid #16a34a99',borderRadius:12,
@@ -365,7 +351,6 @@ export default function PageVueGlobale() {
                 <Case id="obs2" label="O2"/>
               </div>
 
-              {/* Encadré Salle 2 - cols 2+3 rows 2+3 */}
               <div style={{
                 gridColumn:'2/4', gridRow:'2/4',
                 border:'2px solid #9ca3af99',borderRadius:12,
@@ -377,7 +362,6 @@ export default function PageVueGlobale() {
                 <Case id="lit1" label="L1"/>
               </div>
 
-              {/* Encadré Dechocage - col4 rows 2+3 */}
               <div style={{
                 gridColumn:4, gridRow:'2/4',
                 border:'2px solid #ef444499',borderRadius:12,
@@ -398,7 +382,6 @@ export default function PageVueGlobale() {
             <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#e5e7eb'}}/>
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>En attente</span>
             {preau.length>0&&<span style={{background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
-            
           </div>
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
             {preau.map(p=>{
@@ -440,6 +423,7 @@ export default function PageVueGlobale() {
           </div>
         </div>
       </div>
+
       {/* FICHE OVERLAY */}
       {ficheOuverte&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9999,background:'#fff',display:'flex',flexDirection:'column',overflow:'hidden'}}>
