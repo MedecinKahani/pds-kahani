@@ -8,6 +8,24 @@ function calcAge(ddn) {
 }
 
 // Bouton avec hover intégré
+const ConstInput = memo(function ConstInput({label, unit, isBad, onSave}) {
+  const ref = useRef(null);
+  const [col, setCol] = useState('#d1d5db');
+  const handleChange = () => {
+    const v = ref.current?.value;
+    if(!v) { setCol('#d1d5db'); return; }
+    setCol(isBad(v) ? '#ef4444' : '#16a34a');
+    onSave(v);
+  };
+  return (
+    <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
+      <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>{label} <span style={{fontSize:10}}>{unit}</span></label>
+      <input ref={ref} inputMode="decimal" placeholder="--" onChange={handleChange}
+        style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0, color:col }}/>
+    </div>
+  );
+});
+
 const Btn = memo(function Btn({ onClick, style, disabled, children }) {
   const ref = useRef(null);
   return (
@@ -93,7 +111,7 @@ export default function NouveauPatient() {
     const dex = parseFloat(form.dextro);
     const hb = parseFloat(form.hemocue);
     if (s === 'coma') {
-      if (!form.respire) return { place: 'brancard1', label: 'B1 — Brancard 1', urgence: true, msg: 'MCE si pas de pouls' };
+      if (!form.respire) return { place: 'brancard1', label: 'B1 — Brancard 1', urgence: true, msg: 'Massage cardiaque si pas de pouls' };
       return { place: 'brancard1', label: 'B1 — Brancard 1', urgence: true, msg: 'Dextro + hemocue + alerter medecin' };
     }
     if (s === 'detresse_respi') {
@@ -180,36 +198,39 @@ export default function NouveauPatient() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
             <div>
               <label style={lbl}>Nom</label>
-              <input onBlur={e=>set('nom',e.target.value.toUpperCase())} style={inp} placeholder="NOM" autoComplete="off"/>
+              <input onBlur={e=>set('nom',e.target.value.toUpperCase())} onClick={e=>e.target.focus()} style={inp} placeholder="NOM" autoComplete="off" autoCorrect="off" spellCheck="false"/>
             </div>
             <div>
               <label style={lbl}>Prenom</label>
-              <input onBlur={e=>set('prenom',e.target.value)} style={inp} placeholder="Prenom" autoComplete="off"/>
+              <input onBlur={e=>set('prenom',e.target.value)} onClick={e=>e.target.focus()} style={inp} placeholder="Prenom" autoComplete="off" autoCorrect="off" spellCheck="false"/>
             </div>
             <div>
-              <label style={lbl}>Date de naissance (JJ/MM/AAAA)</label>
+              <label style={lbl}>Date de naissance</label>
               <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                <input type="number" min="1" max="31" placeholder="JJ" value={form.ddn_j||''}
-                  onChange={e=>{
+                <input inputMode="numeric" maxLength={2} placeholder="JJ"
+                  onBlur={e=>{
                     const j=e.target.value.padStart(2,'0');
-                    const m=(form.ddn_m||'01'); const a=(form.ddn_a||'2000');
+                    const m=(form.ddn_m||'01').toString().padStart(2,'0');
+                    const a=form.ddn_a||'';
                     set('ddn_j',e.target.value);
                     if(e.target.value&&form.ddn_m&&form.ddn_a) set('ddn',a+'-'+m+'-'+j);
                   }}
                   style={{...inp,width:52,textAlign:'center',padding:'10px 4px'}}/>
-                <span style={{color:'#9ca3af'}}>/</span>
-                <input type="number" min="1" max="12" placeholder="MM" value={form.ddn_m||''}
-                  onChange={e=>{
+                <span style={{color:'#9ca3af',fontSize:18}}>/</span>
+                <input inputMode="numeric" maxLength={2} placeholder="MM"
+                  onBlur={e=>{
                     const m=e.target.value.padStart(2,'0');
-                    const j=(form.ddn_j||'01').toString().padStart(2,'0'); const a=(form.ddn_a||'2000');
+                    const j=(form.ddn_j||'01').toString().padStart(2,'0');
+                    const a=form.ddn_a||'';
                     set('ddn_m',e.target.value);
                     if(form.ddn_j&&e.target.value&&form.ddn_a) set('ddn',a+'-'+m+'-'+j);
                   }}
                   style={{...inp,width:52,textAlign:'center',padding:'10px 4px'}}/>
-                <span style={{color:'#9ca3af'}}>/</span>
-                <input type="number" min="1900" max="2025" placeholder="AAAA" value={form.ddn_a||''}
-                  onChange={e=>{
-                    const a=e.target.value; const m=(form.ddn_m||'01').toString().padStart(2,'0');
+                <span style={{color:'#9ca3af',fontSize:18}}>/</span>
+                <input inputMode="numeric" maxLength={4} placeholder="AAAA"
+                  onBlur={e=>{
+                    const a=e.target.value;
+                    const m=(form.ddn_m||'01').toString().padStart(2,'0');
                     const j=(form.ddn_j||'01').toString().padStart(2,'0');
                     set('ddn_a',e.target.value);
                     if(form.ddn_j&&form.ddn_m&&e.target.value.length===4) set('ddn',a+'-'+m+'-'+j);
@@ -264,36 +285,15 @@ export default function NouveauPatient() {
         {/* Constantes */}
         <Section title="📊 Constantes vitales">
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:10 }}>
-            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>FC <span style={{fontSize:10}}>bpm</span></label>
-              <input type="number" step="1" value={form.fc} onChange={e=>set('fc',e.target.value)} placeholder="--"
-                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
-                  color: form.fc ? (parseFloat(form.fc)<50||parseFloat(form.fc)>100?'#ef4444':'#16a34a') : '#d1d5db' }}/>
-            </div>
-            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>SpO2 <span style={{fontSize:10}}>%</span></label>
-              <input type="number" step="1" min="0" max="100" value={form.sat} onChange={e=>set('sat',e.target.value)} placeholder="--"
-                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
-                  color: form.sat ? COULEURS[NORMES_SAT(form.sat)||'green'] : '#d1d5db' }}/>
-            </div>
-            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>Temperature <span style={{fontSize:10}}>°C</span></label>
-              <input type="number" step="0.1" value={form.temp} onChange={e=>set('temp',e.target.value)} placeholder="--"
-                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
-                  color: form.temp ? (parseFloat(form.temp)<36||parseFloat(form.temp)>38.4?'#ef4444':'#16a34a') : '#d1d5db' }}/>
-            </div>
-            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAS <span style={{fontSize:10}}>mmHg</span></label>
-              <input type="number" step="1" value={form.tas} onChange={e=>set('tas',e.target.value)} placeholder="--"
-                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
-                  color: form.tas ? (parseFloat(form.tas)<90||parseFloat(form.tas)>150?'#ef4444':'#16a34a') : '#d1d5db' }}/>
-            </div>
-            <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
-              <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAD <span style={{fontSize:10}}>mmHg</span></label>
-              <input type="number" step="1" value={form.tad} onChange={e=>set('tad',e.target.value)} placeholder="--"
-                style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0,
-                  color: form.tad ? (parseFloat(form.tad)<60||parseFloat(form.tad)>95?'#ef4444':'#16a34a') : '#d1d5db' }}/>
-            </div>
+            {[
+              {k:'fc',  l:'FC',          u:'bpm', bad:v=>parseFloat(v)<50||parseFloat(v)>100},
+              {k:'sat', l:'SpO2',        u:'%',   bad:v=>parseFloat(v)<94},
+              {k:'temp',l:'Temperature', u:'°C',  bad:v=>parseFloat(v)<36||parseFloat(v)>38.4},
+              {k:'tas', l:'PAS',         u:'mmHg',bad:v=>parseFloat(v)<90||parseFloat(v)>150},
+              {k:'tad', l:'PAD',         u:'mmHg',bad:v=>parseFloat(v)<60||parseFloat(v)>95},
+            ].map(({k,l,u,bad})=>(
+              <ConstInput key={k} label={l} unit={u} isBad={bad} onSave={v=>set(k,v)}/>
+            ))}
             <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
               <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAM <span style={{fontSize:10}}>mmHg</span></label>
               <div style={{ fontSize:22, fontWeight:700, color: pam ? (pam<65?'#ef4444':'#16a34a') : '#d1d5db' }}>{pam||'--'}</div>
@@ -337,7 +337,7 @@ export default function NouveauPatient() {
               <div style={{ fontWeight:700, color:'#dc2626', fontSize:14, marginBottom:10 }}>Coma / Inconscience — URGENCE</div>
               <label style={lbl}>Le patient respire ?</label>
               <div style={{ display:'flex', gap:8, marginBottom:10 }}>
-                {[['true','Oui'],['false','Non — Demarrer MCE']].map(([v,l]) => (
+                {[['true','Oui'],['false','Non — Massage cardiaque']].map(([v,l]) => (
                   <Btn key={v} onClick={() => set('respire', v==='true')}
                     style={{ flex:1, padding:'10px', borderRadius:8, fontWeight:600, fontSize:13,
                       background: String(form.respire)===v ? (v==='false'?'#ef4444':'#16a34a') : '#fff',
