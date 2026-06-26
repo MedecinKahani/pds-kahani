@@ -268,7 +268,7 @@ ${ordonnance||'--'}
         </div>
 
         {/* CONTENU */}
-        <div style={{flex:1,overflow:'auto',padding:14}}>
+        <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
 
           {onglet==='anamnese'&&(
             <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
