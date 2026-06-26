@@ -2,13 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const PIN_CHEF = '023799';
-
 export default function Admin() {
   const router = useRouter();
-  const [pin, setPin] = useState('');
-  const [debloque, setDebloque] = useState(false);
-  const [erreur, setErreur] = useState('');
   const [users, setUsers] = useState([]);
   const [matricule, setMatricule] = useState('');
   const [nom, setNom] = useState('');
@@ -21,13 +16,7 @@ export default function Admin() {
     setUsers(d.users || []);
   }
 
-  useEffect(() => { if (debloque) load(); }, [debloque]);
-
-  function verifierPin(e) {
-    e.preventDefault();
-    if (pin === PIN_CHEF) { setDebloque(true); setErreur(''); }
-    else { setErreur('Code incorrect'); setPin(''); }
-  }
+  useEffect(() => { load(); }, []);
 
   async function ajouter() {
     if (!matricule || !nom) return;
@@ -40,7 +29,7 @@ export default function Admin() {
   }
 
   async function supprimer(m) {
-    if (!confirm('Supprimer '+m+' ?')) return;
+    if (!confirm('Retirer '+m+' ?')) return;
     await fetch('/api/users', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({action:'delete', matricule: m})
@@ -51,38 +40,12 @@ export default function Admin() {
   const roleColor = {medecin:'#0d9488', ide:'#3b82f6', as:'#f59e0b'};
   const roleLabel = {medecin:'Medecin', ide:'Infirmier', as:'Aide-soignant'};
 
-  if (!debloque) return (
-    <div style={{minHeight:'100vh',background:'#f3f4f6',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
-      <div style={{background:'#fff',borderRadius:16,border:'1px solid #e5e7eb',padding:'2rem',width:320,textAlign:'center'}}>
-        <div style={{width:48,height:48,borderRadius:'50%',background:'#f0fdfa',border:'2px solid #0d9488',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,margin:'0 auto 1rem'}}>🔒</div>
-        <h1 style={{fontSize:18,fontWeight:700,color:'#111827',marginBottom:6}}>Acces chef</h1>
-        <p style={{fontSize:13,color:'#6b7280',marginBottom:20}}>Entrez votre code PIN</p>
-        <form onSubmit={verifierPin}>
-          <input
-            type="password" value={pin} onChange={e=>setPin(e.target.value)}
-            placeholder="Code PIN" autoFocus
-            style={{width:'100%',padding:'12px',borderRadius:10,border:erreur?'2px solid #ef4444':'1.5px solid #e5e7eb',fontSize:20,textAlign:'center',letterSpacing:6,outline:'none',marginBottom:12,boxSizing:'border-box'}}
-          />
-          {erreur && <div style={{color:'#ef4444',fontSize:13,marginBottom:12}}>{erreur}</div>}
-          <button type="submit" style={{width:'100%',padding:'12px',borderRadius:10,background:'#0d9488',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>
-            Valider
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-
   return (
     <div style={{minHeight:'100vh',background:'#f3f4f6',padding:'2rem',fontFamily:'system-ui'}}>
       <div style={{maxWidth:600,margin:'0 auto'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <button onClick={()=>router.back()} style={{width:34,height:34,borderRadius:'50%',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:'#374151'}}>←</button>
-            <h1 style={{fontSize:20,fontWeight:700,color:'#111827',margin:0}}>Gestion des agents</h1>
-          </div>
-          <button onClick={()=>setDebloque(false)} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer'}}>
-            Verrouiller
-          </button>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24}}>
+          <button onClick={()=>router.back()} style={{width:34,height:34,borderRadius:'50%',background:'#fff',border:'1px solid #e5e7eb',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#374151'}}>←</button>
+          <h1 style={{fontSize:20,fontWeight:700,color:'#111827',margin:0}}>Gestion des agents</h1>
         </div>
 
         <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'1.25rem',marginBottom:16}}>
@@ -99,16 +62,16 @@ export default function Admin() {
               <option value="medecin">Medecin</option>
             </select>
             <button onClick={ajouter} disabled={!matricule||!nom}
-              style={{padding:'9px 18px',borderRadius:8,background:!matricule||!nom?'#e5e7eb':'#0d9488',color:!matricule||!nom?'#9ca3af':'#fff',fontWeight:600,fontSize:14,cursor:'pointer'}}>
+              style={{padding:'9px 18px',borderRadius:8,background:!matricule||!nom?'#e5e7eb':'#0d9488',color:!matricule||!nom?'#9ca3af':'#fff',fontWeight:600,fontSize:14,cursor:'pointer',border:'none'}}>
               Ajouter
             </button>
           </div>
-          {msg && <div style={{color:'#0d9488',fontSize:13,marginTop:8,fontWeight:600}}>{msg}</div>}
+          {msg&&<div style={{color:'#0d9488',fontSize:13,marginTop:8,fontWeight:600}}>{msg}</div>}
         </div>
 
         <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'1.25rem'}}>
-          <h2 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}}>Agents enregistres ({users.length})</h2>
-          {users.length===0 && <div style={{color:'#9ca3af',fontSize:13}}>Aucun agent</div>}
+          <h2 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}}>Agents ({users.length})</h2>
+          {users.length===0&&<div style={{color:'#9ca3af',fontSize:13}}>Aucun agent</div>}
           {users.map(u=>(
             <div key={u.matricule} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid #f3f4f6'}}>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
