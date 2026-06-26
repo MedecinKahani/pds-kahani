@@ -66,7 +66,7 @@ export default function NouveauPatient() {
   const [showEmplacement, setShowEmplacement] = useState(false);
   const [form, setForm] = useState({
     sexe:'', nom:'', prenom:'', ddn:'', ddn_j:'', ddn_m:'', ddn_a:'', ipp:'', allergie:'', allergie_detail:'',
-    medicaments_today:'', fc:'', sat:'', temp:'', tas:'', tad:'',
+    medicaments_today:'', medicaments_detail:'', fc:'', sat:'', temp:'', tas:'', tad:'',
     poids:'', taille:'',
     symptome:'', symptome_autre:'',
     signe_lutte:'', respire:'',
@@ -257,6 +257,11 @@ export default function NouveauPatient() {
                   </Btn>
                 ))}
               </div>
+              {form.medicaments_today==='Oui' && (
+                <textarea defaultValue={form.medicaments_detail||''} onChange={e=>set('medicaments_detail',e.target.value)}
+                  placeholder="Lister les traitements..." rows={2}
+                  style={{...inp,marginTop:6,resize:'vertical',fontFamily:'system-ui'}}/>
+              )}
             </div>
           </div>
         </Section>
