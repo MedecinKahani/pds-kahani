@@ -228,20 +228,21 @@ export default function PageVueGlobale() {
 
             {/* Constantes 2 colonnes + prescriptions */}
             <div style={{display:'flex',gap:8,alignItems:'flex-start',flex:1}}>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'3px 6px',flex:1}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 4px',flex:1}}>
                 {[
-                  {k:'fc',   v:p.fc,    l:'FC',  u:'bpm', icon:'🫀'},
-                  {k:'tas',  v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas||'--', l:'TA', u:'mmHg', icon:'🩸'},
-                  {k:'sat',  v:p.sat,   l:'Sat', u:'%',   icon:'💧'},
-                  {k:'temp', v:p.temp,  l:'T°',  u:'°C',  icon:'🌡️'},
-                  {k:'dextro',  v:p.dextro||'--',  l:'Dex', u:'g/L',  icon:'🍬'},
-                  {k:'hemocue', v:p.hemocue||'--', l:'Hb',  u:'g/dL', icon:'🔴'},
+                  {k:'fc',      v:p.fc,                                          l:'FC',  u:'bpm',  icon:'🫀'},
+                  {k:'tas',     v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas||'--',     l:'TA',  u:'mmHg', icon:'🩸'},
+                  {k:'sat',     v:p.sat||'--',                                   l:'Sat', u:'%',    icon:'💧'},
+                  {k:'temp',    v:p.temp||'--',                                  l:'T°',  u:'°C',   icon:'🌡️'},
+                  {k:'dextro',  v:p.dextro||'--',                                l:'Dex', u:'g/L',  icon:'🍬'},
+                  {k:'hemocue', v:p.hemocue||'--',                               l:'Hb',  u:'g/dL', icon:'🔴'},
                 ].map(({k,v,l,u,icon})=>{
-                  const col = (v&&v!=='--') ? couleurConst(k==='tas'?p.tas:v, k==='tas'?'tas':k) : null;
+                  const rawV = k==='tas'?p.tas:k==='sat'?p.sat:k==='temp'?p.temp:k==='dextro'?p.dextro:k==='hemocue'?p.hemocue:p.fc;
+                  const col = rawV ? couleurConst(rawV, k==='tas'?'tas':k) : null;
                   return(
-                    <div key={k} style={{background:'rgba(255,255,255,0.7)',borderRadius:5,padding:'3px 5px',border:'0.5px solid rgba(0,0,0,0.06)'}}>
-                      <div style={{fontSize:8,color:'#9ca3af',display:'flex',alignItems:'center',gap:2}}><span style={{fontSize:9}}>{icon}</span>{l}</div>
-                      <div style={{fontSize:11,fontWeight:700,color:col?.color||'#374151',whiteSpace:'nowrap'}}>{v||'--'} <span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                    <div key={k} style={{background:'rgba(255,255,255,0.7)',borderRadius:4,padding:'2px 4px',border:'0.5px solid rgba(0,0,0,0.06)'}}>
+                      <div style={{fontSize:7,color:'#9ca3af',display:'flex',alignItems:'center',gap:1}}><span style={{fontSize:8}}>{icon}</span>{l}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:col?.color||'#374151',whiteSpace:'nowrap'}}>{v} <span style={{fontSize:7,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
                     </div>
                   );
                 })}
