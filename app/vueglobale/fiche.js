@@ -195,44 +195,52 @@ ${ordonnance||'--'}
             <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:28, height:28, borderRadius:'50%', cursor:'pointer', fontSize:16, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
           </div>
 
-          {/* Constantes style vignette */}
-          <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+          {/* Constantes style cartes vignette */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginTop:8}}>
             {[
-              {k:'fc',    v:p.fc,    l:'FC',  u:'bpm' },
-              {k:'tas',   v:p.tas,   l:'PAS', u:'mmHg'},
-              {k:'tad',   v:p.tad,   l:'PAD', u:'mmHg'},
-              {k:'pam',   v:pam,     l:'PAM', u:'mmHg', fixed: pam?(pam<65?'#ef4444':'#16a34a'):'#9ca3af'},
-              {k:'sat',   v:p.sat,   l:'Sat', u:'%'   },
-              {k:'temp',  v:p.temp,  l:'T°',  u:'°C'  },
-              {k:'dextro',v:p.dextro,l:'Dex', u:'g/L' },
-              {k:'hemocue',v:p.hemocue,l:'Hb',u:'g/dL'},
-            ].filter(x=>x.v).map(({k,v,l,u,fixed})=>{
-              const c = fixed || colConst(v,k);
-              return <span key={k} style={{ fontSize:11, fontWeight:600, color:c, background:c+'18', padding:'2px 8px', borderRadius:4 }}>{l} {v} <span style={{fontSize:9,fontWeight:400}}>{u}</span></span>;
+              {k:'fc',     v:p.fc,     l:'FC',  u:'bpm',  icon:'🫀'},
+              {k:'tas',    v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas, l:'TA', u:'mmHg', icon:'🩸'},
+              {k:'sat',    v:p.sat,    l:'Sat', u:'%',    icon:'💧'},
+              {k:'temp',   v:p.temp,   l:'T°',  u:'°C',   icon:'🌡️'},
+              {k:'pam',    v:pam,      l:'PAM', u:'mmHg', icon:'💉', fixed:pam?(pam<65?'#ef4444':'#16a34a'):null},
+              {k:'dextro', v:p.dextro||'--', l:'Dex', u:'g/L',  icon:'🍬'},
+              {k:'hemocue',v:p.hemocue||'--',l:'Hb',  u:'g/dL', icon:'🔴'},
+            ].map(({k,v,l,u,icon,fixed})=>{
+              const c = fixed || (v&&v!=='--' ? colConst(v,k) : '#9ca3af');
+              return (
+                <div key={k} style={{background:'rgba(255,255,255,0.8)',borderRadius:8,padding:'6px 10px',border:'0.5px solid rgba(0,0,0,0.07)'}}>
+                  <div style={{fontSize:9,color:'#9ca3af',display:'flex',alignItems:'center',gap:3,marginBottom:2}}>
+                    <span style={{fontSize:11}}>{icon}</span>{l}
+                  </div>
+                  <div style={{fontSize:16,fontWeight:700,color:c,whiteSpace:'nowrap'}}>{v||'--'} <span style={{fontSize:9,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                </div>
+              );
             })}
-            {p.tdr_palu&&<span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:4,background:p.tdr_palu==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_palu==='Positif'?'#ef4444':'#16a34a'}}>Palu {p.tdr_palu}</span>}
-            {p.tdr_dengue&&<span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:4,background:p.tdr_dengue==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_dengue==='Positif'?'#ef4444':'#16a34a'}}>Dengue {p.tdr_dengue}</span>}
-            {p.bu_resultat&&<span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:4,background:'#eff6ff',color:'#3b82f6'}}>BU {p.bu_resultat}</span>}
-            {p.bhcg_resultat&&<span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:4,background:p.bhcg_resultat==='Positif'?'#fef2f2':'#f0fdf4',color:p.bhcg_resultat==='Positif'?'#ef4444':'#16a34a'}}>bHCG {p.bhcg_resultat}</span>}
-            {constPost.map((c,i)=><span key={i} style={{fontSize:11,fontWeight:600,color:'#374151',background:'#f3f4f6',padding:'2px 8px',borderRadius:4}}>{c.label} {c.val}</span>)}
-
             {/* Ajouter constante */}
-            <select value={nouvConst.type} onChange={e=>setNouvConst(n=>({...n,type:e.target.value}))}
-              style={{fontSize:11,border:'1px solid #e5e7eb',borderRadius:5,padding:'2px 6px',background:'#fff',color:'#6b7280'}}>
-              <option value="">+ Constante</option>
-              {['Dextro g/L','Hémocue g/dL','TDR Palu','TDR Dengue','FC bpm','Sat %','T° °C','PAS mmHg'].map(x=><option key={x} value={x}>{x}</option>)}
-            </select>
-            {nouvConst.type&&<>
-              <input value={nouvConst.val} onChange={e=>setNouvConst(n=>({...n,val:e.target.value}))}
-                style={{width:60,fontSize:11,border:'1px solid #e5e7eb',borderRadius:5,padding:'2px 6px',outline:'none'}} placeholder="valeur" autoFocus/>
-              <HBtn onClick={()=>{
-                if(!nouvConst.val) return;
-                const c=[...constPost,{label:nouvConst.type,val:nouvConst.val,ts:Date.now()}];
-                setConstPost(c); save({constantes_post:JSON.stringify(c)}); setNouvConst({type:'',val:''});
-              }} style={{fontSize:11,padding:'2px 8px',borderRadius:5,background:'#0d9488',color:'#fff',border:'none'}}>OK</HBtn>
-              <HBtn onClick={()=>setNouvConst({type:'',val:''})} style={{fontSize:11,padding:'2px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none'}}>✕</HBtn>
-            </>}
+            <div style={{borderRadius:8,padding:'6px 10px',border:'1.5px dashed #e5e7eb',display:'flex',flexDirection:'column',justifyContent:'center',gap:4}}>
+              <select value={nouvConst.type} onChange={e=>setNouvConst(n=>({...n,type:e.target.value}))}
+                style={{fontSize:10,border:'none',background:'transparent',color:'#9ca3af',outline:'none',cursor:'pointer'}}>
+                <option value="">+ Constante</option>
+                {['Dextro g/L','Hémocue g/dL','TDR Palu','TDR Dengue','FC bpm','Sat %','T° °C','PAS mmHg'].map(x=><option key={x} value={x}>{x}</option>)}
+              </select>
+              {nouvConst.type&&<div style={{display:'flex',gap:3}}>
+                <input value={nouvConst.val} onChange={e=>setNouvConst(n=>({...n,val:e.target.value}))}
+                  style={{flex:1,fontSize:11,border:'1px solid #e5e7eb',borderRadius:4,padding:'2px 4px',outline:'none'}} placeholder="valeur" autoFocus/>
+                <HBtn onClick={()=>{if(!nouvConst.val)return;const c=[...constPost,{label:nouvConst.type,val:nouvConst.val,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});setNouvConst({type:'',val:''}); }}
+                  style={{padding:'2px 6px',borderRadius:4,background:'#0d9488',color:'#fff',border:'none',fontSize:10}}>✓</HBtn>
+              </div>}
+            </div>
           </div>
+          {/* Résultats examens */}
+          {(p.tdr_palu||p.tdr_dengue||p.bu_resultat||p.bhcg_resultat||constPost.length>0)&&(
+            <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
+              {p.tdr_palu&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.tdr_palu==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_palu==='Positif'?'#ef4444':'#16a34a'}}>Palu {p.tdr_palu}</span>}
+              {p.tdr_dengue&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.tdr_dengue==='Positif'?'#fef2f2':'#f0fdf4',color:p.tdr_dengue==='Positif'?'#ef4444':'#16a34a'}}>Dengue {p.tdr_dengue}</span>}
+              {p.bu_resultat&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:'#eff6ff',color:'#3b82f6'}}>BU {p.bu_resultat}</span>}
+              {p.bhcg_resultat&&<span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:99,background:p.bhcg_resultat==='Positif'?'#fef2f2':'#f0fdf4',color:p.bhcg_resultat==='Positif'?'#ef4444':'#16a34a'}}>bHCG {p.bhcg_resultat}</span>}
+              {constPost.map((c,i)=><span key={i} style={{fontSize:10,fontWeight:600,color:'#374151',background:'#f3f4f6',padding:'2px 7px',borderRadius:99}}>{c.label} {c.val}</span>)}
+            </div>
+          )}
         </div>
 
         {/* ONGLETS */}
