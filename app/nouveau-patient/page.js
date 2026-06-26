@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 function calcAge(ddn) {
@@ -185,11 +185,11 @@ export default function NouveauPatient() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
             <div>
               <label style={lbl}>Nom</label>
-              <input value={form.nom} onChange={e=>set('nom',e.target.value.toUpperCase())} style={inp} placeholder="NOM"/>
+              <input defaultValue={form.nom} onBlur={e=>set('nom',e.target.value.toUpperCase())} onChange={e=>set('nom',e.target.value.toUpperCase())} style={inp} placeholder="NOM" autoComplete="off"/>
             </div>
             <div>
               <label style={lbl}>Prenom</label>
-              <input value={form.prenom} onChange={e=>set('prenom',e.target.value)} style={inp} placeholder="Prenom"/>
+              <input defaultValue={form.prenom} onBlur={e=>set('prenom',e.target.value)} onChange={e=>set('prenom',e.target.value)} style={inp} placeholder="Prenom" autoComplete="off"/>
             </div>
             <div>
               <label style={lbl}>Date de naissance (JJ/MM/AAAA)</label>
@@ -225,7 +225,7 @@ export default function NouveauPatient() {
             </div>
             <div>
               <label style={lbl}>IPP</label>
-              <input value={form.ipp} onChange={e=>set('ipp',e.target.value)} style={inp} placeholder="--"/>
+              <input defaultValue={form.ipp} onChange={e=>set('ipp',e.target.value)} onBlur={e=>set('ipp',e.target.value)} style={inp} placeholder="--" autoComplete="off"/>
             </div>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
@@ -242,7 +242,7 @@ export default function NouveauPatient() {
                   </Btn>
                 ))}
               </div>
-              {form.allergie==='Oui' && <input value={form.allergie_detail} onChange={e=>set('allergie_detail',e.target.value)} style={{...inp,marginTop:6}} placeholder="Preciser..."/>}
+              {form.allergie==='Oui' && <input defaultValue={form.allergie_detail} onChange={e=>set('allergie_detail',e.target.value)} style={{...inp,marginTop:6}} placeholder="Preciser..." autoComplete="off"/>}
             </div>
             <div>
               <label style={lbl}>Traitements du jour ?</label>
