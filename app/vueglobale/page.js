@@ -157,21 +157,21 @@ export default function PageVueGlobale() {
 
         {p ? (
           /* Bandeau intérieur coloré */
-          <div style={{margin:5,borderRadius:8,border:'2.5px solid '+c,background:cbg,padding:'7px 9px',display:'flex',flexDirection:'column',gap:4,flex:1}}>
+          <div style={{margin:5,borderRadius:8,border:'2.5px solid '+c,background:cbg,padding:'10px 12px',display:'flex',flexDirection:'column',gap:6,flex:1}}>
 
             {/* Header */}
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <span style={{fontSize:10,fontWeight:600,color:c}}>{label} · {LEGENDES[id]}</span>
+              <span style={{fontSize:12,fontWeight:700,color:c}}>{label} · {LEGENDES[id]}</span>
               <div style={{display:'flex',gap:3,alignItems:'center'}}>
-                {aExaminer&&<span style={{fontSize:8,fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'1px 5px',borderRadius:3}}>À EXAMINER</span>}
-                <span style={{fontSize:8,fontWeight:700,color:dureeInfo.color,padding:'1px 5px',borderRadius:99,background:dureeInfo.color+'18'}}>{dureeInfo.label}</span>
+                {aExaminer&&<span style={{fontSize:10,fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'2px 6px',borderRadius:3}}>À EXAMINER</span>}
+                <span style={{fontSize:10,fontWeight:700,color:dureeInfo.color,padding:'2px 6px',borderRadius:99,background:dureeInfo.color+'18'}}>{dureeInfo.label}</span>
               </div>
             </div>
 
             {/* Identité */}
             <div style={{borderBottom:'0.5px solid '+cdiv,paddingBottom:4}}>
-              <div style={{fontWeight:500,color:'#111827',fontSize:12,lineHeight:1.2}}>{p.nom} {p.prenom}</div>
-              <div style={{color:'#9ca3af',fontSize:9,marginTop:1,display:'flex',alignItems:'center',gap:4}}>
+              <div style={{fontWeight:600,color:'#111827',fontSize:15,lineHeight:1.2}}>{p.nom} {p.prenom}</div>
+              <div style={{color:'#9ca3af',fontSize:11,marginTop:2,display:'flex',alignItems:'center',gap:4}}>
                 {p.age} ans
                 {p.ipp&&<>· {p.ipp}
                   <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(p.ipp);}} title="Copier IPP"
@@ -181,7 +181,7 @@ export default function PageVueGlobale() {
             </div>
 
             {/* Motif */}
-            <div style={{fontSize:11,fontWeight:600,color:'#111827'}}>{p.symptome||p.motifPrincipal||'--'}</div>
+            <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{p.symptome||p.motifPrincipal||'--'}</div>
 
             {/* Constantes FC PAS PAD (PAM) Sat T° */}
             <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
@@ -191,9 +191,9 @@ export default function PageVueGlobale() {
                 {k:'tad',v:p.tad,l:'PAD'},
               ].filter(x=>x.v).map(({k,v,l})=>{
                 const col=couleurConst(v,k);
-                return <span key={k} style={{fontSize:8,fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3}}>{l} {v}</span>;
+                return <span key={k} style={{fontSize:10,fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3}}>{l} {v}</span>;
               })}
-              {pam&&<span style={{fontSize:8,fontWeight:600,color:pam<65?'#ef4444':'#0d9488',background:pam<65?'#fef2f2':'#f0fdfa',padding:'2px 4px',borderRadius:3}}>PAM {pam}</span>}
+              {pam&&<span style={{fontSize:10,fontWeight:600,color:pam<65?'#ef4444':'#0d9488',background:pam<65?'#fef2f2':'#f0fdfa',padding:'2px 4px',borderRadius:3}}>PAM {pam}</span>}
               {[
                 {k:'sat',v:p.sat,l:'Sat'},
                 {k:'temp',v:p.temp,l:'T°'},
@@ -201,21 +201,21 @@ export default function PageVueGlobale() {
                 {k:'hemocue',v:p.hemocue,l:'Hb'},
               ].filter(x=>x.v).map(({k,v,l})=>{
                 const col=couleurConst(v,k);
-                return <span key={k} style={{fontSize:8,fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3}}>{l} {v}</span>;
+                return <span key={k} style={{fontSize:10,fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3}}>{l} {v}</span>;
               })}
             </div>
 
             {/* Catégories prescriptions + Sortie */}
             <div style={{display:'flex',gap:5,alignItems:'center',borderTop:'0.5px solid '+cdiv,paddingTop:4,marginTop:'auto'}}>
-              {hasExamens&&<span style={{fontSize:13}}>🔬</span>}
-              {hasThera&&<span style={{fontSize:13}}>💊</span>}
-              {hasSoins&&<span style={{fontSize:13}}>🩹</span>}
+              {hasExamens&&<span style={{fontSize:15}}>🔬</span>}
+              {hasThera&&<span style={{fontSize:15}}>💊</span>}
+              {hasSoins&&<span style={{fontSize:15}}>🩹</span>}
               <button onClick={async e=>{
                 e.stopPropagation();
                 if(!confirm('Sortie de '+p.nom+' '+p.prenom+' ?')) return;
                 await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
                 load();
-              }} style={{marginLeft:'auto',padding:'2px 7px',borderRadius:5,background:'transparent',color:'#9ca3af',fontSize:8,fontWeight:600,border:'0.5px solid #e5e7eb',cursor:'pointer'}}>
+              }} style={{marginLeft:'auto',padding:'2px 7px',borderRadius:5,background:'transparent',color:'#9ca3af',fontSize:11,fontWeight:600,border:'0.5px solid #e5e7eb',cursor:'pointer'}}>
                 Sortie
               </button>
             </div>
