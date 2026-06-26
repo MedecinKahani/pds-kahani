@@ -65,7 +65,7 @@ export default function NouveauPatient() {
   const [user, setUser] = useState(null);
   const [showEmplacement, setShowEmplacement] = useState(false);
   const [form, setForm] = useState({
-    sexe:'', nom:'', prenom:'', ddn:'', ipp:'', allergie:'', allergie_detail:'',
+    sexe:'', nom:'', prenom:'', ddn:'', ddn_j:'', ddn_m:'', ddn_a:'', ipp:'', allergie:'', allergie_detail:'',
     medicaments_today:'', fc:'', sat:'', temp:'', tas:'', tad:'',
     poids:'', taille:'',
     symptome:'', symptome_autre:'',
@@ -192,8 +192,35 @@ export default function NouveauPatient() {
               <input value={form.prenom} onChange={e=>set('prenom',e.target.value)} style={inp} placeholder="Prenom"/>
             </div>
             <div>
-              <label style={lbl}>Date de naissance</label>
-              <input type="date" value={form.ddn} onChange={e=>set('ddn',e.target.value)} style={inp}/>
+              <label style={lbl}>Date de naissance (JJ/MM/AAAA)</label>
+              <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                <input type="number" min="1" max="31" placeholder="JJ" value={form.ddn_j||''}
+                  onChange={e=>{
+                    const j=e.target.value.padStart(2,'0');
+                    const m=(form.ddn_m||'01'); const a=(form.ddn_a||'2000');
+                    set('ddn_j',e.target.value);
+                    if(e.target.value&&form.ddn_m&&form.ddn_a) set('ddn',a+'-'+m+'-'+j);
+                  }}
+                  style={{...inp,width:52,textAlign:'center',padding:'10px 4px'}}/>
+                <span style={{color:'#9ca3af'}}>/</span>
+                <input type="number" min="1" max="12" placeholder="MM" value={form.ddn_m||''}
+                  onChange={e=>{
+                    const m=e.target.value.padStart(2,'0');
+                    const j=(form.ddn_j||'01').toString().padStart(2,'0'); const a=(form.ddn_a||'2000');
+                    set('ddn_m',e.target.value);
+                    if(form.ddn_j&&e.target.value&&form.ddn_a) set('ddn',a+'-'+m+'-'+j);
+                  }}
+                  style={{...inp,width:52,textAlign:'center',padding:'10px 4px'}}/>
+                <span style={{color:'#9ca3af'}}>/</span>
+                <input type="number" min="1900" max="2025" placeholder="AAAA" value={form.ddn_a||''}
+                  onChange={e=>{
+                    const a=e.target.value; const m=(form.ddn_m||'01').toString().padStart(2,'0');
+                    const j=(form.ddn_j||'01').toString().padStart(2,'0');
+                    set('ddn_a',e.target.value);
+                    if(form.ddn_j&&form.ddn_m&&e.target.value.length===4) set('ddn',a+'-'+m+'-'+j);
+                  }}
+                  style={{...inp,flex:1,textAlign:'center',padding:'10px 4px'}}/>
+              </div>
               {age !== null && <div style={{fontSize:12,color:'#0d9488',marginTop:4}}>{age} ans</div>}
             </div>
             <div>
