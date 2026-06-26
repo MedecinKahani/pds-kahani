@@ -343,9 +343,13 @@ ${ordonnance||'--'}
                 async function cocher(idx) {
                   const rx = [...rxAll];
                   rx[idx] = { ...rx[idx], fait:true, faitPar:user?.matricule, faitA:Date.now() };
-                  await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
+                  const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({ action:'update', id:p.id, patch:{ prescriptions: JSON.stringify(rx) } }) });
-                  onUpdate?.();
+                  const data = await res.json();
+                  if (data.patients) {
+                    const updated = data.patients.find(x => x.id === p.id);
+                    if (updated) onUpdate?.(updated);
+                  }
                 }
 
                 function ColPrescription({ titre, couleur, items, idxOffset }) {
