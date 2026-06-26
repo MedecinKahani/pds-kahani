@@ -129,6 +129,36 @@ export default function PageVueGlobale() {
     return cats;
   }
 
+  function imprimerSortie(p) {
+    const presc = safeJSON(p?.prescriptions);
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sortie ${p.nom} ${p.prenom}</title>
+    <style>body{font-family:Arial,sans-serif;padding:2cm;max-width:800px;margin:auto}h1{font-size:18px;border-bottom:2px solid #333;padding-bottom:8px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{padding:6px 10px;border:1px solid #ddd;font-size:13px}th{background:#f3f4f6;font-weight:600}.sec{margin-top:16px;font-weight:bold;font-size:14px;color:#374151}</style>
+    </head><body>
+    <h1>Compte-rendu de passage — CMR Kahani</h1>
+    <table><tr><th>Nom</th><td>${p.nom} ${p.prenom}</td><th>DDN</th><td>${p.ddn||'--'}</td></tr>
+    <tr><th>IPP</th><td>${p.ipp||'--'}</td><th>Sexe</th><td>${p.sexe||'--'}</td></tr>
+    <tr><th>Emplacement</th><td>${p.emplacement||'--'}</td><th>Arrivee</th><td>${p.arrivee?new Date(parseInt(p.arrivee)).toLocaleString('fr-FR'):'--'}</td></tr></table>
+    <div class="sec">Motif</div><p>${p.symptome||'--'}${p.symptome_autre?' — '+p.symptome_autre:''}</p>
+    <div class="sec">Constantes</div>
+    <table><tr><th>FC</th><td>${p.fc||'--'} bpm</td><th>PAS/PAD</th><td>${p.tas||'--'}/${p.tad||'--'} mmHg</td></tr>
+    <tr><th>Saturation</th><td>${p.sat||'--'} %</td><th>Temperature</th><td>${p.temp||'--'} °C</td></tr>
+    <tr><th>Dextro</th><td>${p.dextro||'--'} g/L</td><th>Hemocue</th><td>${p.hemocue||'--'} g/dL</td></tr></table>
+    <div class="sec">Anamnese</div><p>${p.anamnese||'--'}</p>
+    <div class="sec">Examen clinique</div><p>${p.examen_clinique||'--'}</p>
+    <div class="sec">Diagnostic</div><p>${p.diagnostic||'--'}</p>
+    <div class="sec">Prescriptions</div>
+    <table><tr><th>Prescription</th><th>Statut</th></tr>
+    ${presc.map(r=>`<tr><td>${r.texte}</td><td>${r.fait?'Realise':'En attente'}</td></tr>`).join('')||'<tr><td colspan=2>Aucune prescription</td></tr>'}
+    </table>
+    <div class="sec">Evolution / Prise en charge</div><p>${p.prise_en_charge||'--'}</p>
+    <p style="margin-top:2cm;font-size:11px;color:#9ca3af">Document genere le ${new Date().toLocaleString('fr-FR')} — PDS Kahani</p>
+    </body></html>`;
+    const w = window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    w.onload = () => w.print();
+  }
+
   function Case({id,label}){
     const p=enSalle.find(x=>x.emplacement===id);
     const c=C[id]||'#9ca3af';
@@ -137,7 +167,6 @@ export default function PageVueGlobale() {
     const isSelected=ficheOuverte?.id===p?.id;
     const dureeInfo = p ? couleurDuree(p.arrivee) : null;
     const prescriptions = safeJSON(p?.prescriptions);
-    const enAttente = prescriptions.filter(rx=>!rx.fait);
     const cats = catPrescriptions(prescriptions);
     const hasExamens = cats.examens.length > 0;
     const hasThera = cats.therapeutique.length > 0;
@@ -145,91 +174,113 @@ export default function PageVueGlobale() {
     const aExaminer = p && prescriptions.length === 0;
     const pam = p?.tas && p?.tad ? Math.round(parseFloat(p.tad)+(parseFloat(p.tas)-parseFloat(p.tad))/3) : null;
 
+    const cv = (v,k) => {
+      const col = couleurConst(v,k);
+      return col ? col.color : '#374151';
+    };
+
+    const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme' ? '♂' : p?.sexe==='F'||p?.sexe==='Femme' ? '♀' : '';
+
     return(
       <div onClick={()=>{if(!p)return;setFicheOuverte(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
-        style={{background:'#fff',border:'0.5px solid #e5e7eb',borderRadius:12,cursor:p?'pointer':'default',
-          boxShadow:isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none',
+        style={{background:'#fff',border:'0.5px solid #e5e7eb',borderRadius:16,cursor:p?'pointer':'default',
           position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column',
-          transition:'box-shadow 0.15s'
+          transition:'box-shadow 0.15s, transform 0.15s'
         }}
-        onMouseEnter={e=>{if(p){e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.15)';e.currentTarget.style.transform='translateY(-1px)';}}}
+        onMouseEnter={e=>{if(p){e.currentTarget.style.boxShadow='0 6px 24px rgba(0,0,0,0.18)';e.currentTarget.style.transform='translateY(-2px)';}}}
         onMouseLeave={e=>{e.currentTarget.style.boxShadow=isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none';e.currentTarget.style.transform='none';}}>
 
         {p ? (
-          /* Bandeau intérieur coloré */
-          <div style={{margin:5,borderRadius:8,border:'2.5px solid '+c,background:cbg,padding:'10px 12px',display:'flex',flexDirection:'column',gap:6,flex:1}}>
+          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'10px 12px',display:'flex',flexDirection:'column',gap:6,flex:1}}>
 
-            {/* Header */}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <span style={{fontSize:12,fontWeight:700,color:c}}>{label} · {LEGENDES[id]}</span>
-              <div style={{display:'flex',gap:3,alignItems:'center'}}>
-                {aExaminer&&<span style={{fontSize:10,fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'2px 6px',borderRadius:3}}>À EXAMINER</span>}
-                <span style={{fontSize:10,fontWeight:700,color:dureeInfo.color,padding:'2px 6px',borderRadius:99,background:dureeInfo.color+'18'}}>{dureeInfo.label}</span>
-              </div>
-            </div>
+            {/* Ligne 1 : B1 | NOM Prénom + DDN + IPP | sexe */}
+            <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+              {/* Label emplacement */}
+              <div style={{fontWeight:800,fontSize:20,color:c,lineHeight:1,minWidth:28,flexShrink:0}}>{label}</div>
 
-            {/* Identité */}
-            <div style={{borderBottom:'0.5px solid '+cdiv,paddingBottom:4}}>
-              <div style={{fontWeight:600,color:'#111827',fontSize:15,lineHeight:1.2}}>{p.nom} {p.prenom}</div>
-              <div style={{color:'#9ca3af',fontSize:11,marginTop:2,display:'flex',alignItems:'center',gap:4}}>
-                {p.age} ans
-                {p.ipp&&<>· {p.ipp}
+              {/* Identité centree */}
+              <div style={{flex:1,textAlign:'center'}}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:14,lineHeight:1.2}}>{p.prenom} {p.nom}</div>
+                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
+                {p.ipp&&<div style={{color:'#9ca3af',fontSize:10,marginTop:1,display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+                  IPP : {p.ipp}
                   <span onClick={e=>{
                     e.stopPropagation();
                     navigator.clipboard.writeText(p.ipp);
                     const el=e.currentTarget;
-                    el.textContent='✓';
-                    el.style.color='#16a34a';
-                    el.style.background='#f0fdf4';
+                    el.textContent='✓';el.style.color='#16a34a';el.style.background='#f0fdf4';
                     setTimeout(()=>{el.textContent='□';el.style.color='#9ca3af';el.style.background='transparent';},1500);
-                  }} title="Copier IPP"
-                    style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',lineHeight:1,borderRadius:3,border:'1px solid #e5e7eb',background:'transparent',userSelect:'none'}}>□</span>
-                </>}
+                  }} style={{cursor:'pointer',color:'#9ca3af',fontSize:11,padding:'0 4px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
+                </div>}
               </div>
+
+              {/* Sexe */}
+              <div style={{fontSize:22,color:c,flexShrink:0,lineHeight:1}}>{sexeSymbol}</div>
+            </div>
+
+            {/* Durée */}
+            <div style={{display:'flex',justifyContent:'flex-end',marginTop:-4}}>
+              {aExaminer&&<span style={{fontSize:10,fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'2px 6px',borderRadius:3,marginRight:4}}>À EXAMINER</span>}
+              <span style={{fontSize:10,fontWeight:700,color:dureeInfo.color,background:dureeInfo.color+'18',padding:'2px 6px',borderRadius:99}}>{dureeInfo.label}</span>
             </div>
 
             {/* Motif */}
-            <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{p.symptome||p.motifPrincipal||'--'}</div>
-
-            {/* Constantes sur une seule ligne - font auto */}
-            <div style={{display:'flex',gap:3,overflow:'hidden',flexWrap:'nowrap',alignItems:'center'}}>
-              {[
-                {k:'fc',v:p.fc,l:'FC'},
-                {k:'tas',v:p.tas,l:'PAS'},
-                {k:'tad',v:p.tad,l:'PAD'},
-                pam?{k:'pam',v:pam,l:'PAM',custom:pam<65?{color:'#ef4444',bg:'#fef2f2'}:{color:'#0d9488',bg:'#f0fdfa'}}:null,
-                {k:'sat',v:p.sat,l:'Sat'},
-                {k:'temp',v:p.temp,l:'T°'},
-                p.dextro?{k:'dextro',v:p.dextro,l:'Dex'}:null,
-                p.hemocue?{k:'hemocue',v:p.hemocue,l:'Hb'}:null,
-              ].filter(x=>x&&x.v).map(({k,v,l,custom})=>{
-                const col=custom||couleurConst(v,k);
-                return <span key={k} style={{fontSize:'clamp(7px,1vw,10px)',fontWeight:600,color:col?.color||'#6b7280',background:col?.bg||'#f3f4f6',padding:'2px 4px',borderRadius:3,whiteSpace:'nowrap',flexShrink:1,minWidth:0}}>{l} {v}</span>;
-              })}
+            <div style={{borderTop:'1px solid '+cdiv,borderBottom:'1px solid '+cdiv,padding:'6px 0',textAlign:'center'}}>
+              <div style={{fontSize:14,fontWeight:700,color:'#111827',fontStyle:'italic'}}>"{p.symptome||p.motifPrincipal||'--'}"</div>
             </div>
 
-            {/* Catégories prescriptions + Sortie */}
-            <div style={{display:'flex',gap:5,alignItems:'center',borderTop:'0.5px solid '+cdiv,paddingTop:4,marginTop:'auto'}}>
-              {hasExamens&&<span style={{fontSize:15}}>🔬</span>}
-              {hasThera&&<span style={{fontSize:15}}>💊</span>}
-              {hasSoins&&<span style={{fontSize:15}}>🩹</span>}
-              <button onClick={async e=>{
-                e.stopPropagation();
-                if(!confirm('Sortie de '+p.nom+' '+p.prenom+' ?')) return;
-                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
-                load();
-              }} style={{marginLeft:'auto',padding:'2px 7px',borderRadius:5,background:'transparent',color:'#9ca3af',fontSize:11,fontWeight:600,border:'0.5px solid #e5e7eb',cursor:'pointer'}}>
-                Sortie
-              </button>
+            {/* Bas : constantes gauche | prescriptions + sortie droite */}
+            <div style={{display:'flex',gap:8,alignItems:'flex-end'}}>
+
+              {/* Constantes 2 colonnes */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'3px 8px',flex:1}}>
+                {[
+                  {k:'fc',  v:p.fc,     l:'FC',    u:'bpm', icon:'🫀'},
+                  {k:'tas', v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas, l:'TA',   u:'mmHg',icon:'🩸'},
+                  {k:'sat', v:p.sat,    l:'Sat',   u:'%',   icon:'💧'},
+                  {k:'temp',v:p.temp,   l:'T°',    u:'°C',  icon:'🌡️'},
+                  {k:'dextro',v:p.dextro, l:'Dex', u:'g/L', icon:'🍬'},
+                  {k:'hemocue',v:p.hemocue,l:'Hb', u:'g/dL',icon:'🔴'},
+                ].map(({k,v,l,u,icon})=>{
+                  const col = v ? couleurConst(k==='tas'?p.tas:v, k==='tas'?'tas':k) : null;
+                  return(
+                    <div key={k} style={{background:'#f9fafb',borderRadius:6,padding:'3px 6px',border:'0.5px solid #f0f0f0'}}>
+                      <div style={{fontSize:8,color:'#9ca3af',display:'flex',alignItems:'center',gap:2}}>
+                        <span style={{fontSize:10}}>{icon}</span>{l}
+                      </div>
+                      <div style={{fontSize:12,fontWeight:700,color:col?.color||'#374151'}}>{v||'--'} <span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Prescriptions + Sortie */}
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,flexShrink:0}}>
+                <div style={{display:'flex',gap:6}}>
+                  {hasExamens&&<span style={{fontSize:22}} title="Examens complementaires">🔬</span>}
+                  {hasThera&&<span style={{fontSize:22}} title="Traitement">💊</span>}
+                  {hasSoins&&<span style={{fontSize:22}} title="Soins">🩹</span>}
+                </div>
+                <button onClick={async e=>{
+                  e.stopPropagation();
+                  if(!confirm('Confirmer la sortie de '+p.prenom+' '+p.nom+' ?')) return;
+                  imprimerSortie(p);
+                  await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
+                  load();
+                }} style={{padding:'4px 10px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:11,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer',whiteSpace:'nowrap'}}>
+                  Sortie →
+                </button>
+              </div>
             </div>
 
           </div>
         ):(
-          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',minHeight:80}}>
+          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:120,gap:6}}>
+            <span style={{fontSize:11,color:'#d1d5db',fontWeight:600}}>{label}</span>
             <button onClick={e=>{e.stopPropagation();router.push('/nouveau-patient?emplacement='+id);}}
               onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.background=c+'18';}}
               onMouseLeave={e=>{e.currentTarget.style.opacity='0.4';e.currentTarget.style.background='transparent';}}
-              style={{width:28,height:28,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
+              style={{width:32,height:32,borderRadius:8,background:'transparent',border:'1.5px dashed '+c,color:c,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:0.4,transition:'all 0.15s'}}>+</button>
           </div>
         )}
       </div>
