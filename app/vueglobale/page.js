@@ -317,7 +317,7 @@ export default function PageMedecin() {
             <div style={{width:8,height:8,borderRadius:'50%',background:preau.length>0?'#f59e0b':'#e5e7eb'}}/>
             <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>En attente</span>
             {preau.length>0&&<span style={{background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
-            <button onClick={()=>router.push('/nouveau-patient')} style={{marginLeft:'auto',padding:'5px 10px',borderRadius:7,background:'#0d9488',color:'#fff',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>+ Patient</button>
+            <button onClick={()=>router.push('/nouveau-patient')} style={{marginLeft:'auto',padding:'8px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:700,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
           </div>
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
             {preau.map(p=>{
