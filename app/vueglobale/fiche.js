@@ -104,7 +104,8 @@ const inp = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5
 
 const EXAMEN_NORMAL = "Examen clinique sans anomalie. Neurologique : Glasgow 15, pas de déficit sensitivo-moteur. Cardio-vasculaire : bruits du coeur réguliers, pouls périphériques perçus, pas d'oedème. Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques. Abdominal : abdomen souple dépressible indolore.";
 
-export default function FichePatient({ p, onClose, onUpdate, user }) {
+export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user }) {
+  const p = patient || pProp;
   const [onglet, setOnglet] = useState('anamnese');
   const [anamnese, setAnamnese] = useState(p?.anamnese || '');
   const [exam, setExam] = useState(p?.examen_clinique || '');
