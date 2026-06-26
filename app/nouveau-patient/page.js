@@ -833,16 +833,10 @@ export default function PageAS() {
 
                 {(!form.sat||parseFloat(form.sat)>=95)&&form.signe_lutte===false&&form.signe_lutte!==''&&(
                   <div style={{background:'#f0fdf4',padding:'14px',borderTop:'1px solid #e5e7eb'}}>
-                    <div style={{fontWeight:700,color:'#16a34a',fontSize:13,marginBottom:8}}>Fauteuil observation O1 — Nebulisation sous AIR</div>
-                    <div style={{background:'#fff',borderRadius:8,padding:'10px',fontSize:12,color:'#374151',lineHeight:1.9}}>
-                      {parseFloat(form.poids||99)>=16?(
-                        <div>SALBUTAMOL <b>5 mg</b> + ATROVENT <b>0.5 mg</b></div>
-                      ):(
-                        <div>SALBUTAMOL <b>2.5 mg</b> + ATROVENT <b>0.25 mg</b></div>
-                      )}
-                      <div style={{color:'#9ca3af',fontSize:11,marginTop:2}}>{form.poids?form.poids+'kg':' Poids non renseigne'}</div>
-                      <div style={{marginTop:6,color:'#16a34a',fontWeight:600}}>Allumer video educative sur la tele salle observation</div>
-                      <div style={{marginTop:4,color:'#6b7280'}}>Reevaluation apres chaque aerosol — Si sat baisse : passer en F1 sous O2</div>
+                    <div style={{fontWeight:700,color:'#16a34a',fontSize:13,marginBottom:6}}>Fauteuil observation</div>
+                    <div style={{fontSize:12,color:'#374151',lineHeight:1.8}}>
+                      <div>Demarrer Ventoline + Atrovent sous AIR</div>
+                      <div style={{marginTop:4,fontWeight:600,color:'#16a34a'}}>Demarrer education therapeutique video</div>
                     </div>
                   </div>
                 )}
