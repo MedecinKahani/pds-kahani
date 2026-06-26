@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 
 function safeJSON(val, fallback = []) {
   if (!val) return fallback;
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'object') return val;
   try { return JSON.parse(val); } catch { return fallback; }
 }
 
