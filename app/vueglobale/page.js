@@ -170,10 +170,14 @@ export default function PageVueGlobale() {
     <div class="sec">Evolution / Prise en charge</div><p>${p.prise_en_charge||'--'}</p>
     <p style="margin-top:2cm;font-size:11px;color:#9ca3af">Document genere le ${new Date().toLocaleString('fr-FR')} — PDS Kahani</p>
     </body></html>`;
+    const filename = [p.nom, p.prenom, p.ddn, p.ipp].filter(Boolean).join('_').replace(/\s+/g,'_') + '.pdf';
     const w = window.open('','_blank');
     w.document.write(html);
     w.document.close();
-    w.onload = () => w.print();
+    w.onload = () => {
+      w.document.title = filename;
+      w.print();
+    };
   }
 
   function Case({id,label}){
