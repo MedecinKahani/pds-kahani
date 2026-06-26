@@ -244,22 +244,7 @@ export default function PageAS() {
     <div style={{ minHeight:'100vh', background:'#f3f4f6', fontFamily:'system-ui' }}>
 
       {/* NAV */}
-      <nav style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'0 1.5rem', display:'flex', alignItems:'center', justifyContent:'space-between', height:56, flexShrink:0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <div style={{ width:32, height:32, borderRadius:'50%', background:'#f59e0b', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:14, fontWeight:700 }}>AS</div>
-          <div>
-            <div style={{ fontWeight:700, fontSize:15, color:'#111827' }}>PDS Kahani</div>
-            <div style={{ fontSize:10, color:'#6b7280' }}>Aide-soignant</div>
-          </div>
-        </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <span style={{ fontSize:13, color:'#6b7280' }}>{user.nom}</span>
-          <button onClick={() => setShowVue(true)} style={{ padding:'7px 14px', borderRadius:8, background:'#f0fdfa', color:'#0d9488', fontSize:12, border:'1px solid #99f6e4', cursor:'pointer', fontWeight:600 }}>Vue ensemble</button>
-          <button onClick={() => router.push('/admin')} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Ajouter agent</button>
-          <button onClick={() => router.push('/stats')} style={{ padding:'7px 14px', borderRadius:8, background:'#f9fafb', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Recap session</button>
-          <button onClick={() => { sessionStorage.clear(); router.push('/login'); }} style={{ padding:'7px 14px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:12, border:'1px solid #e5e7eb', cursor:'pointer' }}>Deconnexion</button>
-        </div>
-      </nav>
+
 
       {vue === 'liste' && (
         <div style={{ maxWidth:700, margin:'0 auto', padding:'1.5rem' }}>
