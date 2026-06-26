@@ -78,10 +78,17 @@ export default function NouveauPatient() {
     setUi(prev => ({ ...prev, [k]: v }));
   };
 
+  const [placesOccupees, setPlacesOccupees] = useState([]);
+
   useEffect(() => {
     const s = sessionStorage.getItem('pds_user');
     if (!s) { router.push('/login'); return; }
     setUser(JSON.parse(s));
+    // Charger patients pour savoir places occupées
+    fetch('/api/patients').then(r=>r.json()).then(d=>{
+      const occupees = (d.patients||[]).filter(p=>p.emplacement).map(p=>p.emplacement);
+      setPlacesOccupees(occupees);
+    }).catch(()=>{});
   }, []);
 
   // Calcul placement
@@ -146,8 +153,8 @@ export default function NouveauPatient() {
       plaie_vaccin: v.plaie_vaccin, quicktest: v.quicktest,
       drp: v.drp, ecg_fait: v.ecg_fait, notes: v.notes,
       arrivee: Date.now(),
-      statut: (emplacementForce || p.place !== 'dehors') ? 'attente_medecin' : 'dehors',
-      emplacement: (emplacementForce || p.place !== 'dehors') ? (emplacementForce || p.place) : null,
+      statut: emplacementForce ? 'attente_medecin' : (p.place !== 'dehors' ? 'attente_medecin' : 'dehors'),
+      emplacement: emplacementForce ? emplacementForce : (p.place !== 'dehors' ? p.place : null),
       emplacement_suggere: p.place,
       creePar: user?.matricule || '',
     };
@@ -725,12 +732,22 @@ export default function NouveauPatient() {
               <div style={{ marginTop:10, padding:12, background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', textAlign:'left' }}>
                 <div style={{ fontSize:12, color:'#6b7280', marginBottom:8, fontWeight:600 }}>Selectionner un emplacement :</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                  {EMPLACEMENTS.map(({id,l,c})=>(
-                    <Btn key={id} onClick={()=>enregistrer(id)}
-                      style={{ padding:'8px 14px', borderRadius:8, background:'#fff', border:'2px solid '+c, color:c, fontSize:12, fontWeight:600 }}>
-                      {l}
-                    </Btn>
-                  ))}
+                  {EMPLACEMENTS.map(({id,l,c})=>{
+                    const prise = placesOccupees.includes(id);
+                    return (
+                      <Btn key={id} onClick={()=>{ if(!prise) enregistrer(id); }}
+                        style={{ padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
+                          background: prise ? '#f3f4f6' : '#fff',
+                          border: '2px solid '+(prise?'#e5e7eb':c),
+                          color: prise ? '#9ca3af' : c,
+                          opacity: prise ? 0.5 : 1,
+                          cursor: prise ? 'not-allowed' : 'pointer',
+                          textDecoration: prise ? 'line-through' : 'none'
+                        }}>
+                        {l}{prise?' (occupee)':''}
+                      </Btn>
+                    );
+                  })}
                 </div>
               </div>
             )}
