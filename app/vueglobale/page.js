@@ -199,15 +199,15 @@ export default function PageVueGlobale() {
         onMouseLeave={e=>{e.currentTarget.style.boxShadow=isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none';e.currentTarget.style.transform='none';}}>
 
         {p ? (
-          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'10px 12px',display:'flex',flexDirection:'column',gap:5,flex:1,overflow:'hidden'}}>
+          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'7px 8px',display:'flex',flexDirection:'column',gap:3,flex:1,overflow:'hidden'}}>
 
             {/* Ligne 1 : label | identité | sexe */}
             <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
-              <div style={{fontWeight:800,fontSize:20,color:c,lineHeight:1,minWidth:28,flexShrink:0}}>{label}</div>
+              <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,minWidth:28,flexShrink:0}}>{label}</div>
               <div style={{flex:1,textAlign:'center'}}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2}}>{p.prenom} {p.nom}</div>
-                <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
-                {p.ipp&&<div style={{color:'#9ca3af',fontSize:9,marginTop:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:11,lineHeight:1.2}}>{p.prenom} {p.nom}</div>
+                <div style={{color:'#6b7280',fontSize:9,marginTop:0}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
+                {p.ipp&&<div style={{color:'#9ca3af',fontSize:8,marginTop:0,display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
                   IPP : {p.ipp}
                   <span onClick={e=>{
                     e.stopPropagation();
@@ -218,12 +218,12 @@ export default function PageVueGlobale() {
                   }} style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
                 </div>}
               </div>
-              <div style={{fontSize:20,color:c,flexShrink:0,lineHeight:1}}>{sexeSymbol}</div>
+              <div style={{fontSize:16,color:c,flexShrink:0,lineHeight:1}}>{sexeSymbol}</div>
             </div>
 
             {/* Motif sans guillemets */}
-            <div style={{textAlign:'center',padding:'4px 0'}}>
-              <div style={{fontSize:13,fontWeight:700,color:'#111827'}}>{labelSymptome(p)}</div>
+            <div style={{textAlign:'center',padding:'2px 0'}}>
+              <div style={{fontSize:11,fontWeight:700,color:'#111827'}}>{labelSymptome(p)}</div>
             </div>
 
             {/* Constantes 2 colonnes + prescriptions */}
@@ -251,9 +251,9 @@ export default function PageVueGlobale() {
               {/* Prescriptions + Sortie */}
               <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',gap:6,flexShrink:0,alignSelf:'stretch'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:4,alignItems:'center'}}>
-                  {hasExamens&&<span style={{fontSize:20}}>🔬</span>}
-                  {hasThera&&<span style={{fontSize:20}}>💊</span>}
-                  {hasSoins&&<span style={{fontSize:20}}>🩹</span>}
+                  {hasExamens&&<span style={{fontSize:16}}>🔬</span>}
+                  {hasThera&&<span style={{fontSize:16}}>💊</span>}
+                  {hasSoins&&<span style={{fontSize:16}}>🩹</span>}
                 </div>
                 <button onClick={async e=>{
                   e.stopPropagation();
