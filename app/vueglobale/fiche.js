@@ -287,8 +287,8 @@ ${ordonnance||'--'}
           })()}
         </div>
 
-        {/* ONGLETS */}
-        <div style={{display:'flex',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
+        {/* ONGLETS — masqués pour AS */}
+        {user?.role !== 'as' && <div style={{display:'flex',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
           {[{id:'anamnese',l:'Anamnèse'},{id:'examen',l:'Examen'},{id:'prescription',l:'Prescriptions'},{id:'evolution',l:'Évolution & sortie'}].map(t=>(
             <button key={t.id} onClick={()=>setOnglet(t.id)}
               style={{padding:'9px 14px',border:'none',background:'none',cursor:'pointer',fontSize:12,fontWeight:onglet===t.id?700:500,
@@ -299,8 +299,8 @@ ${ordonnance||'--'}
           ))}
         </div>
 
-        {/* CONTENU */}
-        <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
+        {/* CONTENU — masqué pour AS */}
+        {user?.role !== 'as' && <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
 
           {onglet==='anamnese'&&(
             <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
@@ -485,7 +485,7 @@ ${ordonnance||'--'}
               </HBtn>
             </div>
           )}
-        </div>
+        </div>}
       </div>
 
       {/* COLONNE DROITE — masquée pour IDE */}
