@@ -330,7 +330,6 @@ export default function PageVueGlobale() {
           <div style={{width:'100%',flexShrink:0,padding:'1rem',display:'flex',flexDirection:'column',minHeight:0}}>
 
             {/* FICHE OUVERTE AU-DESSUS DU PLAN */}
-            )}
 
             {/* Grid 4 colonnes x 3 rangées avec encadrés span */}
             <div style={{
