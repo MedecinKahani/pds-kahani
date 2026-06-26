@@ -425,7 +425,10 @@ export default function PageVueGlobale() {
           <FichePatient
             patient={ficheOuverte}
             onClose={()=>setFicheOuverte(null)}
-            onUpdate={()=>{load();}}
+            onUpdate={(updatedPatient)=>{
+              if(updatedPatient) setFicheOuverte(updatedPatient);
+              else load();
+            }}
             user={user}
           />
         </div>

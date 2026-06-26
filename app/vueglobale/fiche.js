@@ -111,8 +111,13 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const pam = p.tas && p.tad ? Math.round(parseFloat(p.tad) + (parseFloat(p.tas) - parseFloat(p.tad)) / 3) : null;
 
   async function save(patch) {
-    await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
+    const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action:'update', id:p.id, patch }) });
+    const data = await res.json();
+    if (data.patients) {
+      const updated = data.patients.find(x => x.id === p.id);
+      if (updated) onUpdate?.(updated);
+    }
   }
 
   const debouncedSave = useDebounce(save, 800);
