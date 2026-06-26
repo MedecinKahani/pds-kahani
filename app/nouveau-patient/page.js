@@ -788,7 +788,7 @@ export default function PageAS() {
                     {form.signe_lutte===false&&form.signe_lutte!==''&&(
                       <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px',marginTop:10}}>
                         <div style={{color:'#16a34a',fontWeight:700,fontSize:13}}>
-                          {libre('fauteuil2')?'F2 - Fauteuil 2':libre('lit2')?'L2 - Lit 2':libre('lit1')?'L1 - Lit 1':libre('fauteuil1')?'F1 - Fauteuil 1':'Salle 2'}
+  F2 - Fauteuil 2 (ou L2, L1, F1 selon disponibilite)
                         </div>
                         <div style={{color:'#15803d',fontSize:12,marginTop:4}}>Position demi-assise — Surveillance saturation</div>
                       </div>
