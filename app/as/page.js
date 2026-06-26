@@ -766,12 +766,12 @@ export default function PageAS() {
                       <div style={{color:'#d97706',fontSize:12}}>Saturation non renseignee — evaluer cliniquement</div>
                     </div>}
 
-                    <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
-                    <div style={{display:'flex',gap:8}}>
-                      <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                    <label style={{...lbl,opacity:0.4}}>Le patient arrive a respirer et parle normalement ?</label>
+                    <div style={{display:'flex',gap:8,opacity:0.4,pointerEvents:'none'}}>
+                      <button style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',border:'2px solid #e5e7eb',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>
                         Oui — respire et parle
                       </button>
-                      <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      <button style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',border:'2px solid #e5e7eb',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>
                         Non — difficultes
                       </button>
                     </div>
@@ -796,6 +796,17 @@ export default function PageAS() {
             {/* ASTHME */}
             {form.symptome==='asthme'&&(
               <div style={{marginTop:16,borderRadius:10,overflow:'hidden',border:'1px solid #e5e7eb'}}>
+                {/* Sat < 95 : urgence directe, question grisée */}
+                {form.sat&&parseFloat(form.sat)<95?(
+                  <div style={{background:'#7f1d1d',padding:'12px 14px'}}>
+                    <div style={{color:'#fff',fontWeight:800,fontSize:14,marginBottom:4}}>Saturation {form.sat}% — F1 + O2 + Appeler medecin</div>
+                    <label style={{...lbl,color:'rgba(255,255,255,0.4)',marginBottom:6}}>Le patient arrive a respirer et parle normalement ?</label>
+                    <div style={{display:'flex',gap:8,opacity:0.35,pointerEvents:'none'}}>
+                      <button style={{flex:1,padding:'9px',borderRadius:8,background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)',border:'2px solid rgba(255,255,255,0.2)',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>Oui — respire et parle</button>
+                      <button style={{flex:1,padding:'9px',borderRadius:8,background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)',border:'2px solid rgba(255,255,255,0.2)',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>Non — difficultes</button>
+                    </div>
+                  </div>
+                ):(
                 <div style={{padding:'12px 14px',background:'#f9fafb',borderBottom:'1px solid #e5e7eb'}}>
                   <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
                   <div style={{display:'flex',gap:8}}>
@@ -803,13 +814,14 @@ export default function PageAS() {
                       Oui — respire et parle
                     </button>
                     <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
-                      Non — difficultés
+                      Non — difficultes
                     </button>
                   </div>
                 </div>
+                )}
 
-                {form.signe_lutte===false&&form.signe_lutte!==''&&(
-                  <div style={{background:'#f0fdf4',padding:'14px'}}>
+                {(!form.sat||parseFloat(form.sat)>=95)&&form.signe_lutte===false&&form.signe_lutte!==''&&(
+                  <div style={{background:'#f0fdf4',padding:'14px',borderTop:'1px solid #e5e7eb'}}>
                     <div style={{fontWeight:700,color:'#16a34a',fontSize:13,marginBottom:8}}>Fauteuil observation O1 — Nebulisation sous AIR</div>
                     <div style={{background:'#fff',borderRadius:8,padding:'10px',fontSize:12,color:'#374151',lineHeight:1.9}}>
                       {parseFloat(form.poids||99)>=16?(
