@@ -3,11 +3,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const ROLES = [
-  { id:'as',       label:'Aide-soignant',  icon:'🩺', color:'#f59e0b', bg:'#fffbeb', border:'#fde68a' },
-  { id:'ide',      label:'Infirmier',       icon:'💉', color:'#3b82f6', bg:'#eff6ff', border:'#bfdbfe' },
-  { id:'medecin',  label:'Medecin',         icon:'👨‍⚕️', color:'#0d9488', bg:'#f0fdfa', border:'#99f6e4' },
-  { id:'cadre',    label:'Cadre',           icon:'📋', color:'#8b5cf6', bg:'#f5f3ff', border:'#ddd6fe' },
-  { id:'chef',     label:'Chef de service', icon:'⭐', color:'#ef4444', bg:'#fef2f2', border:'#fecaca' },
+  { id:'as',      label:'Aide-soignant', icon:'🩺', color:'#f59e0b', bg:'#fffbeb', border:'#fde68a' },
+  { id:'ide',     label:'Infirmier',     icon:'💉', color:'#3b82f6', bg:'#eff6ff', border:'#bfdbfe' },
+  { id:'medecin', label:'Medecin',       icon:'👨‍⚕️', color:'#0d9488', bg:'#f0fdfa', border:'#99f6e4' },
 ];
 
 export default function Login() {
@@ -35,7 +33,7 @@ export default function Login() {
       if (role === 'as') router.push('/as');
       else if (role === 'ide') router.push('/ide');
       else if (role === 'medecin') router.push('/medecin');
-      else if (role === 'cadre' || role === 'chef') router.push('/admin');
+      else if (role === 'cadre' || role === 'chef') router.push('/medecin');
       else { setErreur('Role non reconnu'); setChargement(false); }
     } catch { setErreur('Erreur de connexion'); setChargement(false); }
   }
