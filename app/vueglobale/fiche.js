@@ -333,61 +333,7 @@ ${ordonnance||'--'}
 
           {onglet==='prescription'&&(
             user?.role==='ide' ? (
-              /* VUE IDE : prescriptions lues directement depuis p (pas le state local) */
-              (() => {
-                const rxAll = safeJSON(p.prescriptions, []);
-                const rxExamens = rxAll.filter(r=>r.categorie==='examen');
-                const rxThera = rxAll.filter(r=>r.categorie==='therapeutique');
-                const rxSoins = rxAll.filter(r=>r.categorie==='soin');
-
-                async function cocher(idx) {
-                  const rx = [...rxAll];
-                  rx[idx] = { ...rx[idx], fait:true, faitPar:user?.matricule, faitA:Date.now() };
-                  const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({ action:'update', id:p.id, patch:{ prescriptions: JSON.stringify(rx) } }) });
-                  const data = await res.json();
-                  if (data.patients) {
-                    const updated = data.patients.find(x => x.id === p.id);
-                    if (updated) onUpdate?.(updated);
-                  }
-                }
-
-                function ColPrescription({ titre, couleur, items, idxOffset }) {
-                  return (
-                    <div style={{flex:1,border:'2px solid '+couleur+'33',borderRadius:12,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                      <div style={{background:couleur+'18',padding:'12px 16px',borderBottom:'1px solid '+couleur+'22',flexShrink:0}}>
-                        <span style={{fontWeight:700,color:couleur,fontSize:14}}>{titre}</span>
-                      </div>
-                      <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
-                        {items.length===0&&<div style={{color:'#9ca3af',fontSize:13,textAlign:'center',marginTop:20}}>Aucune prescription</div>}
-                        {items.map((r,i)=>(
-                          <div key={i} onClick={()=>{if(!r.fait)cocher(rxAll.indexOf(r));}}
-                            style={{padding:'14px 16px',borderRadius:10,border:r.fait?'1px solid #e5e7eb':'2px solid '+couleur+'66',
-                              background:r.fait?'#f9fafb':'#fff',cursor:r.fait?'default':'pointer',
-                              opacity:r.fait?0.5:1,display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
-                            onMouseEnter={e=>{if(!r.fait)e.currentTarget.style.background=couleur+'11';}}
-                            onMouseLeave={e=>{e.currentTarget.style.background=r.fait?'#f9fafb':'#fff';}}>
-                            <div style={{width:24,height:24,borderRadius:6,border:r.fait?'none':'2px solid '+couleur,
-                              background:r.fait?couleur:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                              {r.fait&&<span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>}
-                            </div>
-                            <span style={{fontSize:14,fontWeight:r.fait?400:600,color:r.fait?'#9ca3af':'#374151',
-                              textDecoration:r.fait?'line-through':'none'}}>{r.texte}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div style={{display:'flex',gap:12,height:'100%'}}>
-                    <ColPrescription titre="🔬 Examens complémentaires" couleur="#7c3aed" items={rxExamens}/>
-                    <ColPrescription titre="💊 Thérapeutique" couleur="#ea580c" items={rxThera}/>
-                    <ColPrescription titre="🩹 Soins" couleur="#d97706" items={rxSoins}/>
-                  </div>
-                );
-              })()
+              <VueIDE p={p} user={user} onUpdate={onUpdate}/>
             ) : (
 
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
@@ -629,6 +575,191 @@ function HydratationSelector({ onAjouter }) {
       <HBtn onClick={()=>{if(qte&&dur){onAjouter(`${sol} ${qte}mL sur ${dur}`,'therapeutique');setSol('');setQte('');setDur('');}}}
         style={{padding:'3px 10px',borderRadius:5,background:'#0369a1',color:'#fff',border:'none',fontSize:10,fontWeight:600}}>OK</HBtn>
       <HBtn onClick={()=>setSol('')} style={{padding:'3px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:10}}>✕</HBtn>
+    </div>
+  );
+}
+
+function VueIDE({ p, user, onUpdate }) {
+  const rxAll = safeJSON(p.prescriptions, []);
+  const [resultats, setResultats] = useState({});
+
+  async function cocherAvecResultat(idx, resultat) {
+    const rx = [...rxAll];
+    rx[idx] = { ...rx[idx], fait:true, resultat: resultat||'', faitPar:user?.matricule, faitA:Date.now() };
+    const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'update', id:p.id, patch:{ prescriptions: JSON.stringify(rx) } }) });
+    const data = await res.json();
+    if (data.patients) {
+      const updated = data.patients.find(x => x.id === p.id);
+      if (updated) onUpdate?.(updated);
+    }
+  }
+
+  function getTypeExamen(texte) {
+    const t = texte.toLowerCase();
+    if (t.includes('bhcg')) return 'binaire';
+    if (t.includes('tdr') || t.includes('paludisme') || t.includes('dengue')) return 'binaire';
+    if (t.includes('quick test') || t.includes('tetanos')) return 'binaire';
+    if (t.includes('bu') || t.includes('bandelette')) return 'bu';
+    if (t.includes('hemocue') || t.includes('hémocue')) return 'chiffre_hb';
+    if (t.includes('dextro')) return 'chiffre_dex';
+    if (t.includes('ecg')) return 'fait_montre';
+    if (t.includes('bio') || t.includes('prélèvement') || t.includes('nfs') || t.includes('gaz')) return 'fait_montre';
+    return 'simple';
+  }
+
+  function ItemExamen({ r, idx }) {
+    const globalIdx = rxAll.indexOf(r);
+    const type = getTypeExamen(r.texte);
+    const couleur = '#7c3aed';
+    const [buVals, setBuVals] = useState({ leuco:'', nitrite:'', sang:'', glucose:'', cetone:'' });
+    const [valChiffre, setValChiffre] = useState('');
+    const [showSaisie, setShowSaisie] = useState(false);
+
+    if (r.fait) return (
+      <div style={{padding:'12px 16px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.6,display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:24,height:24,borderRadius:6,background:couleur,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>
+        </div>
+        <div>
+          <span style={{fontSize:14,fontWeight:400,color:'#9ca3af',textDecoration:'line-through'}}>{r.texte}</span>
+          {r.resultat&&<div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{r.resultat}</div>}
+        </div>
+      </div>
+    );
+
+    // Pas encore fait
+    if (!showSaisie) return (
+      <div onClick={()=>{
+        if(type==='simple'||type==='fait_montre') { cocherAvecResultat(globalIdx, ''); }
+        else setShowSaisie(true);
+      }}
+        style={{padding:'14px 16px',borderRadius:10,border:'2px solid '+couleur+'66',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
+        onMouseEnter={e=>e.currentTarget.style.background='#f5f3ff'}
+        onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+        <div style={{width:24,height:24,borderRadius:6,border:'2px solid '+couleur,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}/>
+        <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>{r.texte}</span>
+        {(type!=='simple'&&type!=='fait_montre')&&<span style={{marginLeft:'auto',fontSize:11,color:couleur,fontWeight:600}}>Saisir résultat →</span>}
+      </div>
+    );
+
+    // Saisie résultat
+    return (
+      <div style={{padding:'14px 16px',borderRadius:10,border:'2px solid '+couleur,background:'#faf5ff'}}>
+        <div style={{fontWeight:700,fontSize:13,color:couleur,marginBottom:10}}>{r.texte}</div>
+
+        {type==='binaire'&&(
+          <div style={{display:'flex',gap:8}}>
+            {['Négatif','Positif'].map(v=>(
+              <button key={v} onClick={()=>cocherAvecResultat(globalIdx,v)}
+                style={{flex:1,padding:'10px',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',
+                  background:v==='Positif'?'#fef2f2':'#f0fdf4',
+                  color:v==='Positif'?'#ef4444':'#16a34a',
+                  border:'2px solid '+(v==='Positif'?'#fecaca':'#bbf7d0')}}>
+                {v==='Positif'?'✗ Positif':'✓ Négatif'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {type==='bu'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {[['leuco','Leucocytes'],['nitrite','Nitrites'],['sang','Sang'],['glucose','Glucose'],['cetone','Cétones']].map(([k,l])=>(
+              <div key={k} style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontSize:12,fontWeight:600,color:'#374151',width:90,flexShrink:0}}>{l}</span>
+                <div style={{display:'flex',gap:4}}>
+                  {['Nég','+','++','+++'].map(v=>(
+                    <button key={v} onClick={()=>setBuVals(prev=>({...prev,[k]:v}))}
+                      style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',
+                        background:buVals[k]===v?(v==='Nég'?'#f0fdf4':'#fef2f2'):'#f9fafb',
+                        color:buVals[k]===v?(v==='Nég'?'#16a34a':'#ef4444'):'#6b7280',
+                        border:'1.5px solid '+(buVals[k]===v?(v==='Nég'?'#bbf7d0':'#fecaca'):'#e5e7eb')}}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <button onClick={()=>{
+              const res = `Leuco ${buVals.leuco||'?'} / Nitrites ${buVals.nitrite||'?'} / Sang ${buVals.sang||'?'} / Glucose ${buVals.glucose||'?'} / Cétones ${buVals.cetone||'?'}`;
+              cocherAvecResultat(globalIdx, res);
+            }} style={{marginTop:4,padding:'10px',borderRadius:8,background:couleur,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer'}}>
+              Valider
+            </button>
+          </div>
+        )}
+
+        {(type==='chiffre_hb'||type==='chiffre_dex')&&(
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <input value={valChiffre} onChange={e=>setValChiffre(e.target.value)}
+              placeholder={type==='chiffre_hb'?'g/dL':'g/L'} inputMode="decimal" autoFocus
+              style={{flex:1,padding:'10px 12px',borderRadius:8,border:'2px solid '+couleur+'66',fontSize:18,fontWeight:700,outline:'none',textAlign:'center'}}/>
+            <span style={{fontSize:12,color:'#9ca3af'}}>{type==='chiffre_hb'?'g/dL':'g/L'}</span>
+            <button onClick={()=>{if(valChiffre)cocherAvecResultat(globalIdx,valChiffre+(type==='chiffre_hb'?' g/dL':' g/L'));}}
+              style={{padding:'10px 16px',borderRadius:8,background:couleur,color:'#fff',fontWeight:700,border:'none',cursor:'pointer'}}>OK</button>
+          </div>
+        )}
+
+        <button onClick={()=>setShowSaisie(false)}
+          style={{marginTop:8,background:'none',border:'none',color:'#9ca3af',fontSize:11,cursor:'pointer',padding:0}}>
+          Annuler
+        </button>
+      </div>
+    );
+  }
+
+  function ColPrescription({ titre, couleur, items }) {
+    return (
+      <div style={{flex:1,border:'2px solid '+couleur+'33',borderRadius:12,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        <div style={{background:couleur+'18',padding:'12px 16px',borderBottom:'1px solid '+couleur+'22',flexShrink:0}}>
+          <span style={{fontWeight:700,color:couleur,fontSize:14}}>{titre}</span>
+        </div>
+        <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
+          {items.length===0&&<div style={{color:'#9ca3af',fontSize:13,textAlign:'center',marginTop:20}}>Aucune prescription</div>}
+          {items.map((r,i)=>(
+            titre.includes('Examens')
+              ? <ItemExamen key={i} r={r} idx={i}/>
+              : <ItemSimple key={i} r={r} couleur={couleur} onCocher={()=>{
+                  const globalIdx=rxAll.indexOf(r);
+                  const rx=[...rxAll];
+                  rx[globalIdx]={...rx[globalIdx],fait:true,faitPar:user?.matricule,faitA:Date.now()};
+                  fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})})
+                  .then(r=>r.json()).then(data=>{
+                    if(data.patients){const u=data.patients.find(x=>x.id===p.id);if(u)onUpdate?.(u);}
+                  });
+                }}/>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function ItemSimple({ r, couleur, onCocher }) {
+    if (r.fait) return (
+      <div style={{padding:'12px 16px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.6,display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:24,height:24,borderRadius:6,background:couleur,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>
+        </div>
+        <span style={{fontSize:14,color:'#9ca3af',textDecoration:'line-through'}}>{r.texte}</span>
+      </div>
+    );
+    return (
+      <div onClick={onCocher}
+        style={{padding:'14px 16px',borderRadius:10,border:'2px solid '+couleur+'66',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
+        onMouseEnter={e=>e.currentTarget.style.background=couleur+'11'}
+        onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+        <div style={{width:24,height:24,borderRadius:6,border:'2px solid '+couleur,background:'#fff',flexShrink:0}}/>
+        <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>{r.texte}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{display:'flex',gap:12,height:'100%'}}>
+      <ColPrescription titre="🔬 Examens complémentaires" couleur="#7c3aed" items={rxAll.filter(r=>r.categorie==='examen')}/>
+      <ColPrescription titre="💊 Thérapeutique" couleur="#ea580c" items={rxAll.filter(r=>r.categorie==='therapeutique')}/>
+      <ColPrescription titre="🩹 Soins" couleur="#d97706" items={rxAll.filter(r=>r.categorie==='soin')}/>
     </div>
   );
 }
