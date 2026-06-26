@@ -195,7 +195,7 @@ ${ordonnance||'--'}
             <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:28, height:28, borderRadius:'50%', cursor:'pointer', fontSize:16, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
           </div>
 
-          {/* Constantes style cartes vignette */}
+          {/* Constantes style cartes vignette avec historique */}
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginTop:8}}>
             {[
               {k:'fc',     v:p.fc,     l:'FC',  u:'bpm',  icon:'🫀'},
@@ -207,12 +207,24 @@ ${ordonnance||'--'}
               {k:'hemocue',v:p.hemocue||'--',l:'Hb',  u:'g/dL', icon:'🔴'},
             ].map(({k,v,l,u,icon,fixed})=>{
               const c = fixed || (v&&v!=='--' ? colConst(v,k) : '#9ca3af');
+              // Chercher si une nouvelle constante de ce type existe dans constPost
+              const labelKey = l.toLowerCase();
+              const nouvelles = constPost.filter(cp => cp.label.toLowerCase().includes(labelKey));
+              const derniere = nouvelles[nouvelles.length-1];
+              const cNew = derniere ? colConst(derniere.val, k) : null;
               return (
                 <div key={k} style={{background:'rgba(255,255,255,0.8)',borderRadius:8,padding:'6px 10px',border:'0.5px solid rgba(0,0,0,0.07)'}}>
                   <div style={{fontSize:9,color:'#9ca3af',display:'flex',alignItems:'center',gap:3,marginBottom:2}}>
                     <span style={{fontSize:11}}>{icon}</span>{l}
                   </div>
-                  <div style={{fontSize:16,fontWeight:700,color:c,whiteSpace:'nowrap'}}>{v||'--'} <span style={{fontSize:9,fontWeight:400,color:'#9ca3af'}}>{u}</span></div>
+                  <div style={{display:'flex',alignItems:'baseline',gap:6,flexWrap:'wrap'}}>
+                    <div style={{fontSize:16,fontWeight:700,color:derniere?'#d1d5db':c,whiteSpace:'nowrap',textDecoration:derniere?'line-through':'none'}}>
+                      {v||'--'} <span style={{fontSize:9,fontWeight:400,color:'#d1d5db'}}>{u}</span>
+                    </div>
+                    {derniere&&<div style={{fontSize:16,fontWeight:700,color:cNew||'#374151',whiteSpace:'nowrap'}}>
+                      {derniere.val} <span style={{fontSize:9,fontWeight:400,color:'#9ca3af'}}>{u}</span>
+                    </div>}
+                  </div>
                 </div>
               );
             })}
@@ -261,7 +273,7 @@ ${ordonnance||'--'}
           {onglet==='anamnese'&&(
             <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
               placeholder="Motif de consultation, histoire de la maladie, antécédents, traitements habituels..."
-              style={{...inp,height:'calc(100vh - 200px)',resize:'none'}}/>
+              style={{...inp,height:'calc(100vh - 180px)',resize:'none',overflow:'hidden'}}/>
           )}
 
           {onglet==='examen'&&(
@@ -283,7 +295,7 @@ ${ordonnance||'--'}
                 </div>
               </div>
               <textarea value={exam} onChange={e=>{setExam(e.target.value);debouncedSave({examen_clinique:e.target.value});}}
-                placeholder="Décrivez l'examen clinique..." style={{...inp,height:'calc(100vh - 260px)',resize:'none'}}/>
+                placeholder="Décrivez l'examen clinique..." style={{...inp,height:'calc(100vh - 260px)',resize:'none',overflow:'hidden'}}/>
             </div>
           )}
 
@@ -420,7 +432,7 @@ ${ordonnance||'--'}
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div>
                 <label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase'}}>Évolution au dispensaire</label>
-                <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);debouncedSave({evolution:e.target.value});}} rows={4} style={inp} placeholder="Évolution clinique..."/>
+                <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);debouncedSave({evolution:e.target.value});}} rows={4} style={{...inp,overflow:'hidden'}} placeholder="Évolution clinique..."/>
               </div>
               <div>
                 <label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase'}}>Diagnostic</label>
