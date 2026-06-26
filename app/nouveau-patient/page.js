@@ -30,7 +30,7 @@ function couleurFC(v) {
   return 'red';
 }
 function couleurSat(v) {
-  const n = parseFloat(v); if (isNaN(n)) return null;
+  const n = Math.round(parseFloat(v)); if (isNaN(n)) return null;
   if (n > 94) return 'green';
   if (n >= 90) return 'orange';
   return 'red';
@@ -750,7 +750,7 @@ export default function PageAS() {
                 {/* Etape 1 : saturation */}
                 {parseFloat(form.sat)<95&&form.sat?(
                   <div style={{background:'#7f1d1d',padding:'14px'}}>
-                    <div style={{color:'#fff',fontWeight:800,fontSize:15,marginBottom:6}}>Saturation {form.sat}% — URGENCE</div>
+                    <div style={{color:'#fff',fontWeight:800,fontSize:15,marginBottom:6}}>Saturation {Math.round(parseFloat(form.sat))}% — URGENCE</div>
                     <div style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px',color:'#fef2f2',fontSize:12,lineHeight:1.8}}>
                       <div style={{fontWeight:700}}>Brancard 1 — O2 immediat — Appeler medecin et IDE</div>
                       <div>Installer en B1 (ou B2 si occupe) — O2 masque — Position demi-assise</div>
@@ -759,18 +759,18 @@ export default function PageAS() {
                 ):(
                   <div style={{padding:'14px',background:'#f9fafb'}}>
                     {form.sat&&<div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 12px',marginBottom:12}}>
-                      <div style={{color:'#16a34a',fontSize:12,fontWeight:600}}>Saturation {form.sat}% — correcte</div>
+                      <div style={{color:'#16a34a',fontSize:12,fontWeight:600}}>Saturation {Math.round(parseFloat(form.sat))}% — correcte</div>
                     </div>}
                     {!form.sat&&<div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginBottom:12}}>
                       <div style={{color:'#d97706',fontSize:12}}>Saturation non renseignee — evaluer cliniquement</div>
                     </div>}
 
-                    <label style={{...lbl,opacity:0.4,marginTop:8}}>Le patient arrive a respirer et parle normalement ? (non applicable - sat basse)</label>
-                    <div style={{display:'flex',gap:8,opacity:0.35,pointerEvents:'none'}}>
-                      <button style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',border:'2px solid #e5e7eb',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>
+                    <label style={lbl}>Le patient arrive a respirer et parle normalement ?</label>
+                    <div style={{display:'flex',gap:8}}>
+                      <button onClick={()=>set('signe_lutte',false)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#fff',color:form.signe_lutte===false&&form.signe_lutte!==''?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===false&&form.signe_lutte!==''?'#16a34a':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
                         Oui — respire et parle
                       </button>
-                      <button style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#9ca3af',border:'2px solid #e5e7eb',fontWeight:600,fontSize:13,cursor:'not-allowed'}}>
+                      <button onClick={()=>set('signe_lutte',true)} style={{flex:1,padding:'10px',borderRadius:8,background:form.signe_lutte===true?'#ef4444':'#fff',color:form.signe_lutte===true?'#fff':'#374151',border:'2px solid '+(form.signe_lutte===true?'#ef4444':'#e5e7eb'),fontWeight:600,fontSize:13,cursor:'pointer'}}>
                         Non — difficultes
                       </button>
                     </div>
