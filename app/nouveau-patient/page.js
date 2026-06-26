@@ -70,7 +70,7 @@ export default function NouveauPatient() {
     dextro:'', hemocue:'',
     bu_fait:false, bhcg_fait:false, bhcg_resultat:'',
     plaie_vaccin:'', quicktest:'', drp:false, ecg_fait:false,
-    age:null, showEmplacement:false,
+    age:null, showEmplacement:false, pam:null, imc:null,
   });
 
   const setU = (k, v) => {
@@ -323,34 +323,42 @@ export default function NouveauPatient() {
               <ConstCell key={k} label={l} unit={u} isBad={bad}
                 onChange={v => {
                   vals.current[k] = v;
-                  if (k==='sat') setUi(p=>({...p, sat_val:v}));
+                  if (k==='tas'||k==='tad') {
+                    const tas = parseFloat(k==='tas'?v:vals.current.tas);
+                    const tad = parseFloat(k==='tad'?v:vals.current.tad);
+                    if (!isNaN(tas)&&!isNaN(tad)) setUi(p=>({...p, pam: Math.round(tad+(tas-tad)/3)}));
+                  }
                 }}/>
             ))}
             {/* PAM calculée */}
             <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
               <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>PAM <span style={{fontSize:10}}>mmHg</span></label>
-              <PamDisplay tasRef={() => vals.current.tas} tadRef={() => vals.current.tad}/>
+              <div style={{ fontSize:22, fontWeight:700, color: ui.pam ? (ui.pam<65?'#ef4444':'#16a34a') : '#d1d5db' }}>{ui.pam||'--'}</div>
+              {ui.pam&&ui.pam<65&&<div style={{fontSize:10,color:'#ef4444',fontWeight:600}}>PAM basse — Alerter medecin</div>}
             </div>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
             <div>
               <label style={lbl}>Poids (kg)</label>
-              <input inputMode="decimal" onChange={e => { vals.current.poids = e.target.value; }}
-                style={inp} placeholder="--"/>
+              <input inputMode="decimal" onChange={e => {
+                vals.current.poids = e.target.value;
+                const p=parseFloat(e.target.value), t=parseFloat(vals.current.taille);
+                if(!isNaN(p)&&!isNaN(t)&&t>0) setUi(pr=>({...pr, imc: (p/Math.pow(t/100,2)).toFixed(1)}));
+              }} style={inp} placeholder="--"/>
             </div>
             <div>
               <label style={lbl}>Taille (cm)</label>
-              <input inputMode="decimal" onChange={e => { vals.current.taille = e.target.value; }}
-                style={inp} placeholder="--"/>
+              <input inputMode="decimal" onChange={e => {
+                vals.current.taille = e.target.value;
+                const p=parseFloat(vals.current.poids), t=parseFloat(e.target.value);
+                if(!isNaN(p)&&!isNaN(t)&&t>0) setUi(pr=>({...pr, imc: (p/Math.pow(t/100,2)).toFixed(1)}));
+              }} style={inp} placeholder="--"/>
             </div>
             <div>
-              <label style={lbl}>Dextro (g/L)</label>
-              <input inputMode="decimal" onChange={e => {
-                vals.current.dextro = e.target.value;
-                setUi(p=>({...p, dextro: e.target.value}));
-              }} style={inp} placeholder="--"/>
-              {ui.dextro && parseFloat(ui.dextro) < 0.5 && <div style={{color:'#ef4444',fontSize:11,marginTop:2,fontWeight:700}}>Hypoglycemie SEVERE</div>}
-              {ui.dextro && parseFloat(ui.dextro) > 2.5 && <div style={{color:'#ef4444',fontSize:11,marginTop:2,fontWeight:700}}>Faire cetonemie</div>}
+              <label style={lbl}>IMC</label>
+              <div style={{...inp, background:'#f9fafb', display:'flex', alignItems:'center', color: ui.imc?(parseFloat(ui.imc)>=30?'#ef4444':parseFloat(ui.imc)>=25?'#f59e0b':'#16a34a'):'#9ca3af', fontWeight:600}}>
+                {ui.imc||'--'}{ui.imc&&<span style={{fontSize:11,marginLeft:4,fontWeight:400}}>{parseFloat(ui.imc)>=40?'Obesite morbide':parseFloat(ui.imc)>=35?'Obesite severe':parseFloat(ui.imc)>=30?'Obesite':parseFloat(ui.imc)>=25?'Surpoids':''}</span>}
+              </div>
             </div>
           </div>
         </div>
@@ -423,10 +431,7 @@ export default function NouveauPatient() {
                       </Btn>
                     ))}
                   </div>
-                  {ui.signe_lutte===false&&<div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:8, padding:'10px 12px', marginTop:10 }}>
-                    <div style={{ color:'#16a34a', fontWeight:700 }}>F2 — Fauteuil (ou L2, L1, F1 selon disponibilite)</div>
-                    <div style={{ color:'#15803d', fontSize:12, marginTop:4 }}>Position demi-assise — Surveillance saturation</div>
-                  </div>}
+
                   {ui.signe_lutte===true&&<div style={{ background:'#fef2f2', border:'2px solid #ef4444', borderRadius:8, padding:'10px 12px', marginTop:10 }}>
                     <div style={{ color:'#dc2626', fontWeight:700 }}>B1 ou B2 — O2 — Alerter equipe</div>
                   </div>}
@@ -459,10 +464,7 @@ export default function NouveauPatient() {
                       </Btn>
                     ))}
                   </div>
-                  {ui.signe_lutte===false&&<div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:8, padding:'10px 12px', marginTop:10 }}>
-                    <div style={{ color:'#16a34a', fontWeight:700 }}>Fauteuil observation — O1</div>
-                    <div style={{ color:'#15803d', fontSize:12, marginTop:4 }}>Ventoline + Atrovent sous AIR — Allumer video education therapeutique</div>
-                  </div>}
+
                   {ui.signe_lutte===true&&<div style={{ background:'#fef2f2', border:'2px solid #ef4444', borderRadius:8, padding:'10px 12px', marginTop:10 }}>
                     <div style={{ color:'#dc2626', fontWeight:700 }}>F1 — O2 — Prevenir medecin</div>
                     <div style={{ color:'#ef4444', fontSize:12, marginTop:4 }}>
@@ -522,7 +524,7 @@ export default function NouveauPatient() {
                     {id:'oreille_g',d:'M74,42 C79,42 80,50 80,56 C80,62 79,68 74,68 L72,68 L72,42 Z'},
                     {id:'oreille_d',d:'M6,42 C1,42 0,50 0,56 C0,62 1,68 6,68 L8,68 L8,42 Z'},
                     {id:'gorge',  d:'M26,78 C26,72 54,72 54,78 C54,84 26,84 26,78 Z'},
-                    {id:'dent',   d:'M30,68 C30,65 50,65 50,68 C50,71 30,71 30,68 Z'},
+                    {id:'nez',    d:'M40,48 L36,62 L44,62 Z'},
                   ].map(z => {
                     const sel = ui.douleur_zones.includes(z.id);
                     return (
@@ -758,7 +760,4 @@ const ConstCell = memo(function ConstCell({label, unit, isBad, onChange}) {
   );
 });
 
-// PAM affichée sans input
-function PamDisplay({tasRef, tadRef}) {
-  return null; // PAM non affichée en temps réel pour éviter re-renders
-}
+// PAM et IMC ne sont pas des composants séparés - affichés dans le parent
