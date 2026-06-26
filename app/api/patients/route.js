@@ -34,10 +34,11 @@ export async function POST(req) {
     if (action === 'create') {
       const id = genId();
       const patient = {
+        ...body.patient,
         id,
         arrivee: Date.now(),
-        statut: 'attente_medecin',
-        ...body.patient
+        statut: body.patient?.statut || 'attente_medecin',
+        emplacement: body.patient?.emplacement || null,
       };
       await kv.hset(`patient:${id}`, patient);
       const all = await getAllPatients();
