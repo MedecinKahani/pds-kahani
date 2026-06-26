@@ -297,7 +297,7 @@ ${ordonnance||'--'}
               {t.l}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* CONTENU — masqué pour AS */}
         {user?.role !== 'as' && <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
