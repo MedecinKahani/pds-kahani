@@ -343,7 +343,6 @@ export default function PageVueGlobale() {
                 </div>
               </div>
             )}
-              </div>
             )}
 
             {/* Grid 4 colonnes x 3 rangées avec encadrés span */}
