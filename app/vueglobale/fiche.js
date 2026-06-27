@@ -646,7 +646,7 @@ ${ordonnance||'--'}
                     <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Ordonnance de sortie</label>
                     <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} rows={4} style={inp} placeholder="Traitements de sortie, conseils, suivi..."/>
                   </div>
-                  <button onClick={()=>{navigator.clipboard.writeText(resume());setCopied(true);setTimeout(()=>setCopied(false),2000);}}
+                  <button onClick={()=>{navigator.clipboard.writeText(resume());setCopied(true);}}
                     style={{padding:'12px',borderRadius:8,background:'#16a34a',color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',width:'100%'}}>
                     {copied?<span>✓ Copié ! <span style={{fontSize:12,fontWeight:400}}>— Faire Ctrl+V dans le dossier DxCare pour coller</span></span>:'📋 Résumé — Copier pour DxCare'}
                   </button>
