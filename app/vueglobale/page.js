@@ -339,7 +339,7 @@ export default function PageVueGlobale() {
             {/* DROITE : motif en haut, cercles triangle, sortie en bas */}
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{fontSize:10,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2}}>{labelSymptome(p)}</div>
-              <div style={{fontSize:9,color:'#9ca3af',textAlign:'center'}}>{p.arrivee?new Date(parseInt(p.arrivee)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+              <div style={{fontSize:9,color:'#9ca3af',textAlign:'center'}}>{p.arrivee?duree(p.arrivee):''}</div>
               {/* Cercle unique : nombre de prescriptions en attente */}
               {(() => {
                 const enAttente = prescriptions.filter(r=>!r.fait&&!r.nonRealise).length;
@@ -505,7 +505,7 @@ export default function PageVueGlobale() {
                 onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
                 <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
                 <div style={{color:'#d97706',fontSize:11,fontWeight:600,marginTop:2}}>{labelSymptome(p)||p.symptome||p.motifPrincipal}</div>
-                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?new Date(parseInt(p.arrivee)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
                 <div style={{display:'flex',gap:5,marginTop:8}} onClick={e=>e.stopPropagation()}>
                   <select onChange={async e=>{
                     if(!e.target.value) return;
