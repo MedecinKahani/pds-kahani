@@ -182,7 +182,7 @@ export default function StatsMensuelles() {
           )}
           <button onClick={marquerImprime}
             style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
-            🖨️ Imprimer — Donné à la secrétaire
+            🖨️ À imprimer et à donner à la secrétaire
           </button>
         </div>
 
