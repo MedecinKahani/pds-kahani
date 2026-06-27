@@ -377,7 +377,7 @@ export default function NouveauPatient() {
 
         {/* SYMPTOME */}
         <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'1.25rem', marginBottom:12 }}>
-          <div style={{ fontWeight:700, fontSize:14, color:'#111827', marginBottom:12 }}>🩺 Symptome principal</div>
+          <div style={{ fontWeight:700, fontSize:14, color:'#111827', marginBottom:12 }}>🩺 Symptôme principal</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginBottom:ui.symptome?16:0 }}>
             {SYMPTOMES.map(s => (
               <Btn key={s.id} onClick={() => setU('symptome', s.id)}
