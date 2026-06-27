@@ -1,6 +1,19 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
+const EMPLACEMENTS_FICHE = [
+  {id:'brancard1',l:'B1 — Brancard 1',c:'#ef4444'},
+  {id:'brancard2',l:'B2 — Brancard 2',c:'#ef4444'},
+  {id:'fauteuil1',l:'F1 — Fauteuil 1',c:'#16a34a'},
+  {id:'fauteuil2',l:'F2 — Fauteuil 2',c:'#16a34a'},
+  {id:'obs1',l:'O1 — Observation 1',c:'#3b82f6'},
+  {id:'obs2',l:'O2 — Observation 2',c:'#3b82f6'},
+  {id:'lit1',l:'L1 — Lit 1',c:'#3b82f6'},
+  {id:'lit2',l:'L2 — Lit 2',c:'#3b82f6'},
+  {id:'pansement',l:'P1 — Pansement',c:'#f59e0b'},
+];
+
+
 function safeJSON(val, fallback = []) {
   if (!val) return fallback;
   if (Array.isArray(val)) return val;
@@ -199,7 +212,21 @@ ${ordonnance||'--'}
               {p.ipp&&<span style={{ marginLeft:8, fontSize:11, color:'#9ca3af' }}>IPP {p.ipp}</span>}
               <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color:'#0d9488' }}>{p.symptome?.replace(/_/g,' ')}</span>
             </div>
-            <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:28, height:28, borderRadius:'50%', cursor:'pointer', fontSize:16, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              {/* Changement emplacement */}
+              <select defaultValue={p.emplacement||''} onChange={async e=>{
+                if(!e.target.value) return;
+                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({action:'update',id:p.id,patch:{emplacement:e.target.value}})});
+                onUpdate?.();
+              }} style={{padding:'4px 8px',borderRadius:7,border:'1.5px solid #e5e7eb',fontSize:12,color:'#374151',background:'#f9fafb',cursor:'pointer'}}>
+                <option value=''>📍 Déplacer...</option>
+                {EMPLACEMENTS_FICHE.map(em=>(
+                  <option key={em.id} value={em.id} disabled={em.id===p.emplacement}>{em.l}{em.id===p.emplacement?' ✓':''}</option>
+                ))}
+              </select>
+              <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:28, height:28, borderRadius:'50%', cursor:'pointer', fontSize:16, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+            </div>
           </div>
 
           {/* Constantes style cartes vignette avec historique */}
