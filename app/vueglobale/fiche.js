@@ -26,18 +26,34 @@ Abdominal : abdomen souple dépressible indolore.
 ORL : gorge et tympans propres.`;
 
 const EXAMENS_COMPL = [
-  {id:'bu', label:'BU', color:'#7c3aed'},
-  {id:'ecg', label:'ECG', color:'#dc2626'},
-  {id:'dextro', label:'Dextro', color:'#f59e0b'},
   {id:'hemocue', label:'Hémocue', color:'#dc2626'},
-  {id:'crp', label:'CRP test', color:'#ea580c'},
+  {id:'dextro', label:'Dextro', color:'#ea580c'},
+  {id:'crp', label:'CRP rapide', color:'#16a34a'},
   {id:'tdr_palu', label:'TDR Paludisme', color:'#16a34a'},
-  {id:'tdr_dengue', label:'TDR Dengue', color:'#ea580c'},
+  {id:'tdr_dengue', label:'TDR Dengue', color:'#16a34a'},
   {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
-  {id:'bhcg', label:'bHCG urinaire', color:'#7c3aed'},
-
-  {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:['NFS + CRP','Gaz du sang','Tropo / D-Dimère / BNP','Iono / Créatinine / BHC']},
-  {id:'bio_mam', label:'Prélèvement Mamoudzou', color:'#0284c7', sub:['NFS','CRP','Iono','Créatinine','BHC','Lipase','Hémoculture','ECBU','Sérologie','Bactério']},
+  {id:'bu', label:'BU', color:'#d97706'},
+  {id:'bhcg', label:'bHCG urinaire', color:'#d97706'},
+  {id:'ecg', label:'ECG', color:'#6b7280'},
+  {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:[
+    {label:'NFS + CRP', color:'#7c3aed', note:'Tube violet'},
+    {label:'Gaz du sang', color:'#16a34a', note:'Seringue héparinée'},
+    {label:'Tropo / D-Dimère / BNP', color:'#0284c7', note:'Tube bleu/vert — à vérifier'},
+    {label:'Iono / Créatinine / BHC', color:'#0891b2', note:''},
+    {label:'Lipase', color:'#0891b2', note:''},
+  ]},
+  {id:'bio_mam', label:'Prélèvement Mamoudzou', color:'#0284c7', sub:[
+    {label:'NFS', color:'#7c3aed', note:'Tube violet'},
+    {label:'CRP', color:'#7c3aed', note:'Tube violet'},
+    {label:'Iono', color:'#0891b2', note:''},
+    {label:'Créatinine', color:'#0891b2', note:''},
+    {label:'BHC', color:'#0891b2', note:''},
+    {label:'Lipase', color:'#0891b2', note:''},
+    {label:'Hémoculture', color:'#dc2626', note:'Flacon hémo'},
+    {label:'ECBU', color:'#d97706', note:'Pot stérile'},
+    {label:'Sérologie', color:'#0284c7', note:''},
+    {label:'Bactério', color:'#6b7280', note:''},
+  ]},
 ];
 
 const SOINS = [
