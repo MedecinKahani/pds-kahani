@@ -72,7 +72,7 @@ const THERAPEUTIQUE_VOIES = {
     ]},
     { voie:'RESPI', label:'Voie respiratoire', groupes:[
       { group:'Oxygène', color:'#0891b2', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)','O2 masque haute concentration'] },
-      { group:'Aérosols', color:'#0369a1', items:['Aérosol Ventoline 2.5mg','Aérosol Ventoline 5mg','Aérosol Atrovent 0.25mg','Aérosol Atrovent 0.5mg','Aérosol Ventoline+Atrovent'] },
+      { group:'Aérosols', color:'#0369a1', items:['Aérosol Ventoline 2.5mg','Aérosol Ventoline 5mg','Aérosol Atrovent 0.25mg','Aérosol Atrovent 0.5mg'] },
       { group:'Urgence', color:'#dc2626', items:['MEOPA'] },
     ]},
   ],
@@ -98,7 +98,7 @@ const THERAPEUTIQUE_VOIES = {
     ]},
     { voie:'RESPI', label:'Voie respiratoire', groupes:[
       { group:'Oxygène', color:'#0891b2', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)'] },
-      { group:'Aérosols', color:'#0369a1', items:['Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','Aérosol Ventoline+Atrovent'] },
+      { group:'Aérosols', color:'#0369a1', items:['Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg'] },
       { group:'Urgence', color:'#dc2626', items:['MEOPA'] },
     ]},
   ],
@@ -510,15 +510,37 @@ ${ordonnance||'--'}
                             <div style={{fontSize:9,fontWeight:700,color:grp.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>{grp.group}</div>
                             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
                               {grp.items.map(item=>{
-                                const deja=prescriptions.find(r=>!r.fait&&r.texte.startsWith(item.split('__')[0]));
+                                const isVentoline = item.includes('Ventoline');
+                                const isAtrovent = item.includes('Atrovent');
+                                const dejaVentoline = prescriptions.find(r=>!r.fait&&r.texte.includes('Ventoline — Séance'));
+                                const dejaAtrovent = prescriptions.find(r=>!r.fait&&r.texte.includes('Atrovent — Séance'));
+                                if(isVentoline && dejaVentoline) return null;
+                                if(isAtrovent && dejaAtrovent) return null;
+                                const deja = !isVentoline && !isAtrovent && prescriptions.find(r=>!r.fait&&r.texte.startsWith(item.split('__')[0]));
                                 if(deja) return null;
-                                const rouge=isSecurisee(item);
-                                return <HBtn key={item} onClick={()=>ajouterPrescription(item,'therapeutique')}
+                                const rouge = isSecurisee(item);
+                                const dose = item.includes('2.5mg') ? '2.5mg' : item.includes('5mg') ? '5mg' : item.includes('0.25mg') ? '0.25mg' : '0.5mg';
+                                return <HBtn key={item} onClick={async()=>{
+                                  if(isVentoline) {
+                                    // 3 séances Ventoline + 1 Atrovent automatique
+                                    const atroventDose = dose === '2.5mg' ? '0.25mg' : '0.5mg';
+                                    const rx = [...prescriptions,
+                                      { texte:`Ventoline ${dose} — Séance 1/3`, categorie:'therapeutique', fait:false, ts:Date.now(), par:user?.matricule||'' },
+                                      { texte:`Ventoline ${dose} — Séance 2/3`, categorie:'therapeutique', fait:false, ts:Date.now()+1, par:user?.matricule||'' },
+                                      { texte:`Ventoline ${dose} — Séance 3/3`, categorie:'therapeutique', fait:false, ts:Date.now()+2, par:user?.matricule||'' },
+                                      { texte:`Atrovent ${atroventDose} — Séance 1/1`, categorie:'therapeutique', fait:false, ts:Date.now()+3, par:user?.matricule||'' },
+                                    ];
+                                    setPrescriptions(rx);
+                                    await save({ prescriptions: JSON.stringify(rx) });
+                                  } else {
+                                    ajouterPrescription(item,'therapeutique');
+                                  }
+                                }}
                                   style={{padding:'4px 9px',borderRadius:6,fontSize:11,fontWeight:600,
                                     background:rouge?'#fef2f2':grp.color+'12',
                                     color:rouge?'#dc2626':grp.color,
                                     border:'1.5px solid '+(rouge?'#fecaca':grp.color+'44')}}>
-                                  {item}
+                                  {isVentoline ? `${item} ×3 + Atrovent` : item}
                                 </HBtn>;
                               })}
                             </div>
