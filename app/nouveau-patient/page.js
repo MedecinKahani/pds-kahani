@@ -217,7 +217,7 @@ export default function NouveauPatient() {
             <div>
               <label style={lbl}>Prenom</label>
               <input
-                onChange={e => { vals.current.prenom = e.target.value; }}
+                onChange={e => { const v=e.target.value; vals.current.prenom = v.charAt(0).toUpperCase()+v.slice(1).toLowerCase(); e.target.value = vals.current.prenom; }}
                 style={inp} placeholder="Prenom" autoComplete="off" autoCorrect="off" spellCheck="false"/>
             </div>
           </div>
