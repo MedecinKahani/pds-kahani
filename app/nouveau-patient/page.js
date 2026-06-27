@@ -167,7 +167,7 @@ export default function NouveauPatient() {
 
   const SYMPTOMES = [
     { id:'coma',          label:'Coma / Inconscience', icon:'🚨' },
-    { id:'detresse_respi',label:'Detresse respi',       icon:'😮' },
+    { id:'detresse_respi',label:'Difficulté respiratoire',       icon:'😮' },
     { id:'asthme',        label:'Asthme',               icon:'💨' },
     { id:'douleur',       label:'Douleur',              icon:'😣' },
     { id:'fievre',        label:'Fievre',               icon:'🌡️' },
