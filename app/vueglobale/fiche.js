@@ -34,7 +34,7 @@ const EXAMENS_COMPL = [
   {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
   {id:'bu', label:'BU', color:'#d97706'},
   {id:'bhcg', label:'bHCG urinaire', color:'#d97706'},
-  {id:'ecg', label:'ECG', color:'#6b7280'},
+  {id:'ecg', label:'ECG', color:'#dc2626'},
   {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:[
     {label:'NFS + CRP', color:'#7c3aed', note:'Tube violet'},
     {label:'Gaz du sang', color:'#16a34a', note:'Seringue héparinée'},
