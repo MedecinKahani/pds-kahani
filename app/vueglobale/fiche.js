@@ -814,10 +814,16 @@ function IDERxItem({r, color, onCocher, onNonRealise, user}) {
 
 function TransmissionIDE({p, user, transmissions, setTransmissions}) {
   const [texte, setTexte] = useState('');
+  const [cat, setCat] = useState('soin');
+  const CATS = [
+    {id:'examen', label:'🔬 Examen', color:'#7c3aed'},
+    {id:'therapeutique', label:'💊 Thérapeutique', color:'#ea580c'},
+    {id:'soin', label:'🩹 Soin', color:'#d97706'},
+  ];
 
   async function ajouter() {
     if (!texte.trim()) return;
-    const t = [...transmissions, {texte:texte.trim(),par:user?.matricule||'',nom:user?.nom||'',ts:Date.now(),fait:false}];
+    const t = [...transmissions, {texte:texte.trim(),categorie:cat,par:user?.matricule||'',nom:user?.nom||'',ts:Date.now(),fait:false}];
     setTransmissions(t);
     setTexte('');
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -825,26 +831,25 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
   }
 
   return (
-    <div style={{background:'#f0fdf4',borderTop:'1px solid #bbf7d0',padding:'8px 12px',flexShrink:0}}>
-      <div style={{fontSize:10,fontWeight:700,color:'#16a34a',textTransform:'uppercase',marginBottom:6}}>📝 Transmissions IDE</div>
-      <div style={{display:'flex',gap:6,marginBottom:6}}>
-        <input value={texte} onChange={e=>setTexte(e.target.value)} placeholder="Soin réalisé, observation..."
+    <div style={{background:'#f9fafb',borderTop:'1.5px solid #e5e7eb',padding:'8px 12px',flexShrink:0}}>
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <span style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',flexShrink:0}}>📝 Note</span>
+        <div style={{display:'flex',gap:4}}>
+          {CATS.map(c=>(
+            <button key={c.id} onMouseDown={e=>{e.preventDefault();setCat(c.id);}}
+              style={{padding:'2px 8px',borderRadius:5,fontSize:10,fontWeight:600,cursor:'pointer',border:'1.5px solid '+(cat===c.id?c.color:'#e5e7eb'),background:cat===c.id?c.color:'#fff',color:cat===c.id?'#fff':c.color}}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+        <input value={texte} onChange={e=>setTexte(e.target.value)} placeholder="Observation, remarque..."
           onKeyDown={e=>{if(e.key==='Enter')ajouter();}}
-          style={{flex:1,padding:'5px 8px',borderRadius:6,border:'1px solid #bbf7d0',fontSize:11,outline:'none',background:'#fff'}}/>
-        <button onClick={ajouter} disabled={!texte.trim()}
-          style={{padding:'5px 10px',borderRadius:6,background:texte.trim()?'#16a34a':'#e5e7eb',color:texte.trim()?'#fff':'#9ca3af',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>
+          style={{flex:1,padding:'4px 8px',borderRadius:6,border:'1px solid #e5e7eb',fontSize:11,outline:'none',background:'#fff'}}/>
+        <button onMouseDown={e=>{e.preventDefault();ajouter();}} disabled={!texte.trim()}
+          style={{padding:'4px 10px',borderRadius:6,background:texte.trim()?'#0d9488':'#e5e7eb',color:texte.trim()?'#fff':'#9ca3af',fontSize:11,fontWeight:600,border:'none',cursor:'pointer',flexShrink:0}}>
           Ajouter
         </button>
       </div>
-      {transmissions.length>0&&(
-        <div style={{maxHeight:80,overflowY:'auto',display:'flex',flexDirection:'column',gap:3}}>
-          {transmissions.map((t,i)=>(
-            <div key={i} style={{fontSize:11,color:'#374151',background:'#fff',borderRadius:5,padding:'3px 8px',border:'1px solid #bbf7d0'}}>
-              {t.texte} <span style={{color:'#9ca3af',fontSize:9}}>— {t.nom} {new Date(t.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
