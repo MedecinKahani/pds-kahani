@@ -170,6 +170,8 @@ async function incrementerCompteurs(patient) {
     await kv.set(moisKey, existing); // pas de TTL — persistant à vie
   } catch(e) { console.error('incrementerCompteurs error', e); }
 }
+
+async function getAllPatients() {
   const keys = await kv.keys('patient:*');
   if (!keys.length) return [];
   const patients = await Promise.all(keys.map(k => kv.hgetall(k)));
