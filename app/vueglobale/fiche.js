@@ -377,7 +377,7 @@ ${ordonnance||'--'}
         </div>}
 
         {/* CONTENU — masqué pour AS */}
-        {user?.role !== 'as' && <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column'}}>
+        {user?.role !== 'as' && <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
 
           {onglet==='anamnese'&&(
             user?.role==='ide'
@@ -491,7 +491,7 @@ ${ordonnance||'--'}
                   <span style={{fontWeight:700,color:'#ea580c',fontSize:13}}>💊 Thérapeutique</span>
                   <span style={{color:'#ea580c',fontSize:14}}>{collapsed.therapeutique?'▶':'▼'}</span>
                 </div>
-                {!collapsed.therapeutique&&<div style={{padding:'10px 12px'}}>
+                {!collapsed.therapeutique&&<div style={{padding:'10px 12px',maxHeight:'60vh',overflowY:'auto'}}>
                   {/* Onglets Adulte / Pédiatrie */}
                   <div style={{display:'flex',gap:6,marginBottom:10}}>
                     {['adulte','pediatrie'].map(t=>(
