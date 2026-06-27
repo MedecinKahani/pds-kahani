@@ -314,7 +314,6 @@ export default function PageVueGlobale() {
                   </div>}
                 </div>
               </div>
-              <div style={{fontSize:11,fontWeight:700,color:'#111827',textAlign:'right',lineHeight:1.2,flexShrink:0,maxWidth:'40%'}}>{labelSymptome(p)}</div>
             </div>
 
             <div style={{display:'flex',gap:4,alignItems:'stretch',flex:1}}>
@@ -339,9 +338,10 @@ export default function PageVueGlobale() {
                 })}
               </div>
 
-              {/* Moitié droite : cercles prescriptions + bouton sortie */}
+              {/* Moitié droite : motif centré + cercles + bouton sortie */}
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingLeft:4}}>
-                <div style={{display:'flex',flexDirection:'column',gap:4,alignItems:'center',marginTop:2}}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,marginTop:2,width:'100%'}}>
+                  <div style={{fontSize:11,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2,marginBottom:4}}>{labelSymptome(p)}</div>
                   {[
                     {has:hasExamens, icon:'🔬'},
                     {has:hasThera,   icon:'💊'},
@@ -359,12 +359,14 @@ export default function PageVueGlobale() {
                     </div>
                   ))}
                 </div>
-                <button onClick={e=>{
-                  e.stopPropagation();
-                  setFichesSortie(p);
-                }} style={{padding:'3px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:10,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
-                  Sortie →
-                </button>
+                <div style={{display:'flex',justifyContent:'flex-end',width:'100%',paddingRight:2,paddingBottom:2}}>
+                  <button onClick={e=>{
+                    e.stopPropagation();
+                    setFichesSortie(p);
+                  }} style={{padding:'2px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                    Sortie →
+                  </button>
+                </div>
               </div>
             </div>
 
