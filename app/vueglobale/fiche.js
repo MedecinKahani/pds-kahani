@@ -377,7 +377,7 @@ ${ordonnance||'--'}
         </div>}
 
         {/* CONTENU — masqué pour AS */}
-        {user?.role !== 'as' && <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
+        {user?.role !== 'as' && <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column'}}>
 
           {onglet==='anamnese'&&(
             <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
