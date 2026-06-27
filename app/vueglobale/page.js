@@ -302,7 +302,7 @@ export default function PageVueGlobale() {
                   <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                     {p.prenom} {p.nom} <span style={{color:c,fontSize:11}}>{sexeSymbol}</span>
                   </div>
-                  <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
+                  <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()+'· ':''}{p.age} ans</div>
                   {p.ipp&&<div style={{color:'#9ca3af',fontSize:8,marginTop:1,display:'flex',alignItems:'center',gap:2}}>
                     {p.ipp}
                     <span onClick={e=>{
