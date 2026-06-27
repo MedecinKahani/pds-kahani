@@ -105,7 +105,7 @@ Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas d
 Abdominal : abdomen souple dépressible indolore.
 ORL : gorge et tympans propres.`;
 
-export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user }) {
+export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user, patients=[] }) {
   const p = patient || pProp;
   if (!p) return null;
 
@@ -215,7 +215,7 @@ ${ordonnance||'--'}
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               {/* Bouton déplacer */}
               <div style={{position:'relative'}}>
-                <DeplacerBtn p={p} onUpdate={onUpdate}/>
+                <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
               </div>
               <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:28, height:28, borderRadius:'50%', cursor:'pointer', fontSize:16, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
             </div>
@@ -624,7 +624,7 @@ function HydratationSelector({ onAjouter }) {
   );
 }
 
-function DeplacerBtn({ p, onUpdate }) {
+function DeplacerBtn({ p, onUpdate, patients=[] }) {
   const [open, setOpen] = useState(false);
   const emplacementLabel = EMPLACEMENTS_FICHE.find(e=>e.id===p.emplacement)?.l || p.emplacement || '?';
   return (
@@ -635,26 +635,34 @@ function DeplacerBtn({ p, onUpdate }) {
       </button>
       {open&&<div style={{position:'fixed',zIndex:9999,background:'#fff',border:'1.5px solid #e5e7eb',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',padding:8,minWidth:200}}>
         <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',padding:'4px 8px',marginBottom:4}}>Déplacer vers</div>
-        {EMPLACEMENTS_FICHE.map(em=>(
-          <div key={em.id}
-            onClick={async()=>{
-              if(em.id===p.emplacement) return;
-              await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({action:'update',id:p.id,patch:{emplacement:em.id}})});
-              setOpen(false);
-              onUpdate?.();
-            }}
-            style={{padding:'8px 12px',borderRadius:7,cursor:em.id===p.emplacement?'default':'pointer',
-              fontSize:12,fontWeight:600,
-              color:em.id===p.emplacement?'#9ca3af':em.c,
-              background:em.id===p.emplacement?'#f9fafb':'#fff',
-              display:'flex',alignItems:'center',gap:8}}
-            onMouseEnter={e=>{if(em.id!==p.emplacement)e.currentTarget.style.background=em.c+'18';}}
-            onMouseLeave={e=>{e.currentTarget.style.background=em.id===p.emplacement?'#f9fafb':'#fff';}}>
-            {em.id===p.emplacement&&<span style={{fontSize:10}}>✓</span>}
-            {em.l}
-          </div>
-        ))}
+        {EMPLACEMENTS_FICHE.map(em=>{
+          const occupePar = patients.find(pt=>pt.emplacement===em.id && pt.id!==p.id);
+          const estActuel = em.id===p.emplacement;
+          const disabled = !!occupePar || estActuel;
+          return (
+            <div key={em.id}
+              onClick={async()=>{
+                if(disabled) return;
+                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({action:'update',id:p.id,patch:{emplacement:em.id}})});
+                setOpen(false);
+                onUpdate?.();
+              }}
+              style={{padding:'8px 12px',borderRadius:7,cursor:disabled?'default':'pointer',
+                fontSize:12,fontWeight:600,
+                color:disabled?'#d1d5db':em.c,
+                background:estActuel?'#f0fdf4':'#fff',
+                display:'flex',alignItems:'center',gap:8,
+                textDecoration:occupePar?'line-through':'none',
+                opacity:occupePar?0.5:1}}
+              onMouseEnter={e=>{if(!disabled)e.currentTarget.style.background=em.c+'18';}}
+              onMouseLeave={e=>{e.currentTarget.style.background=estActuel?'#f0fdf4':'#fff';}}>
+              {estActuel&&<span style={{fontSize:10,color:'#16a34a'}}>✓</span>}
+              {em.l}
+              {occupePar&&<span style={{fontSize:10,color:'#9ca3af',marginLeft:'auto'}}>{occupePar.nom}</span>}
+            </div>
+          );
+        })}
         <div style={{borderTop:'1px solid #f3f4f6',marginTop:4,paddingTop:4}}>
           <div onClick={()=>setOpen(false)} style={{padding:'6px 12px',borderRadius:7,cursor:'pointer',fontSize:11,color:'#9ca3af',textAlign:'center'}}
             onMouseEnter={e=>e.currentTarget.style.background='#f9fafb'}

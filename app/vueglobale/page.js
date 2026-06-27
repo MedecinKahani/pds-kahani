@@ -428,6 +428,7 @@ export default function PageVueGlobale() {
               else load();
             }}
             user={user}
+            patients={patients}
           />
         </div>
       )}
