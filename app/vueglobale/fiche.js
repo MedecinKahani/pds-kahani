@@ -37,24 +37,70 @@ const EXAMENS = [
 const SECURISEES = ['Tramadol','Morphine','MEOPA','Kétoprofène'];
 function isSecurisee(label) { return SECURISEES.some(s => label.includes(s)); }
 
-const THERAPEUTIQUE_ADULTE = [
-  { group:'Antalgiques PO', items:['Paracétamol 500mg PO','Paracétamol 1g PO','Ibuprofène 200mg PO','Ibuprofène 400mg PO','Tramadol 50mg PO','Tramadol 100mg PO','Acupan 20mg PO'] },
-  { group:'Antalgiques IV/IM', items:['Perfalgan 1g IV','Kétoprofène 100mg IV','Acupan 20mg IV','Titration morphine 0.1mg/kg puis +3mg/5min EN<4','MEOPA'] },
-  { group:'Respiratoire', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)','Aérosol Ventoline 2.5mg','Aérosol Ventoline 5mg','Aérosol Atrovent 0.25mg','Aérosol Atrovent 0.5mg'] },
-  { group:'Cardiovasculaire', items:['Adrénaline 0.5mg','Adrénaline 1mg','Kardegic 75mg PO','Lasilix 20mg PO','Lasilix 40mg PO','Lasilix 20mg IV','Lasilix 40mg IV','Loxen 10mg PO','Loxen IV','Risordan 1mg IV','Amlodipine 5mg PO'] },
-  { group:'Antibiotiques', items:['Amoxicilline 1g PO','Augmentin 1g PO','Azithromycine 500mg PO','Ceftriaxone 1g IM','Ceftriaxone 2g IV','Métronidazole 500mg IV'] },
-  { group:'Antiparasitaires', items:['Artéméther-Luméfantrine (Coartem)','Artésunate IV','Albendazole 400mg'] },
-  { group:'Autres', items:['Métoclopramide 10mg','Ondansétron 4mg','Oméprazole 20mg','Polaramine 2mg','Solumédrol 40mg IV','Méthylprednisolone __mg/kg IV','Spasfon 80mg'] },
-];
+// Thérapeutique par voie et classe, avec couleur
+const THERAPEUTIQUE_VOIES = {
+  adulte: [
+    { voie:'PO', label:'Voie orale', groupes:[
+      { group:'Antalgiques', color:'#16a34a', items:['Paracétamol 500mg PO','Paracétamol 1g PO','Ibuprofène 200mg PO','Ibuprofène 400mg PO','Tramadol 50mg PO','Tramadol 100mg PO','Acupan 20mg PO'] },
+      { group:'Cardiovasculaire', color:'#dc2626', items:['Kardegic 75mg PO','Lasilix 20mg PO','Lasilix 40mg PO','Loxen 10mg PO','Amlodipine 5mg PO'] },
+      { group:'Antibiotiques', color:'#2563eb', items:['Amoxicilline 1g PO','Augmentin 1g PO','Azithromycine 500mg PO','Métronidazole 500mg PO'] },
+      { group:'Antiparasitaires', color:'#15803d', items:['Artéméther-Luméfantrine (Coartem)','Albendazole 400mg'] },
+      { group:'Autres', color:'#6b7280', items:['Métoclopramide 10mg PO','Ondansétron 4mg PO','Oméprazole 20mg PO','Polaramine 2mg PO','Spasfon 80mg PO'] },
+    ]},
+    { voie:'IV', label:'Voie IV', groupes:[
+      { group:'Antalgiques', color:'#16a34a', items:['Perfalgan 1g IV','Kétoprofène 100mg IV','Acupan 20mg IV','Titration morphine 0.1mg/kg puis +3mg/5min IV'] },
+      { group:'Urgence', color:'#dc2626', items:['Adrénaline 0.5mg IV','Adrénaline 1mg IV','Solumédrol 40mg IV','Méthylprednisolone __mg/kg IV','Risordan 1mg IV'] },
+      { group:'Cardiovasculaire', color:'#b91c1c', items:['Lasilix 20mg IV','Lasilix 40mg IV','Loxen IV'] },
+      { group:'Antibiotiques', color:'#2563eb', items:['Ceftriaxone 2g IV','Métronidazole 500mg IV','Artésunate IV'] },
+      { group:'Autres', color:'#6b7280', items:['Métoclopramide 10mg IV','Ondansétron 4mg IV'] },
+    ]},
+    { voie:'IM', label:'Voie IM', groupes:[
+      { group:'Antalgiques', color:'#16a34a', items:['Kétoprofène 100mg IM','Acupan 20mg IM'] },
+      { group:'Antibiotiques', color:'#2563eb', items:['Ceftriaxone 1g IM','Ceftriaxone 2g IM'] },
+      { group:'Urgence', color:'#dc2626', items:['Adrénaline 0.5mg IM','Adrénaline 1mg IM','Solumédrol 40mg IM'] },
+    ]},
+    { voie:'SC', label:'Voie SC', groupes:[
+      { group:'Anesthésie locale', color:'#7c3aed', items:['Lidocaïne 1% SC','Lidocaïne 2% SC','Lidocaïne adrénalinée SC'] },
+      { group:'Vaccin', color:'#0891b2', items:['Vaccin antitétanique SC','Vaccin antirabique SC'] },
+      { group:'Insuline', color:'#6b7280', items:['Insuline rapide SC __UI','Insuline lente SC __UI'] },
+    ]},
+    { voie:'RESPI', label:'Voie respiratoire', groupes:[
+      { group:'Oxygène', color:'#0891b2', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)','O2 masque haute concentration'] },
+      { group:'Aérosols', color:'#0369a1', items:['Aérosol Ventoline 2.5mg','Aérosol Ventoline 5mg','Aérosol Atrovent 0.25mg','Aérosol Atrovent 0.5mg','Aérosol Ventoline+Atrovent'] },
+      { group:'Urgence', color:'#dc2626', items:['MEOPA'] },
+    ]},
+  ],
+  pediatrie: [
+    { voie:'PO', label:'Voie orale', groupes:[
+      { group:'Antalgiques', color:'#16a34a', items:['Paracétamol 15mg/kg/dose PO','Ibuprofène 10mg/kg/dose PO','Tramadol 1-2mg/kg PO'] },
+      { group:'Antibiotiques', color:'#2563eb', items:['Amoxicilline 50mg/kg/j PO','Augmentin 80mg/kg/j PO','Azithromycine 10mg/kg J1 puis 5mg/kg'] },
+      { group:'Antiparasitaires', color:'#15803d', items:['Artéméther-Luméfantrine selon poids','Albendazole 200mg si <10kg / 400mg si >10kg'] },
+      { group:'Autres', color:'#6b7280', items:['Métoclopramide 0.1mg/kg PO','Ondansétron 0.15mg/kg PO','Paracétamol 15mg/kg suppositoire'] },
+    ]},
+    { voie:'IV', label:'Voie IV', groupes:[
+      { group:'Antalgiques', color:'#16a34a', items:['Perfalgan 15mg/kg IV','Morphine 0.1mg/kg IV titration'] },
+      { group:'Antibiotiques', color:'#2563eb', items:['Ceftriaxone 50-100mg/kg IV'] },
+      { group:'Urgence', color:'#dc2626', items:['Adrénaline 0.01mg/kg IV','Dexaméthasone 0.15mg/kg IV','Solumédrol 1mg/kg IV'] },
+    ]},
+    { voie:'IM', label:'Voie IM', groupes:[
+      { group:'Antibiotiques', color:'#2563eb', items:['Ceftriaxone 50mg/kg IM','Ceftriaxone 100mg/kg IM'] },
+      { group:'Urgence', color:'#dc2626', items:['Adrénaline 0.01mg/kg IM'] },
+    ]},
+    { voie:'SC', label:'Voie SC', groupes:[
+      { group:'Anesthésie locale', color:'#7c3aed', items:['Lidocaïne 1% SC','Lidocaïne adrénalinée SC'] },
+      { group:'Vaccin', color:'#0891b2', items:['Vaccin antitétanique SC'] },
+    ]},
+    { voie:'RESPI', label:'Voie respiratoire', groupes:[
+      { group:'Oxygène', color:'#0891b2', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)'] },
+      { group:'Aérosols', color:'#0369a1', items:['Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','Aérosol Ventoline+Atrovent'] },
+      { group:'Urgence', color:'#dc2626', items:['MEOPA'] },
+    ]},
+  ],
+};
 
-const THERAPEUTIQUE_PEDIATRIE = [
-  { group:'Antalgiques PO', items:['Paracétamol 15mg/kg/dose PO','Ibuprofène 10mg/kg/dose PO','Tramadol 1-2mg/kg PO'] },
-  { group:'Antalgiques IV', items:['Perfalgan 15mg/kg IV','Morphine 0.1mg/kg IV titration'] },
-  { group:'Respiratoire', items:['O2 lunettes (Sat>94%)','Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','MEOPA'] },
-  { group:'Antibiotiques', items:['Amoxicilline 50mg/kg/j PO en 3 prises','Augmentin 80mg/kg/j PO','Azithromycine 10mg/kg J1 puis 5mg/kg','Ceftriaxone 50-100mg/kg IV'] },
-  { group:'Antiparasitaires', items:['Artéméther-Luméfantrine selon poids','Albendazole 200mg si <10kg / 400mg si >10kg'] },
-  { group:'Autres', items:['Métoclopramide 0.1mg/kg','Ondansétron 0.15mg/kg','Paracétamol 15mg/kg/dose suppositoire','Dexaméthasone 0.15mg/kg IV'] },
-];
+// Gardé pour compatibilité
+const THERAPEUTIQUE_ADULTE = THERAPEUTIQUE_VOIES.adulte.flatMap(v=>v.groupes);
+const THERAPEUTIQUE_PEDIATRIE = THERAPEUTIQUE_VOIES.pediatrie.flatMap(v=>v.groupes);
 
 const SOINS = [
   { id:'allonger',   label:'Allonger',                   color:'#0891b2' },
@@ -70,6 +116,8 @@ const SOINS = [
   { id:'glyc_ctrl',  label:'Glycémie capillaire contrôle', color:'#f59e0b' },
   { id:'rechauffe',  label:'Réchauffement',              color:'#ea580c' },
   { id:'oxymetre',   label:'Oxymétrie de pouls',         color:'#dc2626' },
+  { id:'educ_asthme',label:'Éducation asthme — vidéo TV obs', color:'#0891b2' },
+  { id:'reprise_const',label:'Reprise constantes post-thérapeutique', color:'#6b7280' },
 ];
 
 function HBtn({ onClick, style, children, title, disabled }) {
@@ -431,7 +479,7 @@ ${ordonnance||'--'}
                   <span style={{color:'#ea580c',fontSize:14}}>{collapsed.therapeutique?'▶':'▼'}</span>
                 </div>
                 {!collapsed.therapeutique&&<div style={{padding:'10px 12px'}}>
-                  {/* Sous-onglets Adulte / Pédiatrie */}
+                  {/* Onglets Adulte / Pédiatrie */}
                   <div style={{display:'flex',gap:6,marginBottom:10}}>
                     {['adulte','pediatrie'].map(t=>(
                       <button key={t} onClick={()=>setTherapieTab(t)}
@@ -440,50 +488,60 @@ ${ordonnance||'--'}
                       </button>
                     ))}
                   </div>
-                  {(therapieTab==='adulte'?THERAPEUTIQUE_ADULTE:THERAPEUTIQUE_PEDIATRIE).map(grp=>(
-                    <div key={grp.group} style={{marginBottom:10}}>
-                      <div style={{fontSize:10,fontWeight:700,color:'#9a3412',marginBottom:5,textTransform:'uppercase',letterSpacing:0.5}}>{grp.group}</div>
-                      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                        {grp.items.map(item=>{
-                          const deja=prescriptions.find(r=>!r.fait&&r.texte.startsWith(item.split('__')[0]));
-                          if(deja) return null;
-                          const rouge=isSecurisee(item);
-                          return <HBtn key={item} onClick={()=>ajouterPrescription(item,'therapeutique')}
-                            style={{padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:600,
-                              background:rouge?'#fef2f2':'#fff7ed',
-                              color:rouge?'#dc2626':'#9a3412',
-                              border:'1.5px solid '+(rouge?'#fecaca':'#fed7aa')}}>
-                            {item}
-                          </HBtn>;
-                        })}
+
+                  {/* Voies d'administration */}
+                  {THERAPEUTIQUE_VOIES[therapieTab].map(voieObj=>(
+                    <div key={voieObj.voie} style={{marginBottom:12,border:'1px solid #f3f4f6',borderRadius:8,overflow:'hidden'}}>
+                      <div style={{background:'#f9fafb',padding:'6px 10px',fontSize:10,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:1}}>
+                        {voieObj.label}
+                      </div>
+                      <div style={{padding:'8px 10px',display:'flex',flexDirection:'column',gap:6}}>
+                        {voieObj.groupes.map(grp=>(
+                          <div key={grp.group}>
+                            <div style={{fontSize:9,fontWeight:700,color:grp.color,textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>{grp.group}</div>
+                            <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                              {grp.items.map(item=>{
+                                const deja=prescriptions.find(r=>!r.fait&&r.texte.startsWith(item.split('__')[0]));
+                                if(deja) return null;
+                                const rouge=isSecurisee(item);
+                                return <HBtn key={item} onClick={()=>ajouterPrescription(item,'therapeutique')}
+                                  style={{padding:'4px 9px',borderRadius:6,fontSize:11,fontWeight:600,
+                                    background:rouge?'#fef2f2':grp.color+'12',
+                                    color:rouge?'#dc2626':grp.color,
+                                    border:'1.5px solid '+(rouge?'#fecaca':grp.color+'44')}}>
+                                  {item}
+                                </HBtn>;
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                        {voieObj.voie==='IV'&&(
+                          <div>
+                            <div style={{fontSize:9,fontWeight:700,color:'#0369a1',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>Hydratation</div>
+                            <HydratationSelector onAjouter={ajouterPrescription}/>
+                            <div style={{marginTop:4,display:'flex',gap:4,flexWrap:'wrap'}}>
+                              {[['1g','250mL','1h'],['2g','500mL','2h'],['3g','750mL','3h scopé+GDS']].map(([g,v,d])=>{
+                                const label=`Potassium ${g} / ${v} / ${d}`;
+                                const deja=prescriptions.find(r=>!r.fait&&r.texte===label);
+                                if(deja) return null;
+                                return <HBtn key={g} onClick={()=>ajouterPrescription(label,'therapeutique')}
+                                  style={{padding:'4px 10px',borderRadius:5,fontSize:10,fontWeight:600,background:'#f5f3ff',color:'#7c3aed',border:'1px solid #ddd6fe'}}>
+                                  K+ {g}
+                                </HBtn>;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        {voieObj.voie==='SC'&&(
+                          <div>
+                            <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>Insuline</div>
+                            <InsulineSelector onAjouter={ajouterPrescription}/>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                   <AutreLibre categorie="therapeutique" onAjouter={ajouterPrescription}/>
-
-                  {/* Hydratation interactive */}
-                  <div style={{marginTop:10,padding:10,background:'#f0f9ff',borderRadius:8,border:'1px solid #bae6fd'}}>
-                    <div style={{fontSize:10,fontWeight:700,color:'#0369a1',marginBottom:6,textTransform:'uppercase'}}>Hydratation</div>
-                    <HydratationSelector onAjouter={ajouterPrescription}/>
-                    <div style={{marginTop:6}}>
-                      <div style={{fontSize:10,fontWeight:700,color:'#7c3aed',marginBottom:4}}>Potassium</div>
-                      {[['1g','250mL','1h'],['2g','500mL','2h'],['3g','750mL','3h (scopé + GDS contrôle)']].map(([g,v,d])=>{
-                        const label=`Potassium ${g} / ${v} / ${d} min`;
-                        const deja=prescriptions.find(r=>!r.fait&&r.texte===label);
-                        if(deja) return null;
-                        return <HBtn key={g} onClick={()=>ajouterPrescription(label,'therapeutique')}
-                          style={{padding:'4px 10px',borderRadius:5,fontSize:10,fontWeight:600,background:'#f5f3ff',color:'#7c3aed',border:'1px solid #ddd6fe',marginRight:5,marginBottom:4}}>
-                          K+ {g}
-                        </HBtn>;
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Insuline interactive */}
-                  <div style={{marginTop:8,padding:10,background:'#fdf4ff',borderRadius:8,border:'1px solid #e9d5ff'}}>
-                    <div style={{fontSize:10,fontWeight:700,color:'#7c3aed',marginBottom:6,textTransform:'uppercase'}}>Insuline</div>
-                    <InsulineSelector onAjouter={ajouterPrescription}/>
-                  </div>
                 </div>}
               </div>
 
@@ -512,6 +570,8 @@ ${ordonnance||'--'}
           )}
           {onglet==='evolution'&&(
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              {/* SUTURES si motif plaie */}
+              {p.symptome==='plaie'&&<SutureSection p={p} save={save}/>}
               <div>
                 <label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase'}}>Évolution au dispensaire</label>
                 <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);debouncedSave({evolution:e.target.value});}} rows={4} style={{...inp,overflow:'hidden'}} placeholder="Évolution clinique..."/>
@@ -671,6 +731,46 @@ function DeplacerBtn({ p, onUpdate, patients=[] }) {
           </div>
         </div>
       </div>}
+    </div>
+  );
+}
+
+function SutureSection({ p, save }) {
+  const SUTURES = [
+    { id:'sut_sup5', label:'Suture ≥ 5 points', color:'#dc2626' },
+    { id:'sut_inf5', label:'Suture < 5 points',  color:'#f59e0b' },
+    { id:'sut_colle',label:'Suture colle',        color:'#0891b2' },
+    { id:'sut_agraf',label:'Suture agrafes',      color:'#7c3aed' },
+    { id:'sut_steri',label:'Suture Steri-strip',  color:'#16a34a' },
+  ];
+  const [sutures, setSutures] = useState(() => {
+    try { return JSON.parse(p.sutures||'[]'); } catch { return []; }
+  });
+
+  async function toggle(id) {
+    const next = sutures.includes(id) ? sutures.filter(x=>x!==id) : [...sutures, id];
+    setSutures(next);
+    await save({ sutures: JSON.stringify(next) });
+  }
+
+  return (
+    <div style={{background:'#fff8f8',border:'1.5px solid #fecaca',borderRadius:10,padding:'10px 14px'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',textTransform:'uppercase',marginBottom:8}}>✂️ Suture / Fermeture plaie</div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+        {SUTURES.map(s=>{
+          const sel = sutures.includes(s.id);
+          return (
+            <button key={s.id} onClick={()=>toggle(s.id)}
+              style={{padding:'6px 14px',borderRadius:7,fontSize:12,fontWeight:600,cursor:'pointer',
+                background: sel ? s.color : '#fff',
+                color: sel ? '#fff' : s.color,
+                border: '2px solid ' + s.color,
+                transition:'all 0.1s'}}>
+              {sel ? '✓ ' : ''}{s.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
