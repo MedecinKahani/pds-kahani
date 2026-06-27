@@ -656,13 +656,16 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
   const [openField, setOpenField] = useState(null);
   const [newVal, setNewVal] = useState('');
 
-  const constPost = safeJSON(p.constantes_post, []);
+  // constPost géré par constPostLocal ci-dessus
+
+  const [constPostLocal, setConstPostLocal] = useState(safeJSON(p.constantes_post, []));
+  const allConstPost = [...constPostLocal];
 
   async function saveConst(key, label, val, unit, extraPatch={}) {
-    const updated = [...constPost, {key, label, val, unit, ts:Date.now()}];
-    await fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
+    const updated = [...constPostLocal, {key, label, val, unit, ts:Date.now()}];
+    setConstPostLocal(updated);
+    fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({action:'update', id:p.id, patch:{constantes_post:JSON.stringify(updated), ...extraPatch}})});
-    onUpdate?.();
     setOpenField(null);
     setNewVal('');
   }
@@ -700,7 +703,7 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
   }
 
   function latest(key) {
-    const matches = constPost.filter(c=>c.key===key);
+    const matches = constPostLocal.filter(c=>c.key===key);
     return matches.length ? matches[matches.length-1].val : null;
   }
 
@@ -769,7 +772,7 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
   }
 
   function BUCard() {
-    const buPost = constPost.filter(c=>c.key==='bu_qual');
+    const buPost = constPostLocal.filter(c=>c.key==='bu_qual');
     const latestBU = buPost.length ? buPost[buPost.length-1].val : null;
     const cur = latestBU || p.bu_resultat;
     const isOpen = openField==='bu_qual';
