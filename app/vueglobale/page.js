@@ -189,7 +189,7 @@ export default function PageVueGlobale() {
 
   function labelSymptome(p) {
     const map = {
-      coma:'Coma / Inconscience', detresse_respi:'Detresse respiratoire',
+      coma:'Coma / Inconscience', detresse_respi:'Détresse respiratoire',
       asthme:'Asthme', douleur:'Douleur', fievre:'Fievre',
       vertige:'Vertige / Malaise', plaie:'Plaie', autre:'Autre'
     };
