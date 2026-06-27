@@ -56,7 +56,7 @@ export default function NouveauPatient() {
     dextro:'', hemocue:'',
     bu_fait:false, bu_resultat:'', bhcg_fait:false, bhcg_resultat:'',
     plaie_vaccin:'', quicktest:'',
-    drp:false, ecg_fait:false,
+    drp:false, educ_drp:false, cetonemie:'', crp_test:'', ecg_fait:false,
     notes:'',
   });
 
@@ -152,7 +152,7 @@ export default function NouveauPatient() {
       bu_fait: v.bu_fait, bu_resultat: v.bu_resultat,
       bhcg_fait: v.bhcg_fait, bhcg_resultat: v.bhcg_resultat,
       plaie_vaccin: v.plaie_vaccin, quicktest: v.quicktest,
-      drp: v.drp, ecg_fait: v.ecg_fait, notes: v.notes,
+      drp: v.drp, educ_drp: v.educ_drp, cetonemie: v.cetonemie, crp_test: v.crp_test, ecg_fait: v.ecg_fait, notes: v.notes,
       statut: emplacementForce ? 'attente_medecin' : (p.place !== 'dehors' ? 'attente_medecin' : 'dehors'),
       emplacement: emplacementForce ? emplacementForce : (p.place !== 'dehors' ? p.place : null),
       emplacement_suggere: p.place,
@@ -445,8 +445,28 @@ export default function NouveauPatient() {
                   </div>
 
                   {ui.signe_lutte===true&&<div style={{ background:'#fef2f2', border:'2px solid #ef4444', borderRadius:8, padding:'10px 12px', marginTop:10 }}>
-                    <div style={{ color:'#dc2626', fontWeight:700 }}>B1 ou B2 — O2 — Alerter equipe</div>
+                    <div style={{ color:'#dc2626', fontWeight:700 }}>B1 ou B2 — O2 — Alerter équipe</div>
                   </div>}
+                </div>
+              )}
+              {/* DRP si < 3 ans */}
+              {ui.age!==null&&ui.age<3&&(
+                <div style={{ background:'#eff6ff', borderTop:'1px solid #bfdbfe', padding:'10px 14px' }}>
+                  <div style={{ color:'#1d4ed8', fontWeight:700, fontSize:12, marginBottom:6 }}>Enfant &lt; 3 ans — Si enrhumé : DRP recommandé</div>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    <Btn onClick={() => setU('drp', !ui.drp)}
+                      style={{ padding:'6px 14px', borderRadius:6, fontSize:12, fontWeight:600,
+                        background: ui.drp?'#3b82f6':'#fff', color: ui.drp?'#fff':'#374151',
+                        border: '1px solid '+(ui.drp?'#3b82f6':'#e5e7eb') }}>
+                      {ui.drp?'✓ DRP réalisé':'DRP à réaliser'}
+                    </Btn>
+                    <Btn onClick={() => setU('educ_drp', !ui.educ_drp)}
+                      style={{ padding:'6px 14px', borderRadius:6, fontSize:12, fontWeight:600,
+                        background: ui.educ_drp?'#0d9488':'#fff', color: ui.educ_drp?'#fff':'#374151',
+                        border: '1px solid '+(ui.educ_drp?'#0d9488':'#e5e7eb') }}>
+                      {ui.educ_drp?'✓ Éducation lavage de nez':'Éducation lavage de nez'}
+                    </Btn>
+                  </div>
                 </div>
               )}
             </div>
@@ -614,20 +634,31 @@ export default function NouveauPatient() {
                 ))}
               </div>
               {(ui.fievre_depuis==='2-3 jours'||ui.fievre_depuis==='Plus de 3 jours')&&(
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
                   {[{k:'tdr_palu',l:'TDR Paludisme',pos:'#ef4444'},{k:'tdr_dengue',l:'TDR Dengue',pos:'#f59e0b'}].map(({k,l,pos})=>(
                     <div key={k}>
                       <label style={lbl}>{l}</label>
                       <div style={{ display:'flex', gap:6 }}>
                         {['Negatif','Positif'].map(r=>(
                           <Btn key={r} onClick={()=>setU(k,r)} style={{flex:1,padding:'8px',borderRadius:7,fontSize:11,fontWeight:600,background:ui[k]===r?(r==='Positif'?pos:'#16a34a'):'#fff',color:ui[k]===r?'#fff':'#374151',border:'1.5px solid '+(ui[k]===r?(r==='Positif'?pos:'#16a34a'):'#e5e7eb')}}>
-                            {r==='Positif'?'✗ Positif':'✓ Negatif'}
+                            {r==='Positif'?'✗ Positif':'✓ Négatif'}
                           </Btn>
                         ))}
                       </div>
-                      {ui[k]==='Positif'&&<div style={{color:pos,fontSize:11,marginTop:3,fontWeight:600}}>{l.replace('TDR ','')} + — Prevenir medecin</div>}
+                      {ui[k]==='Positif'&&<div style={{color:pos,fontSize:11,marginTop:3,fontWeight:600}}>{l.replace('TDR ','')} + — Prévenir médecin</div>}
                     </div>
                   ))}
+                  <div>
+                    <label style={lbl}>CRP test</label>
+                    <div style={{display:'flex',gap:6}}>
+                      {['Négatif','Positif'].map(r=>(
+                        <Btn key={r} onClick={()=>setU('crp_test',r)} style={{flex:1,padding:'8px',borderRadius:7,fontSize:11,fontWeight:600,background:ui.crp_test===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',color:ui.crp_test===r?'#fff':'#374151',border:'1.5px solid '+(ui.crp_test===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb')}}>
+                          {r==='Positif'?'✗ Positif':'✓ Négatif'}
+                        </Btn>
+                      ))}
+                    </div>
+                    {ui.crp_test==='Positif'&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>CRP + — Prévenir médecin</div>}
+                  </div>
                 </div>
               )}
               {(ui.fievre_depuis==='Quelques heures'||ui.fievre_depuis==='1 jour')&&(
@@ -649,7 +680,17 @@ export default function NouveauPatient() {
                   {ui.dextro&&parseFloat(ui.dextro)<0.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>HYPOGLYCEMIE SEVERE — B1 + alerter medecin</div>}
                   {ui.dextro&&parseFloat(ui.dextro)>=0.5&&parseFloat(ui.dextro)<0.7&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:600}}>Hypoglycemie — Alerter medecin</div>}
                   {ui.dextro&&parseFloat(ui.dextro)>2&&parseFloat(ui.dextro)<=2.5&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Hyperglycemie — Prevenir medecin</div>}
-                  {ui.dextro&&parseFloat(ui.dextro)>2.5&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>Faire cetonemie + prevenir medecin</div>}
+                  {ui.dextro&&parseFloat(ui.dextro)>2.5&&(
+                    <div style={{marginTop:4}}>
+                      <div style={{color:'#ef4444',fontSize:11,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5,marginBottom:6}}>Cétonémie + prévenir médecin</div>
+                      <label style={{...lbl,fontSize:10}}>Cétonémie (mmol/L)</label>
+                      <input inputMode="decimal" onChange={e=>{vals.current.cetonemie=e.target.value;setUi(p=>({...p,cetonemie:e.target.value}));}}
+                        style={{...inp,fontSize:16}} placeholder="--"/>
+                      {ui.cetonemie&&parseFloat(ui.cetonemie)>=3&&<div style={{color:'#ef4444',fontSize:11,marginTop:3,fontWeight:700,background:'#fef2f2',padding:'4px 8px',borderRadius:5}}>Cétonémie ≥ 3 — URGENCE acido-cétose — Alerter médecin</div>}
+                      {ui.cetonemie&&parseFloat(ui.cetonemie)>=1&&parseFloat(ui.cetonemie)<3&&<div style={{color:'#f59e0b',fontSize:11,marginTop:3,fontWeight:600}}>Cétonémie modérée — Prévenir médecin</div>}
+                      {ui.cetonemie&&parseFloat(ui.cetonemie)<1&&<div style={{color:'#16a34a',fontSize:11,marginTop:3,fontWeight:600}}>Cétonémie normale</div>}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={lbl}>Hemocue (g/dL)</label>
