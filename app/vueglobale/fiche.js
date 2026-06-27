@@ -274,7 +274,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     await saveNow({[field]:val});
   }
 
-  function EditSpan({field, value, placeholder, w=70}) {
+  function EditSpan({field, value, initVal, placeholder, w=70}) {
     if (editField===field) return (
       <span style={{display:'inline-flex',alignItems:'center',gap:2}}>
         <input autoFocus value={editVal} onChange={e=>setEditVal(e.target.value)}
@@ -285,7 +285,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
       </span>
     );
     return (
-      <span onClick={()=>{setEditField(field);setEditVal(value||'');}} style={{cursor:'pointer',borderBottom:'1px dashed #d1d5db'}}>
+      <span onClick={()=>{setEditField(field);setEditVal(initVal||value||'');}} style={{cursor:'pointer',borderBottom:'1px dashed #d1d5db'}}>
         {value||<span style={{color:'#d1d5db',fontStyle:'italic'}}>{placeholder}</span>}
       </span>
     );
@@ -434,7 +434,7 @@ ${ordonnance||'--'}
                 <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
                 {ippCopied&&<span style={{fontSize:10,color:'#0d9488',fontWeight:700}}>✓</span>}
               </span>
-              <EditSpan field="ipp" value={p.ipp} placeholder="✎ modifier" w={80}/>
+              <EditSpan field="ipp" value={null} initVal={p.ipp} placeholder="✎ modifier" w={80}/>
             </span>
             <span style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
               <EditSpan field="symptome" value={p.symptome?.replace(/_/g,' ')} placeholder="motif" w={100}/>
