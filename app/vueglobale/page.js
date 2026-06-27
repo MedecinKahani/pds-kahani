@@ -338,26 +338,26 @@ export default function PageVueGlobale() {
                 })}
               </div>
 
-              {/* Moitié droite : motif centré + cercles + bouton sortie */}
+              {/* Moitié droite : motif en haut, cercles triangle, bouton sortie */}
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingLeft:4}}>
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,marginTop:2,width:'100%'}}>
-                  <div style={{fontSize:11,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2,marginBottom:4}}>{labelSymptome(p)}</div>
-                  {[
-                    {has:hasExamens, icon:'🔬'},
-                    {has:hasThera,   icon:'💊'},
-                    {has:hasSoins,   icon:'🩹'},
-                  ].map(({has,icon},i)=>(
-                    <div key={i} style={{
-                      width:26,height:26,borderRadius:'50%',
-                      border:'1.5px solid '+(has?c+'88':'#d1d5db'),
-                      background:has?cbg:'transparent',
-                      display:'flex',alignItems:'center',justifyContent:'center',
-                      fontSize:has?14:0,
-                      transition:'all 0.15s',
-                    }}>
-                      {has?icon:''}
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:5,width:'100%',flex:1,justifyContent:'space-between'}}>
+                  <div style={{fontSize:10,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2}}>{labelSymptome(p)}</div>
+                  {/* Triangle : 1 en haut, 2 en bas */}
+                  <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center',width:'100%'}}>
+                    <div style={{display:'flex',justifyContent:'center'}}>
+                      <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasExamens?c+'88':'#d1d5db'),background:hasExamens?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasExamens?13:0}}>
+                        {hasExamens?'🔬':''}
+                      </div>
                     </div>
-                  ))}
+                    <div style={{display:'flex',justifyContent:'center',gap:4}}>
+                      <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasThera?c+'88':'#d1d5db'),background:hasThera?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasThera?13:0}}>
+                        {hasThera?'💊':''}
+                      </div>
+                      <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasSoins?c+'88':'#d1d5db'),background:hasSoins?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasSoins?13:0}}>
+                        {hasSoins?'🩹':''}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div style={{display:'flex',justifyContent:'flex-end',width:'100%',paddingRight:2,paddingBottom:2}}>
                   <button onClick={e=>{
