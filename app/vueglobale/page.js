@@ -504,6 +504,7 @@ export default function PageVueGlobale() {
                 onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
                 <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
                 <div style={{color:'#d97706',fontSize:11,fontWeight:600,marginTop:2}}>{labelSymptome(p)||p.symptome||p.motifPrincipal}</div>
+                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?new Date(parseInt(p.arrivee)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
                 <div style={{display:'flex',gap:5,marginTop:8}} onClick={e=>e.stopPropagation()}>
                   <select onChange={async e=>{
                     if(!e.target.value) return;
