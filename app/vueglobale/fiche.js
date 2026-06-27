@@ -1023,7 +1023,7 @@ function TheraSection({prescriptions, onAjouter}) {
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:['Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','MEOPA']},
     ],
   };
-  const ROUGE = ['Tramadol','Morphine','MEOPA','Kétoprofène','Lidocaïne'];
+  const ROUGE = ['Tramadol','Codéine','Morphine','MEOPA'];
 
   return (
     <div style={{padding:'8px 10px'}}>
