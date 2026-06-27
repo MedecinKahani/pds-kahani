@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 function safeJSON(val, fallback=[]) {
   if(!val) return fallback;
@@ -42,6 +42,31 @@ const BG = {
   lit1:'#eff6ff', lit2:'#eff6ff', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
   brancard1:'#fef2f2', brancard2:'#fef2f2'
 };
+
+function BoutonStats({ router }) {
+  const [alerte, setAlerte] = React.useState(false);
+
+  React.useEffect(() => {
+    const now = new Date();
+    const isFirst = now.getDate() === 1;
+    fetch('/api/stats-alerte').then(r=>r.json()).then(d=>{
+      setAlerte(d.alerte || isFirst);
+    }).catch(()=>setAlerte(isFirst));
+  }, []);
+
+  const style = alerte
+    ? {padding:'7px 14px',borderRadius:8,background:'#dc2626',color:'#fff',fontSize:12,fontWeight:700,border:'none',cursor:'pointer',animation:'pulse 1.5s infinite'}
+    : {padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'};
+
+  return (
+    <div style={{position:'relative',display:'inline-block'}}>
+      <button onClick={()=>router.push('/stats-mensuelles')} style={style}>
+        {alerte ? '🔴 Statistiques !' : 'Statistiques'}
+      </button>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}`}</style>
+    </div>
+  );
+}
 
 export default function PageVueGlobale() {
   const router = useRouter();
@@ -304,7 +329,7 @@ export default function PageVueGlobale() {
           <span style={{fontSize:12,color:'#9ca3af',marginRight:4}}>{user?.nom}</span>
           <button onClick={()=>router.push('/nouveau-patient')} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
           <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Liste agents</button>
-          <button onClick={()=>router.push('/stats')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Export PDF</button>
+          <BoutonStats router={router}/>
           <button onClick={()=>router.push('/stats-mensuelles')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Stats mensuelles</button>
           <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer'}}>Deconnexion</button>
         </div>
