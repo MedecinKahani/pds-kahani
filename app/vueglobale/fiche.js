@@ -366,7 +366,7 @@ ${ordonnance||'--'}
 
         {/* ONGLETS — masqués pour AS */}
         {user?.role !== 'as' && <div style={{display:'flex',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
-          {[{id:'anamnese',l:'Anamnèse'},{id:'examen',l:'Examen'},{id:'prescription',l:'Prescriptions'},{id:'evolution',l:'Évolution & sortie'}].map(t=>(
+          {[{id:'anamnese',l:'Anamnèse & Examen'},{id:'prescription',l:'Prescriptions'},{id:'evolution',l:'Évolution & sortie'}].map(t=>(
             <button key={t.id} onClick={()=>setOnglet(t.id)}
               style={{padding:'9px 14px',border:'none',background:'none',cursor:'pointer',fontSize:12,fontWeight:onglet===t.id?700:500,
                 color:onglet===t.id?'#0d9488':'#6b7280',
@@ -380,36 +380,48 @@ ${ordonnance||'--'}
         {user?.role !== 'as' && <div style={{flex:1,overflow:'hidden',padding:14,display:'flex',flexDirection:'column'}}>
 
           {onglet==='anamnese'&&(
-            user?.role==='ide'
-              ? <div style={{...inp,height:'calc(100vh - 180px)',overflow:'auto',background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap',lineHeight:1.6}}>{anamnese||<span style={{color:'#9ca3af'}}>Aucune anamnèse renseignée</span>}</div>
-              : <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
-                  placeholder="Motif de consultation, histoire de la maladie, antécédents, traitements habituels..."
-                  style={{...inp,height:'calc(100vh - 180px)',resize:'none',overflow:'hidden'}}/>
-          )}
-
-          {onglet==='examen'&&(
-            user?.role==='ide'
-              ? <div style={{...inp,height:'calc(100vh - 180px)',overflow:'auto',background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap',lineHeight:1.6}}>{exam||<span style={{color:'#9ca3af'}}>Aucun examen clinique renseigné</span>}</div>
-              : <div>
-                  <div style={{display:'flex',gap:8,marginBottom:10}}>
-                    <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
+            user?.role==='ide' ? (
+              <div style={{display:'flex',flexDirection:'column',gap:8,height:'100%'}}>
+                <div style={{flex:1,display:'flex',flexDirection:'column',gap:4,minHeight:0}}>
+                  <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase'}}>Anamnèse</label>
+                  <div style={{...inp,flex:1,overflow:'auto',background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap',lineHeight:1.6}}>{anamnese||<span style={{color:'#9ca3af'}}>Aucune anamnèse renseignée</span>}</div>
+                </div>
+                <div style={{flex:1,display:'flex',flexDirection:'column',gap:4,minHeight:0}}>
+                  <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase'}}>Examen clinique</label>
+                  <div style={{...inp,flex:1,overflow:'auto',background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap',lineHeight:1.6}}>{exam||<span style={{color:'#9ca3af'}}>Aucun examen clinique renseigné</span>}</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{display:'flex',flexDirection:'column',gap:8,height:'100%'}}>
+                <div style={{flex:1,display:'flex',flexDirection:'column',minHeight:0}}>
+                  <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:4}}>Anamnèse</label>
+                  <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
+                    placeholder="Motif de consultation, histoire de la maladie, antécédents, traitements habituels..."
+                    style={{...inp,flex:1,resize:'none',minHeight:0}}/>
+                </div>
+                <div style={{flex:1,display:'flex',flexDirection:'column',minHeight:0}}>
+                  <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:4}}>Examen clinique</label>
+                  <div style={{display:'flex',gap:8,marginBottom:6}}>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'6px 10px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
                       onClick={()=>{const v=exam===EXAMEN_NORMAL?'':EXAMEN_NORMAL;setExam(v);debouncedSave({examen_clinique:v});}}>
-                      <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL?'#16a34a':'#d1d5db'),background:exam===EXAMEN_NORMAL?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                        {exam===EXAMEN_NORMAL&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                      <div style={{width:16,height:16,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL?'#16a34a':'#d1d5db'),background:exam===EXAMEN_NORMAL?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        {exam===EXAMEN_NORMAL&&<span style={{color:'#fff',fontSize:9,fontWeight:700}}>✓</span>}
                       </div>
-                      <span style={{fontSize:12,fontWeight:600,color:'#16a34a'}}>Examen normal adulte</span>
+                      <span style={{fontSize:11,fontWeight:600,color:'#16a34a'}}>Normal adulte</span>
                     </div>
-                    <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe',cursor:'pointer'}}
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'6px 10px',background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe',cursor:'pointer'}}
                       onClick={()=>{const v=exam===EXAMEN_NORMAL_PEDIATRIE?'':EXAMEN_NORMAL_PEDIATRIE;setExam(v);debouncedSave({examen_clinique:v});}}>
-                      <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#d1d5db'),background:exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                        {exam===EXAMEN_NORMAL_PEDIATRIE&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                      <div style={{width:16,height:16,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#d1d5db'),background:exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        {exam===EXAMEN_NORMAL_PEDIATRIE&&<span style={{color:'#fff',fontSize:9,fontWeight:700}}>✓</span>}
                       </div>
-                      <span style={{fontSize:12,fontWeight:600,color:'#3b82f6'}}>Examen normal &lt; 2 ans</span>
+                      <span style={{fontSize:11,fontWeight:600,color:'#3b82f6'}}>Normal &lt; 2 ans</span>
                     </div>
                   </div>
                   <textarea value={exam} onChange={e=>{setExam(e.target.value);debouncedSave({examen_clinique:e.target.value});}}
-                    placeholder="Décrivez l'examen clinique..." style={{...inp,height:'calc(100vh - 260px)',resize:'none',overflow:'hidden'}}/>
+                    placeholder="Décrivez l'examen clinique..." style={{...inp,flex:1,resize:'none',minHeight:0}}/>
                 </div>
+              </div>
+            )
           )}
 
           {onglet==='prescription'&&(
