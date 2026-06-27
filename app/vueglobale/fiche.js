@@ -534,21 +534,26 @@ ${ordonnance||'--'}
                             <span style={{fontWeight:700,color,fontSize:13}}>{titre}</span>
                           </div>
                           <div style={{flex:1,overflow:'auto',padding:10,display:'flex',flexDirection:'column',gap:6}}>
-                            {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:20}}>Aucune prescription</div>}
+                            <AjouterNote cat={cat} color={color} p={p} user={user} transmissions={transmissions} setTransmissions={setTransmissions}/>
+                            {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:8}}>Aucune prescription</div>}
                             {items.map((r,i)=>{
                               const gi=prescriptions.indexOf(r);
                               return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} user={user}
                                 onCocherAvecResultat={(val,fk,label)=>{
-                                  // Marquer fait + résultat dans la prescription
                                   const rx=[...prescriptions];
                                   rx[gi]={...rx[gi],fait:true,resultat:val,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
                                   setPrescriptions(rx);
                                   fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
                                     body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
-                                  // Ajouter dans localConst pour afficher dans le bandeau
                                   addConst(fk,label,val,'');
                                 }}/>;
                             })}
+                            {transmissions.filter(t=>t.categorie===cat).map((t,i)=>(
+                              <div key={'n'+i} style={{padding:'8px 10px',borderRadius:8,border:'1.5px dashed '+color+'55',background:color+'08'}}>
+                                <div style={{fontSize:12,color:'#374151'}}>{t.texte}</div>
+                                <div style={{fontSize:9,color:'#9ca3af',marginTop:3}}>{t.nom} · {new Date(t.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       );
