@@ -297,8 +297,10 @@ export default function PageVueGlobale() {
             <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
               <div style={{display:'flex',gap:6,alignItems:'flex-start',flex:1,minWidth:0}}>
                 <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.prenom} {p.nom}</div>
+                <div style={{minWidth:0,flex:1}}>
+                  <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                    {p.prenom} {p.nom} <span style={{color:c,fontSize:11}}>{sexeSymbol}</span>
+                  </div>
                   <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?p.ddn+' · ':''}{p.age} ans</div>
                   {p.ipp&&<div style={{color:'#9ca3af',fontSize:8,marginTop:1,display:'flex',alignItems:'center',gap:2}}>
                     {p.ipp}
@@ -312,14 +314,12 @@ export default function PageVueGlobale() {
                   </div>}
                 </div>
               </div>
-              <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:2,flexShrink:0,maxWidth:'45%'}}>
-                <div style={{fontSize:16,color:c,lineHeight:1}}>{sexeSymbol}</div>
-                <div style={{fontSize:12,fontWeight:700,color:'#111827',textAlign:'right',lineHeight:1.2}}>{labelSymptome(p)}</div>
-              </div>
+              <div style={{fontSize:11,fontWeight:700,color:'#111827',textAlign:'right',lineHeight:1.2,flexShrink:0,maxWidth:'40%'}}>{labelSymptome(p)}</div>
             </div>
 
-            <div style={{display:'flex',gap:8,alignItems:'flex-start',flex:1}}>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 4px',flex:1}}>
+            <div style={{display:'flex',gap:4,alignItems:'stretch',flex:1}}>
+              {/* Moitié gauche : constantes en 2 colonnes compactes */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 3px',width:'55%',flexShrink:0}}>
                 {[
                   {k:'fc',      v:p.fc,                                          l:'FC',  u:'bpm',  icon:'🫀'},
                   {k:'tas',     v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas||'--',     l:'TA',  u:'mmHg', icon:'🩸'},
@@ -339,11 +339,12 @@ export default function PageVueGlobale() {
                 })}
               </div>
 
-              <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',gap:6,flexShrink:0,alignSelf:'stretch'}}>
-                <div style={{display:'flex',flexDirection:'column',gap:4,alignItems:'center'}}>
-                  {hasExamens&&<span style={{fontSize:16}}>🔬</span>}
-                  {hasThera&&<span style={{fontSize:16}}>💊</span>}
-                  {hasSoins&&<span style={{fontSize:16}}>🩹</span>}
+              {/* Moitié droite : émojis prescriptions + bouton sortie */}
+              <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingLeft:4}}>
+                <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center'}}>
+                  {hasExamens&&<span style={{fontSize:18}}>🔬</span>}
+                  {hasThera&&<span style={{fontSize:18}}>💊</span>}
+                  {hasSoins&&<span style={{fontSize:18}}>🩹</span>}
                 </div>
                 <button onClick={e=>{
                   e.stopPropagation();
