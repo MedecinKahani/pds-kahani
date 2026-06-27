@@ -339,6 +339,7 @@ export default function PageVueGlobale() {
             {/* DROITE : motif en haut, cercles triangle, sortie en bas */}
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{fontSize:10,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2}}>{labelSymptome(p)}</div>
+              <div style={{fontSize:9,color:'#9ca3af',textAlign:'center'}}>{p.arrivee?new Date(parseInt(p.arrivee)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
               {/* Cercle unique : nombre de prescriptions en attente */}
               {(() => {
                 const enAttente = prescriptions.filter(r=>!r.fait&&!r.nonRealise).length;
