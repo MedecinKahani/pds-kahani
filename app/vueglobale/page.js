@@ -498,22 +498,23 @@ export default function PageVueGlobale() {
                 {id:'pansement',l:'P1'},
               ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
               return(
-              <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0}}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
-                <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.symptome||p.motifPrincipal}</div>
-                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{duree(p.arrivee)}</div>
-                {p.emplacement_suggere&&<div style={{color:'#0d9488',fontSize:10,marginTop:1,fontWeight:600}}>Suggere : {p.emplacement_suggere}</div>}
-                <div style={{display:'flex',gap:5,marginTop:8}}>
+              <div key={p.id} onClick={()=>setFicheOuverte(p)}
+                style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0,cursor:'pointer',transition:'box-shadow 0.15s'}}
+                onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'}
+                onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                <div style={{color:'#d97706',fontSize:11,fontWeight:600,marginTop:2}}>{labelSymptome(p)||p.symptome||p.motifPrincipal}</div>
+                <div style={{display:'flex',gap:5,marginTop:8}} onClick={e=>e.stopPropagation()}>
                   <select onChange={async e=>{
                     if(!e.target.value) return;
                     await patch(p.id,{statut:'attente_medecin',emplacement:e.target.value});
                     load();
-                  }} defaultValue="" style={{flex:1,padding:'5px 4px',borderRadius:6,border:'1px solid #e5e7eb',fontSize:10,background:'#fff',cursor:'pointer'}}>
+                  }} defaultValue="" style={{flex:1,padding:'5px 4px',borderRadius:6,border:'1px solid #fde68a',fontSize:10,background:'#fff',cursor:'pointer'}}>
                     <option value="">Installer...</option>
                     {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
                   </select>
-                  <button onClick={()=>{setFicheOuverte(p);}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
-                    Cslt
+                  <button onClick={()=>setFichesSortie(p)} style={{padding:'4px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:10,fontWeight:600,cursor:'pointer',border:'1px solid #e5e7eb',flexShrink:0}}>
+                    Sortie
                   </button>
                 </div>
               </div>
