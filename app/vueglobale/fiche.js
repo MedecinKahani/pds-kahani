@@ -654,27 +654,29 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
   const [editVal, setEditVal] = useState('');
   const [ippCopied, setIppCopied] = useState(false);
   const [openField, setOpenField] = useState(null);
-  const [newVal, setNewVal] = useState('');
+  const [inputVal, setInputVal] = useState('');
+  const [buVals, setBuVals] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
+  const [localConst, setLocalConst] = useState(safeJSON(p.constantes_post, []));
 
-  // constPost géré par constPostLocal ci-dessus
+  function getLatest(key) {
+    const matches = localConst.filter(c=>c.key===key);
+    return matches.length ? matches[matches.length-1].val : null;
+  }
 
-  const [constPostLocal, setConstPostLocal] = useState(safeJSON(p.constantes_post, []));
-  const allConstPost = [...constPostLocal];
-
-  async function saveConst(key, label, val, unit, extraPatch={}) {
-    const updated = [...constPostLocal, {key, label, val, unit, ts:Date.now()}];
-    setConstPostLocal(updated);
-    fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'update', id:p.id, patch:{constantes_post:JSON.stringify(updated), ...extraPatch}})});
+  function addConst(key, label, val, unit, extra={}) {
+    const updated = [...localConst, {key, label, val, unit, ts:Date.now()}];
+    setLocalConst(updated);
     setOpenField(null);
-    setNewVal('');
+    setInputVal('');
+    fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'update', id:p.id, patch:{constantes_post:JSON.stringify(updated), ...extra}})});
   }
 
   async function saveEdit(field, val) {
+    setEditField(null);
     await fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({action:'update', id:p.id, patch:{[field]:val}})});
     onUpdate?.();
-    setEditField(null);
   }
 
   function Editable({ field, value, placeholder, w=60 }) {
@@ -688,8 +690,7 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
       </span>
     );
     return (
-      <span onClick={()=>{setEditField(field);setEditVal(value||'');}} title="Modifier"
-        style={{cursor:'pointer',borderBottom:'1px dashed #e5e7eb'}}>
+      <span onClick={()=>{setEditField(field);setEditVal(value||'');}} style={{cursor:'pointer',borderBottom:'1px dashed #e5e7eb'}}>
         {value||<span style={{color:'#d1d5db'}}>{placeholder}</span>}
       </span>
     );
@@ -699,72 +700,71 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
     const N={fc:[50,100],tas:[90,150],tad:[60,95],sat:[94,100],temp:[36,38.4],dextro:[0.7,2.5],hemocue:[8,18]};
     const n=parseFloat(v); if(isNaN(n)) return null;
     const [mn,mx]=N[k]||[0,9999];
-    return n<mn||n>mx ? '#ef4444' : '#16a34a';
+    return n<mn||n>mx?'#ef4444':'#16a34a';
   }
 
-  function latest(key) {
-    const matches = constPostLocal.filter(c=>c.key===key);
-    return matches.length ? matches[matches.length-1].val : null;
-  }
-
-  function CstCard({ label, fieldKey, unit, value }) {
-    const newV = latest(fieldKey);
-    const cur = newV || value;
-    const color = cur&&cur!=='--' ? (colC(cur,fieldKey)||'#111827') : '#b0b8c4';
-    const isOpen = openField===fieldKey;
+  function PlusBtn({fk}) {
     return (
-      <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
-        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>{label}</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:4,flexWrap:'wrap'}}>
-          {newV&&value&&<span style={{fontSize:12,color:'#adb5bd',textDecoration:'line-through',fontVariantNumeric:'tabular-nums'}}>{value}</span>}
-          <span style={{fontSize:22,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
+      <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(openField===fk?null:fk);setInputVal('');}}
+        style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',
+          borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
+    );
+  }
+
+  function NumCard({label, fk, unit, baseVal}) {
+    const newV = getLatest(fk);
+    const cur = newV || baseVal;
+    const color = cur&&cur!=='--' ? (colC(cur,fk)||'#111827') : '#b0b8c4';
+    return (
+      <div style={{background:'#f0f2f4',borderRadius:10,padding:'7px 10px',border:'1px solid #e8eaed'}}>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{label}</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'wrap'}}>
+          {newV&&baseVal&&<span style={{fontSize:11,color:'#adb5bd',textDecoration:'line-through',fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
+          <span style={{fontSize:20,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
           {cur&&cur!=='--'&&<span style={{fontSize:9,color:'#9ca3af'}}>{unit}</span>}
-          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(isOpen?null:fieldKey);setNewVal('');}}
-            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
-            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
-            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',transition:'all 0.1s'}}>+</button>
+          <PlusBtn fk={fk}/>
         </div>
-        {isOpen&&(
-          <div style={{display:'flex',gap:3,marginTop:6}}>
-            <input autoFocus value={newVal} onChange={e=>setNewVal(e.target.value)} placeholder={unit}
-              onKeyDown={e=>{if(e.key==='Enter'&&newVal)saveConst(fieldKey,label,newVal,unit);if(e.key==='Escape'){setOpenField(null);setNewVal('');}}}
-              style={{width:55,fontSize:12,border:'1.5px solid #0d9488',borderRadius:5,padding:'2px 5px',outline:'none'}}/>
-            <button onMouseDown={e=>{e.preventDefault();if(newVal)saveConst(fieldKey,label,newVal,unit);}}
-              style={{fontSize:11,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✓</button>
-            <button onMouseDown={e=>{e.preventDefault();setOpenField(null);setNewVal('');}}
-              style={{fontSize:11,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 4px',cursor:'pointer'}}>✕</button>
+        {openField===fk&&(
+          <div style={{display:'flex',gap:3,marginTop:5}} onMouseDown={e=>e.stopPropagation()}>
+            <input autoFocus value={inputVal} onChange={e=>setInputVal(e.target.value)} placeholder={unit}
+              onKeyDown={e=>{if(e.key==='Enter'&&inputVal)addConst(fk,label,inputVal,unit);if(e.key==='Escape')setOpenField(null);}}
+              style={{width:50,fontSize:12,border:'1.5px solid #0d9488',borderRadius:5,padding:'2px 4px',outline:'none'}}/>
+            <button onMouseDown={e=>{e.preventDefault();if(inputVal)addConst(fk,label,inputVal,unit);}}
+              style={{fontSize:11,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 5px',cursor:'pointer'}}>✓</button>
+            <button onMouseDown={e=>{e.preventDefault();setOpenField(null);}}
+              style={{fontSize:11,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 3px',cursor:'pointer'}}>✕</button>
           </div>
         )}
       </div>
     );
   }
 
-  function QualCard({ label, fieldKey, options, value }) {
-    const newV = latest(fieldKey);
-    const cur = newV || value;
+  function ChoiceCard({label, fk, options, baseVal}) {
+    const newV = getLatest(fk);
+    const cur = newV || baseVal;
     const isPos = cur==='Positif'||cur?.includes('barre');
-    const color = cur&&cur!=='—' ? (isPos?'#ef4444':'#16a34a') : '#b0b8c4';
-    const isOpen = openField===fieldKey;
+    const color = cur ? (isPos?'#ef4444':'#16a34a') : '#b0b8c4';
     return (
-      <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
-        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>{label}</div>
-        <div style={{display:'flex',alignItems:'center',gap:5}}>
-          {newV&&value&&<span style={{fontSize:11,color:'#adb5bd',textDecoration:'line-through'}}>{value}</span>}
-          <span style={{fontSize:15,fontWeight:700,color}}>{cur||'—'}</span>
-          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(isOpen?null:fieldKey);}}
-            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
-            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
-            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',transition:'all 0.1s'}}>+</button>
+      <div style={{background:'#f0f2f4',borderRadius:10,padding:'7px 10px',border:'1px solid #e8eaed',position:'relative'}}>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{label}</div>
+        <div style={{display:'flex',alignItems:'center',gap:4}}>
+          {newV&&baseVal&&<span style={{fontSize:10,color:'#adb5bd',textDecoration:'line-through'}}>{baseVal}</span>}
+          <span style={{fontSize:13,fontWeight:700,color}}>{cur||'—'}</span>
+          <PlusBtn fk={fk}/>
         </div>
-        {isOpen&&(
-          <div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',top:'100%',left:0,display:'flex',gap:4,flexWrap:'wrap',minWidth:160}}>
+        {openField===fk&&(
+          <div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,
+            padding:'6px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',top:'100%',left:0,display:'flex',gap:3,flexWrap:'wrap',minWidth:140}}
+            onMouseDown={e=>e.stopPropagation()}>
             {options.map(opt=>(
-              <button key={opt} onMouseDown={e=>{e.preventDefault();saveConst(fieldKey,label,opt,'');}}
-                style={{padding:'4px 10px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:11,fontWeight:600,
-                  color:opt==='Positif'||(opt!=='Négatif'&&opt!=='Nég')?'#ef4444':'#16a34a'}}>{opt}</button>
+              <button key={opt} onMouseDown={e=>{e.preventDefault();addConst(fk,label,opt,'');}}
+                style={{padding:'3px 8px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',
+                  fontSize:11,fontWeight:600,color:opt==='Positif'||(opt!=='Négatif'&&opt!=='Nég')?'#ef4444':'#16a34a'}}>
+                {opt}
+              </button>
             ))}
             <button onMouseDown={e=>{e.preventDefault();setOpenField(null);}}
-              style={{padding:'4px 8px',borderRadius:5,background:'#f3f4f6',color:'#9ca3af',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
+              style={{padding:'3px 7px',borderRadius:5,background:'#f3f4f6',color:'#9ca3af',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
           </div>
         )}
       </div>
@@ -772,42 +772,37 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
   }
 
   function BUCard() {
-    const buPost = constPostLocal.filter(c=>c.key==='bu_qual');
-    const latestBU = buPost.length ? buPost[buPost.length-1].val : null;
+    const latest = localConst.filter(c=>c.key==='bu_qual');
+    const latestBU = latest.length ? latest[latest.length-1].val : null;
     const cur = latestBU || p.bu_resultat;
-    const isOpen = openField==='bu_qual';
-    const [buVals, setBuVals] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
-    const CROIX = ['Nég','+','++','+++'];
     return (
-      <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
-        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>BU</div>
-        <div style={{display:'flex',alignItems:'center',gap:5}}>
-          {latestBU&&p.bu_resultat&&<span style={{fontSize:10,color:'#adb5bd',textDecoration:'line-through',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat}</span>}
-          <span style={{fontSize:12,fontWeight:600,color:cur?'#3b82f6':'#b0b8c4',maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cur||'—'}</span>
-          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(isOpen?null:'bu_qual');}}
-            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
-            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
-            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0,transition:'all 0.1s'}}>+</button>
+      <div style={{background:'#f0f2f4',borderRadius:10,padding:'7px 10px',border:'1px solid #e8eaed',position:'relative'}}>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>BU</div>
+        <div style={{display:'flex',alignItems:'center',gap:4}}>
+          {latestBU&&p.bu_resultat&&<span style={{fontSize:9,color:'#adb5bd',textDecoration:'line-through',maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat}</span>}
+          <span style={{fontSize:11,fontWeight:600,color:cur?'#3b82f6':'#b0b8c4',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cur||'—'}</span>
+          <PlusBtn fk="bu_qual"/>
         </div>
-        {isOpen&&(
-          <div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',top:'100%',left:0,minWidth:300}}>
+        {openField==='bu_qual'&&(
+          <div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,
+            padding:'10px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',top:'100%',left:0,minWidth:280}}
+            onMouseDown={e=>e.stopPropagation()}>
             {[['leuco','Leucocytes'],['nitrite','Nitrites'],['cetone','Cétones'],['glucose','Glucose']].map(([k,l])=>(
-              <div key={k} style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
-                <span style={{fontSize:11,width:70,flexShrink:0,fontWeight:500,color:'#374151'}}>{l}</span>
-                {CROIX.map(v=>(
+              <div key={k} style={{display:'flex',alignItems:'center',gap:5,marginBottom:5}}>
+                <span style={{fontSize:11,width:65,flexShrink:0,fontWeight:500,color:'#374151'}}>{l}</span>
+                {['Nég','+','++','+++'].map(v=>(
                   <button key={v} onMouseDown={e=>{e.preventDefault();setBuVals(prev=>({...prev,[k]:v}));}}
-                    style={{padding:'3px 8px',borderRadius:5,fontSize:10,fontWeight:600,cursor:'pointer',
+                    style={{padding:'2px 7px',borderRadius:4,fontSize:10,fontWeight:600,cursor:'pointer',
                       border:'1.5px solid '+(buVals[k]===v?'#3b82f6':'#e5e7eb'),
-                      background:buVals[k]===v?'#3b82f6':'#fff',
-                      color:buVals[k]===v?'#fff':'#374151'}}>{v}</button>
+                      background:buVals[k]===v?'#3b82f6':'#fff',color:buVals[k]===v?'#fff':'#374151'}}>{v}</button>
                 ))}
               </div>
             ))}
-            <div style={{display:'flex',gap:6,marginTop:8,borderTop:'1px solid #f3f4f6',paddingTop:8}}>
-              <button onMouseDown={e=>{e.preventDefault();const res=`Leuco ${buVals.leuco} / Nitrite ${buVals.nitrite} / Cétone ${buVals.cetone} / Glucose ${buVals.glucose}`;saveConst('bu_qual','BU',res,'',{bu_resultat:res});}}
-                style={{flex:1,padding:'6px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:12,fontWeight:600,border:'none',cursor:'pointer'}}>Valider</button>
+            <div style={{display:'flex',gap:5,marginTop:6,borderTop:'1px solid #f3f4f6',paddingTop:6}}>
+              <button onMouseDown={e=>{e.preventDefault();const res=`Leuco ${buVals.leuco} / Nitrite ${buVals.nitrite} / Cétone ${buVals.cetone} / Glucose ${buVals.glucose}`;addConst('bu_qual','BU',res,'',{bu_resultat:res});}}
+                style={{flex:1,padding:'5px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>Valider</button>
               <button onMouseDown={e=>{e.preventDefault();setOpenField(null);}}
-                style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'none',cursor:'pointer'}}>✕</button>
+                style={{padding:'5px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
             </div>
           </div>
         )}
@@ -815,14 +810,13 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
     );
   }
 
-  const tasCur = latest('tas') || p.tas;
-  const tadCur = latest('tad') || p.tad;
+  const tasCur = getLatest('tas') || p.tas;
+  const tadCur = getLatest('tad') || p.tad;
   const pamVal = tasCur&&tadCur ? Math.round(parseFloat(tadCur)+(parseFloat(tasCur)-parseFloat(tadCur))/3) : null;
   const pamColor = pamVal ? (pamVal<65?'#ef4444':'#16a34a') : '#b0b8c4';
 
   return (
     <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',flexShrink:0}}>
-
       {/* Identité */}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 14px',borderBottom:'0.5px solid #f0f0f0'}}>
         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',fontSize:13}}>
@@ -849,37 +843,34 @@ function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
           <button onMouseDown={e=>{e.preventDefault();onClose();}} style={{background:'#f5f6f7',border:'1px solid #e8eaed',width:26,height:26,borderRadius:'50%',cursor:'pointer',fontSize:14,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
         </div>
       </div>
-
       {/* Constantes */}
       <div style={{padding:'8px 10px',background:'#fff',display:'flex',flexDirection:'column',gap:5}}>
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
-          <CstCard label="FC" fieldKey="fc" unit="bpm" value={p.fc}/>
-          <CstCard label="PAS" fieldKey="tas" unit="mmHg" value={p.tas}/>
-          <CstCard label="PAD" fieldKey="tad" unit="mmHg" value={p.tad}/>
-          <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
-            <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>PAM <span style={{fontWeight:400,fontSize:8}}>auto</span></div>
-            <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-              <span style={{fontSize:22,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
-              {pamVal&&<span style={{fontSize:9,color:'#9ca3af'}}>mmHg</span>}
-            </div>
+          <NumCard label="FC" fk="fc" unit="bpm" baseVal={p.fc}/>
+          <NumCard label="PAS" fk="tas" unit="mmHg" baseVal={p.tas}/>
+          <NumCard label="PAD" fk="tad" unit="mmHg" baseVal={p.tad}/>
+          <div style={{background:'#f0f2f4',borderRadius:10,padding:'7px 10px',border:'1px solid #e8eaed'}}>
+            <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>PAM <span style={{fontWeight:400,fontSize:8}}>auto</span></div>
+            <span style={{fontSize:20,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
+            {pamVal&&<span style={{fontSize:9,color:'#9ca3af'}}> mmHg</span>}
             {pamVal&&pamVal<65&&<div style={{fontSize:9,color:'#ef4444',fontWeight:700,marginTop:2}}>⚠ PAM basse</div>}
           </div>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
-          <CstCard label="Saturation" fieldKey="sat" unit="%" value={p.sat}/>
-          <CstCard label="Température" fieldKey="temp" unit="°C" value={p.temp}/>
-          <CstCard label="Dextro" fieldKey="dextro" unit="g/L" value={p.dextro}/>
-          <CstCard label="Hémocue" fieldKey="hemocue" unit="g/dL" value={p.hemocue}/>
+          <NumCard label="Saturation" fk="sat" unit="%" baseVal={p.sat}/>
+          <NumCard label="Température" fk="temp" unit="°C" baseVal={p.temp}/>
+          <NumCard label="Dextro" fk="dextro" unit="g/L" baseVal={p.dextro}/>
+          <NumCard label="Hémocue" fk="hemocue" unit="g/dL" baseVal={p.hemocue}/>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
-          <QualCard label="CRP rapide" fieldKey="crp_test" options={['1 barre','2 barres','3 barres','4 barres','Négatif']} value={p.crp_test}/>
-          <QualCard label="TDR Paludisme" fieldKey="tdr_palu" options={['Négatif','Positif']} value={p.tdr_palu}/>
-          <QualCard label="TDR Dengue" fieldKey="tdr_dengue" options={['Négatif','Positif']} value={p.tdr_dengue}/>
-          <QualCard label="Tétanotop" fieldKey="tdr_tet" options={['Négatif','Positif']} value={p.quicktest}/>
+          <ChoiceCard label="CRP rapide" fk="crp_test" options={['1 barre','2 barres','3 barres','4 barres','Négatif']} baseVal={p.crp_test}/>
+          <ChoiceCard label="TDR Paludisme" fk="tdr_palu" options={['Négatif','Positif']} baseVal={p.tdr_palu}/>
+          <ChoiceCard label="TDR Dengue" fk="tdr_dengue" options={['Négatif','Positif']} baseVal={p.tdr_dengue}/>
+          <ChoiceCard label="Tétanotop" fk="tdr_tet" options={['Négatif','Positif']} baseVal={p.quicktest}/>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'3fr 1fr',gap:5}}>
           <BUCard/>
-          <QualCard label="bHCG urinaire" fieldKey="bhcg_resultat" options={['Négatif','Positif']} value={p.bhcg_resultat}/>
+          <ChoiceCard label="bHCG urinaire" fk="bhcg_resultat" options={['Négatif','Positif']} baseVal={p.bhcg_resultat}/>
         </div>
       </div>
     </div>
