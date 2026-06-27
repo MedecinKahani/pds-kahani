@@ -380,32 +380,36 @@ ${ordonnance||'--'}
         {user?.role !== 'as' && <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column'}}>
 
           {onglet==='anamnese'&&(
-            <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
-              placeholder="Motif de consultation, histoire de la maladie, antécédents, traitements habituels..."
-              style={{...inp,height:'calc(100vh - 180px)',resize:'none',overflow:'hidden'}}/>
+            user?.role==='ide'
+              ? <div style={{...inp,height:'calc(100vh - 180px)',overflow:'auto',background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap',lineHeight:1.6}}>{anamnese||<span style={{color:'#9ca3af'}}>Aucune anamnèse renseignée</span>}</div>
+              : <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);debouncedSave({anamnese:e.target.value});}}
+                  placeholder="Motif de consultation, histoire de la maladie, antécédents, traitements habituels..."
+                  style={{...inp,height:'calc(100vh - 180px)',resize:'none',overflow:'hidden'}}/>
           )}
 
           {onglet==='examen'&&(
-            <div>
-              <div style={{display:'flex',gap:8,marginBottom:10}}>
-                <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
-                  onClick={()=>{const v=exam===EXAMEN_NORMAL?'':EXAMEN_NORMAL;setExam(v);debouncedSave({examen_clinique:v});}}>
-                  <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL?'#16a34a':'#d1d5db'),background:exam===EXAMEN_NORMAL?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    {exam===EXAMEN_NORMAL&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+            user?.role==='ide'
+              ? <div style={{...inp,height:'calc(100vh - 180px)',overflow:'auto',background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap',lineHeight:1.6}}>{exam||<span style={{color:'#9ca3af'}}>Aucun examen clinique renseigné</span>}</div>
+              : <div>
+                  <div style={{display:'flex',gap:8,marginBottom:10}}>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#f0fdf4',borderRadius:8,border:'1px solid #bbf7d0',cursor:'pointer'}}
+                      onClick={()=>{const v=exam===EXAMEN_NORMAL?'':EXAMEN_NORMAL;setExam(v);debouncedSave({examen_clinique:v});}}>
+                      <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL?'#16a34a':'#d1d5db'),background:exam===EXAMEN_NORMAL?'#16a34a':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        {exam===EXAMEN_NORMAL&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                      </div>
+                      <span style={{fontSize:12,fontWeight:600,color:'#16a34a'}}>Examen normal adulte</span>
+                    </div>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe',cursor:'pointer'}}
+                      onClick={()=>{const v=exam===EXAMEN_NORMAL_PEDIATRIE?'':EXAMEN_NORMAL_PEDIATRIE;setExam(v);debouncedSave({examen_clinique:v});}}>
+                      <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#d1d5db'),background:exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        {exam===EXAMEN_NORMAL_PEDIATRIE&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                      </div>
+                      <span style={{fontSize:12,fontWeight:600,color:'#3b82f6'}}>Examen normal &lt; 2 ans</span>
+                    </div>
                   </div>
-                  <span style={{fontSize:12,fontWeight:600,color:'#16a34a'}}>Examen normal adulte</span>
+                  <textarea value={exam} onChange={e=>{setExam(e.target.value);debouncedSave({examen_clinique:e.target.value});}}
+                    placeholder="Décrivez l'examen clinique..." style={{...inp,height:'calc(100vh - 260px)',resize:'none',overflow:'hidden'}}/>
                 </div>
-                <div style={{flex:1,display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe',cursor:'pointer'}}
-                  onClick={()=>{const v=exam===EXAMEN_NORMAL_PEDIATRIE?'':EXAMEN_NORMAL_PEDIATRIE;setExam(v);debouncedSave({examen_clinique:v});}}>
-                  <div style={{width:18,height:18,borderRadius:4,border:'2px solid '+(exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#d1d5db'),background:exam===EXAMEN_NORMAL_PEDIATRIE?'#3b82f6':'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    {exam===EXAMEN_NORMAL_PEDIATRIE&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
-                  </div>
-                  <span style={{fontSize:12,fontWeight:600,color:'#3b82f6'}}>Examen normal &lt; 2 ans</span>
-                </div>
-              </div>
-              <textarea value={exam} onChange={e=>{setExam(e.target.value);debouncedSave({examen_clinique:e.target.value});}}
-                placeholder="Décrivez l'examen clinique..." style={{...inp,height:'calc(100vh - 260px)',resize:'none',overflow:'hidden'}}/>
-            </div>
           )}
 
           {onglet==='prescription'&&(
@@ -600,6 +604,14 @@ ${ordonnance||'--'}
             )
           )}
           {onglet==='evolution'&&(
+            user?.role==='ide' ? (
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                {evolution&&<div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase'}}>Évolution au dispensaire</label><div style={{...inp,background:'#f9fafb',whiteSpace:'pre-wrap',lineHeight:1.6}}>{evolution}</div></div>}
+                {diagnostic&&<div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase'}}>Diagnostic</label><div style={{...inp,background:'#f9fafb',color:'#374151'}}>{diagnostic}</div></div>}
+                {ordonnance&&<div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase'}}>Ordonnance de sortie</label><div style={{...inp,background:'#f9fafb',whiteSpace:'pre-wrap',lineHeight:1.6}}>{ordonnance}</div></div>}
+                {!evolution&&!diagnostic&&!ordonnance&&<div style={{color:'#9ca3af',textAlign:'center',padding:'2rem',fontSize:13}}>Aucune évolution renseignée par le médecin</div>}
+              </div>
+            ) : (
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               {/* SUTURES si motif plaie */}
               {p.symptome==='plaie'&&<SutureSection p={p} save={save}/>}
@@ -620,6 +632,7 @@ ${ordonnance||'--'}
                 {copied?'✓ Copié !':'📋 Résumé — Copier pour DxCare'}
               </HBtn>
             </div>
+            )
           )}
         </div>}
       </div>
@@ -1049,10 +1062,76 @@ function VueIDE({ p, user, onUpdate }) {
   }
 
   return (
-    <div style={{display:'flex',gap:12,height:'100%'}}>
-      <ColPrescription titre="🔬 Examens complémentaires" couleur="#7c3aed" items={rxAll.filter(r=>r.categorie==='examen')}/>
-      <ColPrescription titre="💊 Thérapeutique" couleur="#ea580c" items={rxAll.filter(r=>r.categorie==='therapeutique')}/>
-      <ColPrescription titre="🩹 Soins" couleur="#d97706" items={rxAll.filter(r=>r.categorie==='soin')}/>
+    <div style={{display:'flex',flexDirection:'column',gap:8,height:'100%'}}>
+      <div style={{display:'flex',gap:12,flex:1,minHeight:0}}>
+        <ColPrescription titre="🔬 Examens complémentaires" couleur="#7c3aed" items={rxAll.filter(r=>r.categorie==='examen')}/>
+        <ColPrescription titre="💊 Thérapeutique" couleur="#ea580c" items={rxAll.filter(r=>r.categorie==='therapeutique')}/>
+        <ColPrescription titre="🩹 Soins" couleur="#d97706" items={rxAll.filter(r=>r.categorie==='soin')}/>
+      </div>
+      {/* Transmission libre IDE */}
+      <TransmissionIDE p={p} user={user} onUpdate={onUpdate}/>
+    </div>
+  );
+}
+
+function TransmissionIDE({ p, user, onUpdate }) {
+  const [texte, setTexte] = useState('');
+  const transmissions = safeJSON(p.transmissions_ide, []);
+
+  async function ajouter() {
+    if (!texte.trim()) return;
+    const nouv = [...transmissions, {
+      texte: texte.trim(),
+      par: user?.matricule || '',
+      nom: user?.nom || '',
+      ts: Date.now(),
+      fait: false,
+    }];
+    const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'update', id:p.id, patch:{ transmissions_ide: JSON.stringify(nouv) } }) });
+    const data = await res.json();
+    if (data.patients) { const u=data.patients.find(x=>x.id===p.id); if(u)onUpdate?.(u); }
+    setTexte('');
+  }
+
+  async function cocher(idx) {
+    const nouv = [...transmissions];
+    nouv[idx] = { ...nouv[idx], fait:true, faitPar:user?.matricule, faitA:Date.now() };
+    const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'update', id:p.id, patch:{ transmissions_ide: JSON.stringify(nouv) } }) });
+    const data = await res.json();
+    if (data.patients) { const u=data.patients.find(x=>x.id===p.id); if(u)onUpdate?.(u); }
+  }
+
+  return (
+    <div style={{background:'#f0fdf4',border:'1.5px solid #bbf7d0',borderRadius:10,padding:'10px 14px',flexShrink:0}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#16a34a',textTransform:'uppercase',letterSpacing:0.5,marginBottom:8}}>📝 Transmissions IDE</div>
+      <div style={{display:'flex',gap:8,marginBottom:8}}>
+        <input value={texte} onChange={e=>setTexte(e.target.value)}
+          onKeyDown={e=>{ if(e.key==='Enter') ajouter(); }}
+          placeholder="Soin réalisé, observation, transmission..."
+          style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1.5px solid #bbf7d0',fontSize:12,outline:'none',background:'#fff'}}/>
+        <button onClick={ajouter} disabled={!texte.trim()}
+          style={{padding:'7px 14px',borderRadius:7,background:texte.trim()?'#16a34a':'#e5e7eb',color:texte.trim()?'#fff':'#9ca3af',fontSize:12,fontWeight:600,border:'none',cursor:'pointer'}}>
+          Ajouter
+        </button>
+      </div>
+      {transmissions.length > 0 && (
+        <div style={{display:'flex',flexDirection:'column',gap:4,maxHeight:120,overflowY:'auto'}}>
+          {transmissions.map((t,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',borderRadius:6,background:t.fait?'#f9fafb':'#fff',border:'1px solid '+(t.fait?'#e5e7eb':'#bbf7d0')}}>
+              <button onClick={()=>cocher(i)} disabled={t.fait}
+                style={{width:18,height:18,borderRadius:4,border:'1.5px solid '+(t.fait?'#9ca3af':'#16a34a'),background:t.fait?'#9ca3af':'#fff',color:'#fff',fontSize:10,fontWeight:700,cursor:t.fait?'default':'pointer',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                {t.fait?'✓':''}
+              </button>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:12,color:t.fait?'#9ca3af':'#374151',textDecoration:t.fait?'line-through':'none'}}>{t.texte}</div>
+                <div style={{fontSize:9,color:'#9ca3af',marginTop:1}}>{t.nom||t.par} — {new Date(t.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}{t.faitA?' · Fait '+new Date(t.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
