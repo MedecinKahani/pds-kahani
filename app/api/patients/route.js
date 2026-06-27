@@ -41,6 +41,7 @@ export async function POST(req) {
         emplacement: body.patient?.emplacement || null,
       };
       await kv.hset(`patient:${id}`, patient);
+      await kv.expire(`patient:${id}`, 172800); // 48h en secondes
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
     }
@@ -65,6 +66,7 @@ export async function POST(req) {
         patient.sortie = Date.now();
         patient.statut = 'sorti';
         await kv.hset(`archive:${id}`, patient);
+        await kv.expire(`archive:${id}`, 172800); // 48h en secondes
         await kv.del(`patient:${id}`);
       }
       const all = await getAllPatients();
