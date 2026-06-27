@@ -284,7 +284,7 @@ export default function PageVueGlobale() {
     const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme'?'♂':p?.sexe==='F'||p?.sexe==='Femme'?'♀':'';
 
     return(
-      <div onClick={()=>{if(!p)return;if(isSelected){setFicheOuverte(null);}else{setFicheOuverte(p);setConstPostLocal(p.constantes_post?JSON.parse(typeof p.constantes_post==='string'?p.constantes_post:'[]'):[]);}if(!isSelected&&p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
+      <div onClick={()=>{if(!p)return;if(isSelected){setFicheOuverte(null);}else{setFicheOuverte(p);setConstPostLocal(Array.isArray(p.constantes_post)?p.constantes_post:(p.constantes_post?JSON.parse(p.constantes_post):[]));}if(!isSelected&&p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
         style={{background:'#fff',border:'0.5px solid #e5e7eb',borderRadius:16,cursor:p?'pointer':'default',
           position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column',
           transition:'box-shadow 0.15s, transform 0.15s'
