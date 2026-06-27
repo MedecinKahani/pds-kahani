@@ -213,18 +213,10 @@ ${ordonnance||'--'}
               <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color:'#0d9488' }}>{p.symptome?.replace(/_/g,' ')}</span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
-              {/* Changement emplacement */}
-              <select defaultValue={p.emplacement||''} onChange={async e=>{
-                if(!e.target.value) return;
-                await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
-                  body:JSON.stringify({action:'update',id:p.id,patch:{emplacement:e.target.value}})});
-                onUpdate?.();
-              }} style={{padding:'4px 8px',borderRadius:7,border:'1.5px solid #e5e7eb',fontSize:12,color:'#374151',background:'#f9fafb',cursor:'pointer'}}>
-                <option value=''>📍 Déplacer...</option>
-                {EMPLACEMENTS_FICHE.map(em=>(
-                  <option key={em.id} value={em.id} disabled={em.id===p.emplacement}>{em.l}{em.id===p.emplacement?' ✓':''}</option>
-                ))}
-              </select>
+              {/* Bouton déplacer */}
+              <div style={{position:'relative'}}>
+                <DeplacerBtn p={p} onUpdate={onUpdate}/>
+              </div>
               <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:28, height:28, borderRadius:'50%', cursor:'pointer', fontSize:16, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
             </div>
           </div>
@@ -628,6 +620,49 @@ function HydratationSelector({ onAjouter }) {
       <HBtn onClick={()=>{if(qte&&dur){onAjouter(`${sol} ${qte}mL sur ${dur}`,'therapeutique');setSol('');setQte('');setDur('');}}}
         style={{padding:'3px 10px',borderRadius:5,background:'#0369a1',color:'#fff',border:'none',fontSize:10,fontWeight:600}}>OK</HBtn>
       <HBtn onClick={()=>setSol('')} style={{padding:'3px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:10}}>✕</HBtn>
+    </div>
+  );
+}
+
+function DeplacerBtn({ p, onUpdate }) {
+  const [open, setOpen] = useState(false);
+  const emplacementLabel = EMPLACEMENTS_FICHE.find(e=>e.id===p.emplacement)?.l || p.emplacement || '?';
+  return (
+    <div style={{position:'relative'}}>
+      <button onClick={()=>setOpen(o=>!o)}
+        style={{padding:'5px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',background:'#f9fafb',fontSize:12,fontWeight:600,color:'#374151',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+        📍 {emplacementLabel} {open?'▲':'▼'}
+      </button>
+      {open&&<div style={{position:'fixed',zIndex:9999,background:'#fff',border:'1.5px solid #e5e7eb',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',padding:8,minWidth:200}}>
+        <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',padding:'4px 8px',marginBottom:4}}>Déplacer vers</div>
+        {EMPLACEMENTS_FICHE.map(em=>(
+          <div key={em.id}
+            onClick={async()=>{
+              if(em.id===p.emplacement) return;
+              await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({action:'update',id:p.id,patch:{emplacement:em.id}})});
+              setOpen(false);
+              onUpdate?.();
+            }}
+            style={{padding:'8px 12px',borderRadius:7,cursor:em.id===p.emplacement?'default':'pointer',
+              fontSize:12,fontWeight:600,
+              color:em.id===p.emplacement?'#9ca3af':em.c,
+              background:em.id===p.emplacement?'#f9fafb':'#fff',
+              display:'flex',alignItems:'center',gap:8}}
+            onMouseEnter={e=>{if(em.id!==p.emplacement)e.currentTarget.style.background=em.c+'18';}}
+            onMouseLeave={e=>{e.currentTarget.style.background=em.id===p.emplacement?'#f9fafb':'#fff';}}>
+            {em.id===p.emplacement&&<span style={{fontSize:10}}>✓</span>}
+            {em.l}
+          </div>
+        ))}
+        <div style={{borderTop:'1px solid #f3f4f6',marginTop:4,paddingTop:4}}>
+          <div onClick={()=>setOpen(false)} style={{padding:'6px 12px',borderRadius:7,cursor:'pointer',fontSize:11,color:'#9ca3af',textAlign:'center'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f9fafb'}
+            onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+            Fermer
+          </div>
+        </div>
+      </div>}
     </div>
   );
 }
