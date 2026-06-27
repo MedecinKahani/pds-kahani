@@ -28,13 +28,13 @@ ORL : gorge et tympans propres.`;
 const EXAMENS_COMPL = [
   {id:'hemocue', label:'Hémocue', color:'#dc2626'},
   {id:'dextro', label:'Dextro', color:'#ea580c'},
+  {id:'ecg', label:'ECG', color:'#dc2626'},
   {id:'crp', label:'CRP rapide', color:'#16a34a'},
   {id:'tdr_palu', label:'TDR Paludisme', color:'#16a34a'},
   {id:'tdr_dengue', label:'TDR Dengue', color:'#16a34a'},
   {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
   {id:'bu', label:'BU', color:'#d97706'},
   {id:'bhcg', label:'bHCG urinaire', color:'#d97706'},
-  {id:'ecg', label:'ECG', color:'#dc2626'},
   {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:[
     {label:'NFS + CRP', color:'#7c3aed', note:'Tube violet'},
     {label:'Gaz du sang', color:'#16a34a', note:'Seringue héparinée'},
@@ -583,7 +583,7 @@ ${ordonnance||'--'}
                 <div style={{flex:1,display:'flex',minHeight:0,overflow:'hidden'}}>
                   <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
                     {/* Examens */}
-                    <CatSection titre="🔬 Examens complémentaires" color="#7c3aed"
+                    <CatSection titre="🔬 Examens complémentaires" color="#374151"
                       collapsed={collapsed.examens} onToggle={()=>setCollapsed(c=>({...c,examens:!c.examens}))}>
                       <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
                         {EXAMENS_COMPL.map(e=>{
@@ -596,12 +596,12 @@ ${ordonnance||'--'}
                       </div>
                     </CatSection>
                     {/* Thérapeutique */}
-                    <CatSection titre="💊 Thérapeutique" color="#ea580c"
+                    <CatSection titre="💊 Thérapeutique" color="#374151"
                       collapsed={collapsed.therapeutique} onToggle={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
                       <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx}/>
                     </CatSection>
                     {/* Soins */}
-                    <CatSection titre="🩹 Soins" color="#d97706"
+                    <CatSection titre="🩹 Soins" color="#374151"
                       collapsed={collapsed.soins} onToggle={()=>setCollapsed(c=>({...c,soins:!c.soins}))}>
                       <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
                         {SOINS.map(s=>{
