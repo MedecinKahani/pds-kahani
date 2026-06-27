@@ -292,10 +292,11 @@ export default function PageVueGlobale() {
         onMouseLeave={e=>{e.currentTarget.style.boxShadow=isSelected?'0 2px 12px rgba(0,0,0,0.1)':'none';e.currentTarget.style.transform='none';}}>
 
         {p ? (
-          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'7px 8px',display:'flex',flexDirection:'column',gap:3,flex:1,overflow:'hidden'}}>
+          <div style={{margin:6,borderRadius:12,border:'3px solid '+c,background:cbg,padding:'7px 8px',display:'flex',gap:6,flex:1,overflow:'hidden'}}>
 
-            <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
-              <div style={{display:'flex',gap:6,alignItems:'flex-start',flex:1,minWidth:0}}>
+            {/* GAUCHE : identité + constantes */}
+            <div style={{display:'flex',flexDirection:'column',gap:4,width:'55%',flexShrink:0}}>
+              <div style={{display:'flex',gap:5,alignItems:'flex-start'}}>
                 <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
@@ -314,11 +315,7 @@ export default function PageVueGlobale() {
                   </div>}
                 </div>
               </div>
-            </div>
-
-            <div style={{display:'flex',gap:4,alignItems:'stretch',flex:1}}>
-              {/* Moitié gauche : constantes en 2 colonnes compactes */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 3px',width:'55%',flexShrink:0}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 3px'}}>
                 {[
                   {k:'fc',      v:p.fc,                                          l:'FC',  u:'bpm',  icon:'🫀'},
                   {k:'tas',     v:p.tas&&p.tad?p.tas+'/'+p.tad:p.tas||'--',     l:'TA',  u:'mmHg', icon:'🩸'},
@@ -337,36 +334,32 @@ export default function PageVueGlobale() {
                   );
                 })}
               </div>
+            </div>
 
-              {/* Moitié droite : motif en haut, cercles triangle, bouton sortie */}
-              <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingLeft:4}}>
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:5,width:'100%',flex:1,justifyContent:'space-between'}}>
-                  <div style={{fontSize:10,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2}}>{labelSymptome(p)}</div>
-                  {/* Triangle : 1 en haut, 2 en bas */}
-                  <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center',width:'100%'}}>
-                    <div style={{display:'flex',justifyContent:'center'}}>
-                      <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasExamens?c+'88':'#d1d5db'),background:hasExamens?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasExamens?13:0}}>
-                        {hasExamens?'🔬':''}
-                      </div>
-                    </div>
-                    <div style={{display:'flex',justifyContent:'center',gap:4}}>
-                      <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasThera?c+'88':'#d1d5db'),background:hasThera?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasThera?13:0}}>
-                        {hasThera?'💊':''}
-                      </div>
-                      <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasSoins?c+'88':'#d1d5db'),background:hasSoins?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasSoins?13:0}}>
-                        {hasSoins?'🩹':''}
-                      </div>
-                    </div>
+            {/* DROITE : motif en haut, cercles triangle, sortie en bas */}
+            <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{fontSize:10,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2}}>{labelSymptome(p)}</div>
+              {/* Triangle : 1 en haut, 2 en bas */}
+              <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center'}}>
+                <div style={{display:'flex',justifyContent:'center'}}>
+                  <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasExamens?c+'88':'#d1d5db'),background:hasExamens?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasExamens?13:0}}>
+                    {hasExamens?'🔬':''}
                   </div>
                 </div>
-                <div style={{display:'flex',justifyContent:'flex-end',width:'100%',paddingRight:2,paddingBottom:2}}>
-                  <button onClick={e=>{
-                    e.stopPropagation();
-                    setFichesSortie(p);
-                  }} style={{padding:'2px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
-                    Sortie →
-                  </button>
+                <div style={{display:'flex',justifyContent:'center',gap:4}}>
+                  <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasThera?c+'88':'#d1d5db'),background:hasThera?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasThera?13:0}}>
+                    {hasThera?'💊':''}
+                  </div>
+                  <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasSoins?c+'88':'#d1d5db'),background:hasSoins?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasSoins?13:0}}>
+                    {hasSoins?'🩹':''}
+                  </div>
                 </div>
+              </div>
+              <div style={{display:'flex',justifyContent:'flex-end',width:'100%'}}>
+                <button onClick={e=>{e.stopPropagation();setFichesSortie(p);}}
+                  style={{padding:'2px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                  Sortie →
+                </button>
               </div>
             </div>
 
