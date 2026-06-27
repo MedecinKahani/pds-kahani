@@ -78,6 +78,7 @@ export default function NouveauPatient() {
     setUi(prev => ({ ...prev, [k]: v }));
   };
 
+  const ddnRefs = useRef([]);
   const [placesOccupees, setPlacesOccupees] = useState([]);
 
   useEffect(() => {
@@ -225,9 +226,10 @@ export default function NouveauPatient() {
             <div>
               <label style={lbl}>Date de naissance (JJ / MM / AAAA)</label>
               <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                <input inputMode="numeric" maxLength={2} placeholder="JJ"
+                <input ref={el=>ddnRefs.current[0]=el} inputMode="numeric" maxLength={2} placeholder="JJ"
                   onChange={e => {
                     vals.current.ddn_j = e.target.value;
+                    if (e.target.value.length===2) ddnRefs.current[1]?.focus();
                     const j = e.target.value.padStart(2,'0');
                     const m = (vals.current.ddn_m||'').padStart(2,'0');
                     const a = vals.current.ddn_a||'';
@@ -238,9 +240,10 @@ export default function NouveauPatient() {
                   }}
                   style={{...inp,width:48,textAlign:'center',padding:'10px 4px'}}/>
                 <span style={{color:'#9ca3af'}}>/</span>
-                <input inputMode="numeric" maxLength={2} placeholder="MM"
+                <input ref={el=>ddnRefs.current[1]=el} inputMode="numeric" maxLength={2} placeholder="MM"
                   onChange={e => {
                     vals.current.ddn_m = e.target.value;
+                    if (e.target.value.length===2) ddnRefs.current[2]?.focus();
                     const j = (vals.current.ddn_j||'').padStart(2,'0');
                     const m = e.target.value.padStart(2,'0');
                     const a = vals.current.ddn_a||'';
@@ -251,7 +254,7 @@ export default function NouveauPatient() {
                   }}
                   style={{...inp,width:48,textAlign:'center',padding:'10px 4px'}}/>
                 <span style={{color:'#9ca3af'}}>/</span>
-                <input inputMode="numeric" maxLength={4} placeholder="AAAA"
+                <input ref={el=>ddnRefs.current[2]=el} inputMode="numeric" maxLength={4} placeholder="AAAA"
                   onChange={e => {
                     vals.current.ddn_a = e.target.value;
                     const j = (vals.current.ddn_j||'').padStart(2,'0');

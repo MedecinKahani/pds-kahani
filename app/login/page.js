@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 const ROLES = [
   { id:'as',      label:'Aide-soignant', color:'#f59e0b', bg:'#fffbeb', border:'#fde68a' },
   { id:'ide',     label:'Infirmier',     color:'#3b82f6', bg:'#eff6ff', border:'#bfdbfe' },
-  { id:'medecin', label:'Medecin',       color:'#0d9488', bg:'#f0fdfa', border:'#99f6e4' },
+  { id:'medecin', label:'Médecin',       color:'#0d9488', bg:'#f0fdfa', border:'#99f6e4' },
 ];
 
 export default function Login() {
