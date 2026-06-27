@@ -100,7 +100,7 @@ export default function NouveauPatient() {
     const dex = parseFloat(vals.current.dextro);
     const hb = parseFloat(vals.current.hemocue);
     if (s === 'coma') {
-      if (vals.current.respire === false) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Massage cardiaque si pas de pouls' };
+      if (vals.current.respire === false) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Allonger le patient — Alerter le médecin — Commencer le massage cardiaque' };
       return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Dextro + hemocue + alerter medecin' };
     }
     if (s === 'detresse_respi') {
@@ -396,7 +396,7 @@ export default function NouveauPatient() {
               <div style={{ fontWeight:700, color:'#dc2626', fontSize:14, marginBottom:10 }}>Coma / Inconscience — URGENCE</div>
               <label style={lbl}>Le patient respire ?</label>
               <div style={{ display:'flex', gap:8 }}>
-                {[[true,'Oui'],[false,'Non — Massage cardiaque']].map(([v,l]) => (
+                {[[true,'Oui'],[false,'Non']].map(([v,l]) => (
                   <Btn key={String(v)} onClick={() => setU('respire', v)}
                     style={{ flex:1, padding:'10px', borderRadius:8, fontWeight:600, fontSize:13,
                       background: ui.respire===v ? (v===false?'#ef4444':'#16a34a') : '#fff',
