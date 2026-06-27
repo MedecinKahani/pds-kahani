@@ -177,7 +177,6 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [subSel, setSubSel] = useState({});
   const [collapsed, setCollapsed] = useState({examens:true, therapeutique:true, soins:true});
   const [therapieTab, setTherapieTab] = useState('adulte');
-  const [nouvConst, setNouvConst] = useState({ type:'', val:'' });
   const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
 
@@ -744,6 +743,229 @@ function HydratationSelector({ onAjouter }) {
       <HBtn onClick={()=>{if(qte&&dur){onAjouter(`${sol} ${qte}mL sur ${dur}`,'therapeutique');setSol('');setQte('');setDur('');}}}
         style={{padding:'3px 10px',borderRadius:5,background:'#0369a1',color:'#fff',border:'none',fontSize:10,fontWeight:600}}>OK</HBtn>
       <HBtn onClick={()=>setSol('')} style={{padding:'3px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:10}}>✕</HBtn>
+    </div>
+  );
+}
+
+function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpdate, patients, user }) {
+  const [editField, setEditField] = useState(null);
+  const [editVal, setEditVal] = useState('');
+  const [ippCopied, setIppCopied] = useState(false);
+
+  function colConst(v, k) {
+    const N = { fc:[50,100], tas:[90,150], tad:[60,95], sat:[94,100], temp:[36,38.4], dextro:[0.7,2.5], hemocue:[8,18] };
+    const n = parseFloat(v); if(isNaN(n)) return '#9ca3af';
+    const [mn,mx] = N[k]||[0,9999];
+    return n<mn||n>mx ? '#ef4444' : '#16a34a';
+  }
+
+  async function saveEdit(field, val) {
+    await save({ [field]: val });
+    setEditField(null);
+  }
+
+  function FieldEdit({ field, value, label, style={} }) {
+    if (editField === field) return (
+      <span style={{display:'inline-flex',alignItems:'center',gap:4}}>
+        <input autoFocus value={editVal} onChange={e=>setEditVal(e.target.value)}
+          onKeyDown={e=>{if(e.key==='Enter')saveEdit(field,editVal);if(e.key==='Escape')setEditField(null);}}
+          style={{fontSize:13,border:'1.5px solid #0d9488',borderRadius:5,padding:'2px 6px',outline:'none',width:90}}/>
+        <button onClick={()=>saveEdit(field,editVal)} style={{fontSize:10,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✓</button>
+        <button onClick={()=>setEditField(null)} style={{fontSize:10,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✕</button>
+      </span>
+    );
+    return (
+      <span onClick={()=>{setEditField(field);setEditVal(value||'');}}
+        title="Cliquer pour modifier"
+        style={{cursor:'pointer',borderBottom:'1px dashed #d1d5db',...style}}>
+        {value||<span style={{color:'#d1d5db'}}>{label}</span>}
+      </span>
+    );
+  }
+
+  // Constante avec bouton + pour mise à jour
+  function ConstCard({ label, icon, fieldKey, unit, value, color, noEdit }) {
+    const [showAdd, setShowAdd] = useState(false);
+    const [newVal, setNewVal] = useState('');
+    const updates = constPost.filter(c => c.key === fieldKey);
+    const latest = updates[updates.length-1];
+    const displayVal = latest ? latest.val : value;
+    const displayColor = displayVal && displayVal !== '--' ? colConst(displayVal, fieldKey) : '#9ca3af';
+    const isOld = !!latest;
+
+    return (
+      <div style={{background:'#f9fafb',borderRadius:8,padding:'5px 8px',border:'1px solid #e5e7eb',position:'relative',minWidth:0}}>
+        <div style={{fontSize:8,color:'#9ca3af',display:'flex',alignItems:'center',gap:2,marginBottom:1}}>
+          <span>{icon}</span>{label}
+        </div>
+        <div style={{display:'flex',alignItems:'baseline',gap:4,flexWrap:'wrap'}}>
+          {isOld && <span style={{fontSize:13,fontWeight:700,color:'#d1d5db',textDecoration:'line-through',whiteSpace:'nowrap'}}>{value||'--'}<span style={{fontSize:8,fontWeight:400}}> {unit}</span></span>}
+          <span style={{fontSize:isOld?15:14,fontWeight:700,color:displayColor,whiteSpace:'nowrap'}}>{displayVal||'--'}<span style={{fontSize:8,fontWeight:400,color:'#9ca3af'}}> {unit}</span></span>
+          {!showAdd && <button onClick={e=>{e.stopPropagation();setShowAdd(true);setNewVal('');}}
+            style={{fontSize:9,background:'#e5e7eb',border:'none',borderRadius:3,padding:'1px 5px',cursor:'pointer',color:'#6b7280',flexShrink:0}}>+</button>}
+        </div>
+        {showAdd && (
+          <div style={{display:'flex',gap:3,marginTop:4}}>
+            <input autoFocus value={newVal} onChange={e=>setNewVal(e.target.value)} placeholder={unit}
+              onKeyDown={e=>{
+                if(e.key==='Enter'&&newVal){
+                  const c=[...constPost,{label,key:fieldKey,val:newVal,unit,ts:Date.now()}];
+                  setConstPost(c);save({constantes_post:JSON.stringify(c)});
+                  setShowAdd(false);
+                }
+                if(e.key==='Escape')setShowAdd(false);
+              }}
+              style={{flex:1,fontSize:11,border:'1px solid #0d9488',borderRadius:4,padding:'2px 4px',outline:'none',minWidth:0}}/>
+            <button onClick={()=>{
+              if(newVal){const c=[...constPost,{label,key:fieldKey,val:newVal,unit,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});}
+              setShowAdd(false);
+            }} style={{fontSize:10,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 5px',cursor:'pointer'}}>✓</button>
+            <button onClick={()=>setShowAdd(false)} style={{fontSize:10,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 4px',cursor:'pointer'}}>✕</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Constante qualitative (TDR, BU, bHCG, CRP) avec bouton +
+  function QualCard({ label, icon, fieldKey, options, value }) {
+    const [showAdd, setShowAdd] = useState(false);
+    const updates = constPost.filter(c => c.key === fieldKey);
+    const latest = updates[updates.length-1];
+    const displayVal = latest ? latest.val : value;
+    const isPos = displayVal === 'Positif' || displayVal === '+' || displayVal?.includes('+');
+    const color = displayVal ? (isPos ? '#ef4444' : '#16a34a') : '#9ca3af';
+
+    return (
+      <div style={{background:'#f9fafb',borderRadius:8,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0}}>
+        <div style={{fontSize:8,color:'#9ca3af',marginBottom:1}}>{icon} {label}</div>
+        <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
+          {latest && <span style={{fontSize:11,color:'#d1d5db',textDecoration:'line-through'}}>{value||'--'}</span>}
+          <span style={{fontSize:12,fontWeight:700,color}}>{displayVal||'--'}</span>
+          {!showAdd && <button onClick={e=>{e.stopPropagation();setShowAdd(true);}}
+            style={{fontSize:9,background:'#e5e7eb',border:'none',borderRadius:3,padding:'1px 5px',cursor:'pointer',color:'#6b7280'}}>+</button>}
+        </div>
+        {showAdd && (
+          <div style={{display:'flex',gap:3,marginTop:4,flexWrap:'wrap'}}>
+            {options.map(opt=>(
+              <button key={opt} onClick={()=>{
+                const c=[...constPost,{label,key:fieldKey,val:opt,unit:'',ts:Date.now()}];
+                setConstPost(c);save({constantes_post:JSON.stringify(c)});
+                setShowAdd(false);
+              }} style={{fontSize:10,padding:'2px 8px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',
+                color:opt==='Positif'||opt.includes('++')?'#ef4444':'#16a34a',fontWeight:600}}>
+                {opt}
+              </button>
+            ))}
+            <button onClick={()=>setShowAdd(false)} style={{fontSize:10,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✕</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const CROIX = ['Nég', '+', '++', '+++'];
+
+  // BU card spéciale
+  function BUCard() {
+    const [showAdd, setShowAdd] = useState(false);
+    const buPost = constPost.find(c=>c.key==='bu_post');
+    const buBase = p.bu_resultat;
+    const displayBU = buPost ? buPost.val : buBase;
+    const color = displayBU ? '#3b82f6' : '#9ca3af';
+    const [buEdit, setBuEdit] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
+
+    return (
+      <div style={{background:'#f9fafb',borderRadius:8,padding:'5px 8px',border:'1px solid #e5e7eb',gridColumn:'span 2'}}>
+        <div style={{fontSize:8,color:'#9ca3af',marginBottom:1}}>🔵 BU</div>
+        <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+          {buPost && <span style={{fontSize:10,color:'#d1d5db',textDecoration:'line-through'}}>{buBase||'--'}</span>}
+          <span style={{fontSize:11,fontWeight:600,color}}>{displayBU||'--'}</span>
+          {!showAdd && <button onClick={e=>{e.stopPropagation();setShowAdd(true);}}
+            style={{fontSize:9,background:'#e5e7eb',border:'none',borderRadius:3,padding:'1px 5px',cursor:'pointer',color:'#6b7280'}}>+</button>}
+        </div>
+        {showAdd && (
+          <div style={{marginTop:6}}>
+            {[['leuco','Leuco'],['nitrite','Nitrite'],['cetone','Cétone'],['glucose','Glucose']].map(([k,l])=>(
+              <div key={k} style={{display:'flex',alignItems:'center',gap:4,marginBottom:3}}>
+                <span style={{fontSize:10,width:50,flexShrink:0,color:'#374151'}}>{l}</span>
+                {CROIX.map(v=>(
+                  <button key={v} onClick={()=>setBuEdit(prev=>({...prev,[k]:v}))}
+                    style={{padding:'1px 6px',borderRadius:4,fontSize:10,border:'1px solid '+(buEdit[k]===v?'#3b82f6':'#e5e7eb'),
+                      background:buEdit[k]===v?'#3b82f6':'#fff',color:buEdit[k]===v?'#fff':'#374151',cursor:'pointer',fontWeight:600}}>
+                    {v}
+                  </button>
+                ))}
+              </div>
+            ))}
+            <div style={{display:'flex',gap:6,marginTop:4}}>
+              <button onClick={()=>{
+                const res=`Leuco ${buEdit.leuco} / Nitrite ${buEdit.nitrite} / Cétone ${buEdit.cetone} / Glucose ${buEdit.glucose}`;
+                const c=[...constPost,{label:'BU',key:'bu_post',val:res,unit:'',ts:Date.now()}];
+                setConstPost(c);save({constantes_post:JSON.stringify(c),bu_resultat:res});
+                setShowAdd(false);
+              }} style={{padding:'4px 12px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>
+                Valider
+              </button>
+              <button onClick={()=>setShowAdd(false)} style={{padding:'4px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const pamVal = p.tas && p.tad ? Math.round(parseFloat(p.tad)+(parseFloat(p.tas)-parseFloat(p.tad))/3) : null;
+  const pamColor = pamVal ? (pamVal < 65 ? '#ef4444' : '#16a34a') : '#9ca3af';
+
+  return (
+    <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'8px 14px',flexShrink:0}}>
+      {/* LIGNE 1 : identité */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+        <div style={{display:'flex',flexWrap:'wrap',gap:'4px 12px',alignItems:'center',fontSize:13,color:'#111827'}}>
+          <span style={{fontWeight:800,fontSize:15}}>
+            <FieldEdit field="prenom" value={p.prenom} label="Prénom"/> <FieldEdit field="nom" value={p.nom} label="NOM"/>
+          </span>
+          <span style={{color:'#6b7280'}}><FieldEdit field="age" value={p.age} label="âge"/> ans · {p.sexe==='M'?'♂':'♀'}</span>
+          {p.ddn && <span style={{color:'#9ca3af',fontSize:11}}><FieldEdit field="ddn" value={p.ddn} label="DDN"/></span>}
+          <span style={{display:'flex',alignItems:'center',gap:4,fontSize:11,color:'#9ca3af'}}>
+            IPP <FieldEdit field="ipp" value={p.ipp} label="--"/>
+            {p.ipp && <button onClick={()=>{navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),1500);}}
+              style={{fontSize:10,padding:'1px 6px',borderRadius:4,background:ippCopied?'#f0fdf4':'#f3f4f6',color:ippCopied?'#16a34a':'#6b7280',border:'1px solid #e5e7eb',cursor:'pointer',fontWeight:600}}>
+              {ippCopied?'✓ Copié':'□ Copier'}
+            </button>}
+          </span>
+          <span style={{fontWeight:600,color:'#0d9488'}}><FieldEdit field="symptome" value={p.symptome?.replace(/_/g,' ')} label="motif"/></span>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexShrink:0}}>
+          <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
+          <button onClick={onClose} style={{background:'#f3f4f6',border:'none',width:28,height:28,borderRadius:'50%',cursor:'pointer',fontSize:16,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+        </div>
+      </div>
+
+      {/* LIGNE 2 : constantes */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:4}}>
+        <ConstCard label="FC" icon="🫀" fieldKey="fc" unit="bpm" value={p.fc}/>
+        <ConstCard label="PAS" icon="🩸" fieldKey="tas" unit="mmHg" value={p.tas}/>
+        <ConstCard label="PAD" icon="🩸" fieldKey="tad" unit="mmHg" value={p.tad}/>
+        <div style={{background:'#f9fafb',borderRadius:8,padding:'5px 8px',border:'1px solid #e5e7eb'}}>
+          <div style={{fontSize:8,color:'#9ca3af',marginBottom:1}}>💉 PAM</div>
+          <span style={{fontSize:14,fontWeight:700,color:pamColor}}>{pamVal||'--'}<span style={{fontSize:8,color:'#9ca3af'}}> mmHg</span></span>
+        </div>
+        <ConstCard label="Sat" icon="💧" fieldKey="sat" unit="%" value={p.sat}/>
+        <ConstCard label="T°" icon="🌡️" fieldKey="temp" unit="°C" value={p.temp}/>
+        <ConstCard label="Dextro" icon="🍬" fieldKey="dextro" unit="g/L" value={p.dextro}/>
+        <ConstCard label="Hémocue" icon="🔴" fieldKey="hemocue" unit="g/dL" value={p.hemocue}/>
+      </div>
+
+      {/* LIGNE 3 : examens qualitatifs */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:4,marginTop:4}}>
+        <QualCard label="CRP" icon="🔬" fieldKey="crp_test" options={['Nég','1 barre','2 barres','3 barres','4 barres']} value={p.crp_test}/>
+        <QualCard label="TDR Palu" icon="🦟" fieldKey="tdr_palu" options={['Négatif','Positif']} value={p.tdr_palu}/>
+        <QualCard label="TDR Dengue" icon="🦟" fieldKey="tdr_dengue" options={['Négatif','Positif']} value={p.tdr_dengue}/>
+        <QualCard label="bHCG" icon="🟣" fieldKey="bhcg_resultat" options={['Négatif','Positif']} value={p.bhcg_resultat}/>
+        <BUCard/>
+      </div>
     </div>
   );
 }
