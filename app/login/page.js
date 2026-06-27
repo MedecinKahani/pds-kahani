@@ -43,7 +43,7 @@ export default function Login() {
 
       {!role ? (
         <div style={{width:'100%',maxWidth:480}}>
-          <p style={{textAlign:'center',color:'#6b7280',fontSize:13,marginBottom:16}}>Qui etes-vous ?</p>
+          <p style={{textAlign:'center',color:'#6b7280',fontSize:13,marginBottom:16}}>Qui êtes-vous ?</p>
           <div style={{display:'flex',gap:12}}>
             {ROLES.map(rx => (
               <button key={rx.id} onClick={()=>setRole(rx.id)} style={{
