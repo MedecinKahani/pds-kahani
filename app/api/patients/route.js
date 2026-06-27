@@ -53,6 +53,23 @@ export async function POST(req) {
       return Response.json({ ok: true, patients: all });
     }
 
+    if (action === 'restore') {
+      const { id, emplacement } = body;
+      const patient = await kv.hgetall(`archive:${id}`);
+      if (patient) {
+        patient.statut = emplacement ? 'attente_medecin' : 'dehors';
+        patient.emplacement = emplacement || null;
+        delete patient.sortie;
+        delete patient.modalite_sortie;
+        delete patient.moyen_sortie;
+        await kv.hset(`patient:${id}`, patient);
+        await kv.expire(`patient:${id}`, 172800);
+        await kv.del(`archive:${id}`);
+      }
+      const all = await getAllPatients();
+      return Response.json({ ok: true, patients: all });
+    }
+
     if (action === 'delete') {
       const { id: delId } = body;
       await kv.del(`patient:${delId}`);
@@ -60,15 +77,16 @@ export async function POST(req) {
     }
 
     if (action === 'discharge') {
-      const { id } = body;
+      const { id, modalite_sortie, moyen_sortie } = body;
       const patient = await kv.hgetall(`patient:${id}`);
       if (patient) {
         patient.sortie = Date.now();
         patient.statut = 'sorti';
+        if (modalite_sortie) patient.modalite_sortie = modalite_sortie;
+        if (moyen_sortie) patient.moyen_sortie = moyen_sortie;
         await kv.hset(`archive:${id}`, patient);
-        await kv.expire(`archive:${id}`, 172800); // 48h en secondes
+        await kv.expire(`archive:${id}`, 172800);
         await kv.del(`patient:${id}`);
-        // Snapshot persistante pour stats mensuelles
         await incrementerCompteurs(patient);
       }
       const all = await getAllPatients();

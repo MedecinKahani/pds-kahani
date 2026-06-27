@@ -68,6 +68,74 @@ function BoutonStats({ router }) {
   );
 }
 
+function OverlaySortie({ patient, onClose, onConfirm }) {
+  const [modalite, setModalite] = React.useState('');
+  const [moyen, setMoyen] = React.useState('');
+  const p = patient;
+
+  return (
+    <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10000,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{background:'#fff',borderRadius:16,width:440,padding:'24px',boxShadow:'0 24px 64px rgba(0,0,0,0.25)'}}>
+        <div style={{fontWeight:800,fontSize:16,color:'#111827',marginBottom:4}}>Fiche de sortie</div>
+        <div style={{fontSize:13,color:'#6b7280',marginBottom:20}}>{p.prenom} {p.nom} · {p.age} ans</div>
+
+        <div style={{fontWeight:600,fontSize:13,color:'#374151',marginBottom:10}}>Modalité de sortie</div>
+        <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:20}}>
+          {[
+            {id:'domicile', label:'🏠 Retour à domicile'},
+            {id:'transfert', label:'🚑 Transfert Mamoudzou'},
+            {id:'deces', label:'🕊️ Décès'},
+          ].map(opt=>(
+            <button key={opt.id} onClick={()=>{setModalite(opt.id);if(opt.id!=='transfert')setMoyen('');}}
+              style={{padding:'12px 16px',borderRadius:10,textAlign:'left',fontSize:13,fontWeight:600,cursor:'pointer',
+                background:modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':'#f0fdf4'):'#f9fafb',
+                color:modalite===opt.id?(opt.id==='deces'?'#fff':opt.id==='transfert'?'#fff':'#15803d'):'#374151',
+                border:'2px solid '+(modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':'#16a34a'):'#e5e7eb')}}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {modalite==='transfert'&&(
+          <div style={{marginBottom:20}}>
+            <div style={{fontWeight:600,fontSize:13,color:'#374151',marginBottom:8}}>Moyen de transport</div>
+            <div style={{display:'flex',gap:8}}>
+              {[
+                {id:'ambulance', label:'🚑 Ambulance'},
+                {id:'helicoptere', label:'🚁 Hélicoptère'},
+                {id:'personnels', label:'🚗 Moyens personnels'},
+              ].map(m=>(
+                <button key={m.id} onClick={()=>setMoyen(m.id)}
+                  style={{flex:1,padding:'10px 6px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',textAlign:'center',
+                    background:moyen===m.id?'#1e3a5f':'#f9fafb',
+                    color:moyen===m.id?'#fff':'#374151',
+                    border:'2px solid '+(moyen===m.id?'#1e3a5f':'#e5e7eb')}}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{display:'flex',gap:10,marginTop:8}}>
+          <button onClick={onClose}
+            style={{flex:1,padding:'12px',borderRadius:10,background:'#f3f4f6',color:'#6b7280',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>
+            Annuler
+          </button>
+          <button
+            disabled={!modalite||(modalite==='transfert'&&!moyen)}
+            onClick={()=>onConfirm(modalite,moyen)}
+            style={{flex:2,padding:'12px',borderRadius:10,fontSize:13,fontWeight:700,border:'none',cursor:'pointer',
+              background:(!modalite||(modalite==='transfert'&&!moyen))?'#e5e7eb':(modalite==='deces'?'#7f1d1d':'#0d9488'),
+              color:(!modalite||(modalite==='transfert'&&!moyen))?'#9ca3af':'#fff'}}>
+            ✓ Confirmer la sortie
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PageVueGlobale() {
   const router = useRouter();
   const [user,setUser] = useState(null);
@@ -77,6 +145,9 @@ export default function PageVueGlobale() {
   const [diag,setDiag] = useState('');
   const [orient,setOrient] = useState('');
   const [ficheOuverte,setFicheOuverte] = useState(null);
+  const [fichesSortie,setFichesSortie] = useState(null); // patient en cours de sortie
+  const [showSortis,setShowSortis] = useState(false);
+  const [patientsSortis,setPatientsSortis] = useState([]);
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
@@ -274,12 +345,9 @@ export default function PageVueGlobale() {
                   {hasThera&&<span style={{fontSize:16}}>💊</span>}
                   {hasSoins&&<span style={{fontSize:16}}>🩹</span>}
                 </div>
-                <button onClick={async e=>{
+                <button onClick={e=>{
                   e.stopPropagation();
-                  if(!confirm('Confirmer la sortie de '+p.prenom+' '+p.nom+' ?')) return;
-                  imprimerSortie(p);
-                  await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
-                  load();
+                  setFichesSortie(p);
                 }} style={{padding:'3px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:10,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
                   Sortie →
                 </button>
@@ -330,6 +398,14 @@ export default function PageVueGlobale() {
           <button onClick={()=>router.push('/nouveau-patient')} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
           <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Liste agents</button>
           <BoutonStats router={router}/>
+          <button onClick={async()=>{
+            setShowSortis(true);
+            const r=await fetch('/api/patients?all=1');
+            const d=await r.json();
+            const cutoff=Date.now()-24*3600*1000;
+            const sortis=(d.patients||[]).filter(p=>p.statut==='sorti'&&parseInt(p.sortie)>cutoff);
+            setPatientsSortis(sortis);
+          }} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Patients sortis</button>
           <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer'}}>Deconnexion</button>
         </div>
       </nav>
@@ -455,6 +531,60 @@ export default function PageVueGlobale() {
             user={user}
             patients={patients}
           />
+        </div>
+      )}
+
+      {/* OVERLAY SORTIE */}
+      {fichesSortie&&(
+        <OverlaySortie
+          patient={fichesSortie}
+          onClose={()=>setFichesSortie(null)}
+          onConfirm={async(modalite,moyen)=>{
+            const p=fichesSortie;
+            // Imprimer PDF
+            imprimerSortie({...p, modalite_sortie:modalite, moyen_sortie:moyen});
+            // Discharge
+            await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({action:'discharge',id:p.id,modalite_sortie:modalite,moyen_sortie:moyen})});
+            setFichesSortie(null);
+            load();
+          }}
+        />
+      )}
+
+      {/* OVERLAY PATIENTS SORTIS */}
+      {showSortis&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:9998,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center'}}
+          onClick={()=>setShowSortis(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:16,width:500,maxHeight:'80vh',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 24px 64px rgba(0,0,0,0.2)'}}>
+            <div style={{padding:'16px 20px',borderBottom:'1px solid #e5e7eb',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Patients sortis — dernières 24h</span>
+              <button onClick={()=>setShowSortis(false)} style={{background:'#f3f4f6',border:'none',width:28,height:28,borderRadius:'50%',cursor:'pointer',fontSize:16,color:'#6b7280'}}>×</button>
+            </div>
+            <div style={{flex:1,overflowY:'auto',padding:12}}>
+              {patientsSortis.length===0&&<div style={{color:'#9ca3af',textAlign:'center',padding:'2rem',fontSize:13}}>Aucun patient sorti dans les dernières 24h</div>}
+              {patientsSortis.map(p=>(
+                <div key={p.id} style={{background:'#f9fafb',borderRadius:10,padding:'12px 14px',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+                  <div>
+                    <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.prenom} {p.nom}</div>
+                    <div style={{fontSize:11,color:'#6b7280',marginTop:2}}>{p.symptome||'--'} · {p.modalite_sortie||'Sorti'}{p.moyen_sortie?' — '+p.moyen_sortie:''}</div>
+                    <div style={{fontSize:10,color:'#9ca3af',marginTop:1}}>Sorti à {p.sortie?new Date(parseInt(p.sortie)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'-'}</div>
+                  </div>
+                  <button onClick={async()=>{
+                    // Vérifier si l'emplacement est libre
+                    const placeLibre = !patients.find(x=>x.emplacement===p.emplacement);
+                    const emplacement = placeLibre ? p.emplacement : null;
+                    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                      body:JSON.stringify({action:'restore',id:p.id,emplacement})});
+                    setShowSortis(false);
+                    load();
+                  }} style={{padding:'6px 12px',borderRadius:7,background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:600,border:'1px solid #fde68a',cursor:'pointer',flexShrink:0}}>
+                    Annuler sortie
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
