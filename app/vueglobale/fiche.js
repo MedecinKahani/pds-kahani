@@ -427,7 +427,7 @@ ${ordonnance||'--'}
             </span>
             <span style={{fontSize:12,color:'#6b7280'}}>{p.sexe==='M'?'♂':'♀'} · <EditSpan field="age" value={p.age} placeholder="âge" w={25}/> ans</span>
             {p.ddn&&<span style={{fontSize:11,color:'#9ca3af'}}><EditSpan field="ddn" value={p.ddn} placeholder="DDN" w={85}/></span>}
-            <span onMouseDown={e=>{e.preventDefault();if(p.ipp){navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),1500);}}}
+            <span onMouseDown={e=>{e.preventDefault();if(p.ipp){navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),10000);}}}
               style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:6,padding:'2px 8px',border:'1px solid '+(ippCopied?'#0d9488':'#e5e7eb'),background:ippCopied?'#f0fdfa':'#f3f4f6',cursor:p.ipp?'pointer':'default',transition:'all 0.15s',userSelect:'none'}}>
               <span style={{fontSize:9,color:ippCopied?'#0d9488':'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
               <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
