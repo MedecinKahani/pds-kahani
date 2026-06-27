@@ -339,22 +339,24 @@ export default function PageVueGlobale() {
             {/* DROITE : motif en haut, cercles triangle, sortie en bas */}
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{fontSize:10,fontWeight:700,color:'#111827',textAlign:'center',lineHeight:1.2}}>{labelSymptome(p)}</div>
-              {/* Triangle : 1 en haut, 2 en bas */}
-              <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center'}}>
-                <div style={{display:'flex',justifyContent:'center'}}>
-                  <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasExamens?c+'88':'#d1d5db'),background:hasExamens?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasExamens?13:0}}>
-                    {hasExamens?'🔬':''}
+              {/* Cercle unique : nombre de prescriptions en attente */}
+              {(() => {
+                const enAttente = prescriptions.filter(r=>!r.fait&&!r.nonRealise).length;
+                return (
+                  <div style={{
+                    width:36,height:36,borderRadius:'50%',
+                    background:enAttente>0?c:'transparent',
+                    border:'2px solid '+(enAttente>0?c:'#d1d5db'),
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    flexShrink:0,
+                  }}>
+                    {enAttente>0
+                      ? <span style={{color:'#fff',fontSize:14,fontWeight:800,lineHeight:1}}>{enAttente}</span>
+                      : <span style={{color:'#d1d5db',fontSize:11,fontWeight:600}}>—</span>
+                    }
                   </div>
-                </div>
-                <div style={{display:'flex',justifyContent:'center',gap:4}}>
-                  <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasThera?c+'88':'#d1d5db'),background:hasThera?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasThera?13:0}}>
-                    {hasThera?'💊':''}
-                  </div>
-                  <div style={{width:22,height:22,borderRadius:'50%',border:'1.5px solid '+(hasSoins?c+'88':'#d1d5db'),background:hasSoins?cbg:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:hasSoins?13:0}}>
-                    {hasSoins?'🩹':''}
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
               <div style={{display:'flex',justifyContent:'flex-end',width:'100%'}}>
                 <button onClick={e=>{e.stopPropagation();setFichesSortie(p);}}
                   style={{padding:'2px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
