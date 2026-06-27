@@ -68,6 +68,8 @@ export async function POST(req) {
         await kv.hset(`archive:${id}`, patient);
         await kv.expire(`archive:${id}`, 172800); // 48h en secondes
         await kv.del(`patient:${id}`);
+        // Snapshot persistante pour stats mensuelles
+        await incrementerCompteurs(patient);
       }
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -100,7 +102,74 @@ export async function POST(req) {
   }
 }
 
-async function getAllPatients() {
+async function incrementerCompteurs(patient) {
+  try {
+    const d = new Date(parseInt(patient.arrivee));
+    const moisKey = `stats:compteurs:${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const existing = await kv.get(moisKey) || {};
+
+    function inc(k, n=1) { existing[k] = (existing[k]||0) + n; }
+
+    inc('nbPatients');
+    if (patient.fc || patient.sat || patient.tas || patient.temp) inc('nbConstStd');
+    if (patient.dextro) inc('nbDextro');
+    if (patient.hemocue) inc('nbHemocue');
+    if (patient.cetonemie) inc('nbCetonem');
+    if (patient.crp_test) inc('nbCRP');
+    if (patient.tdr_palu) inc('nbTdrPalu');
+    if (patient.tdr_dengue) inc('nbTdrDengue');
+    if (patient.quicktest) inc('nbTetanos');
+    if (patient.bu_fait) inc('nbBU');
+    if (patient.bhcg_fait) inc('nbBhcg');
+    if (patient.bu_fait || patient.bhcg_fait) inc('nbUrine');
+    if (patient.ecg_fait) inc('nbECG');
+    if (patient.drp) inc('nbDRP');
+    if (patient.educ_drp) inc('nbEducDRP');
+
+    // Sutures
+    const sutures = patient.sutures ? JSON.parse(patient.sutures) : [];
+    if (sutures.includes('sut_sup5')) inc('nbSutSup5');
+    if (sutures.includes('sut_inf5')) inc('nbSutInf5');
+    if (sutures.includes('sut_colle')) inc('nbSutColle');
+    if (sutures.includes('sut_agraf')) inc('nbSutAgraf');
+    if (sutures.includes('sut_steri')) inc('nbSutSteri');
+
+    // Prescriptions réalisées
+    const prescriptions = patient.prescriptions ? JSON.parse(patient.prescriptions) : [];
+    prescriptions.filter(r=>r.fait).forEach(r => {
+      const t = (r.texte||'').toLowerCase();
+      if (t.includes('ecbu')) inc('nbECBU');
+      if (t.includes('hémoculture')) inc('nbHemocult');
+      if (t.includes('coproculture')) inc('nbCoprocult');
+      if (t.includes('bio délocalisée')) inc('nbBioDeloc');
+      if (t.includes('gaz du sang')) inc('nbGazSang');
+      if (t.includes('prélèvement mamoudzou')) inc('nbPrelevMam');
+      if (t.includes('ecg')) inc('nbECG');
+      if (t.includes('vvp')) inc('nbVVP');
+      if (t.includes('sonde urinaire')) inc('nbSondeU');
+      if (t.includes('aérosol')) inc('nbAerosol');
+      if (t.includes('meopa')) inc('nbMeopa');
+      if (t.includes('o2')) inc('nbO2');
+      if (t.includes('drp')) inc('nbDRP');
+      if (t.includes('pansement simple')) inc('nbPSTSimple');
+      if (t.includes('pansement complexe')) inc('nbPSTCompl');
+      if (t.includes('lavage cae')) inc('nbLavCAE');
+      if (t.includes('vaccin')) inc('nbVaccin');
+      if (t.includes('pose implant')) inc('nbPoseImpl');
+      if (t.includes('retrait implant')) inc('nbRetrImpl');
+      if (t.includes('reprise constantes')) inc('nbSurveillance');
+      if (t.includes('éducation asthme')) inc('nbEducAsthme');
+      if (t.includes('hellico')) inc('nbTransfHellico');
+      if (t.includes('mdz') || t.includes('mamoudzou')) inc('nbTransfMDZ');
+      if (r.categorie==='therapeutique' && r.texte?.includes(' IV')) inc('nbIV');
+      if (r.categorie==='therapeutique' && r.texte?.includes(' IM')) inc('nbIM');
+      if (r.categorie==='therapeutique' && r.texte?.includes(' SC')) inc('nbSC');
+      if (t.includes('tramadol')||t.includes('morphine')||t.includes('meopa')||t.includes('kétoprofène')) inc('nbOrdoSecurisees');
+    });
+
+    await kv.set(moisKey, existing); // pas de TTL — persistant à vie
+  } catch(e) { console.error('incrementerCompteurs error', e); }
+}
   const keys = await kv.keys('patient:*');
   if (!keys.length) return [];
   const patients = await Promise.all(keys.map(k => kv.hgetall(k)));
