@@ -104,6 +104,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [ordonnance, setOrdonnance] = useState(p.ordonnance || '');
   const [copied, setCopied] = useState(false);
   const [subOpen, setSubOpen] = useState({});
+  const [subSel, setSubSel] = useState({});
   const [collapsed, setCollapsed] = useState({examens:false, therapeutique:false, soins:false});
   const [therapieTab, setTherapieTab] = useState('adulte');
   const [nouvConst, setNouvConst] = useState({ type:'', val:'' });
@@ -347,7 +348,7 @@ ${ordonnance||'--'}
                 </div>
                 {!collapsed.examens&&<div style={{padding:'10px 12px',display:'flex',flexWrap:'wrap',gap:6}}>
                   {EXAMENS.map(e=>{
-                    const deja=prescriptions.find(r=>!r.fait&&r.texte===e.label);
+                    const deja=prescriptions.find(r=>!r.fait&&(r.texte===e.label||r.texte?.startsWith(e.label+' :')));
                     if(deja) return null;
                     if(e.sub) return (
                       <div key={e.id} style={{position:'relative'}}>
@@ -356,21 +357,41 @@ ${ordonnance||'--'}
                           {e.label} {subOpen[e.id]?'▲':'▼'}
                         </HBtn>
                         {subOpen[e.id]&&<div style={{position:'fixed',zIndex:500,background:'#fff',border:'1.5px solid '+e.color+'66',borderRadius:10,padding:12,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',minWidth:240,maxHeight:320,overflowY:'auto'}}>
-                          <div style={{fontSize:10,fontWeight:700,color:e.color,marginBottom:8,textTransform:'uppercase'}}>Sélectionner (plusieurs possible)</div>
+                          <div style={{fontSize:10,fontWeight:700,color:e.color,marginBottom:8,textTransform:'uppercase'}}>Cocher les items à prescrire</div>
                           {e.sub.map(s=>{
-                            const deja2=prescriptions.find(r=>!r.fait&&r.texte===e.label+' : '+s);
+                            const sel=(subSel[e.id]||[]).includes(s);
+                            const dejaRx=prescriptions.find(r=>!r.fait&&r.texte?.startsWith(e.label)&&r.texte?.includes(s));
                             return <div key={s}
-                              onClick={()=>{ if(!deja2) ajouterPrescription(e.label+' : '+s,'examen'); }}
-                              style={{padding:'6px 8px',borderRadius:5,cursor:deja2?'default':'pointer',fontSize:11,color:deja2?'#9ca3af':e.color,fontWeight:600,display:'flex',alignItems:'center',gap:8,opacity:deja2?0.5:1}}
-                              onMouseEnter={ev=>{if(!deja2)ev.currentTarget.style.background=e.color+'18';}}
+                              onClick={()=>{
+                                if(dejaRx) return;
+                                setSubSel(prev=>{
+                                  const cur=prev[e.id]||[];
+                                  return {...prev,[e.id]:sel?cur.filter(x=>x!==s):[...cur,s]};
+                                });
+                              }}
+                              style={{padding:'6px 8px',borderRadius:5,cursor:dejaRx?'default':'pointer',fontSize:11,color:dejaRx?'#9ca3af':e.color,fontWeight:600,display:'flex',alignItems:'center',gap:8,opacity:dejaRx?0.4:1}}
+                              onMouseEnter={ev=>{if(!dejaRx)ev.currentTarget.style.background=e.color+'18';}}
                               onMouseLeave={ev=>{ev.currentTarget.style.background='transparent';}}>
-                              <div style={{width:16,height:16,borderRadius:4,border:'1.5px solid '+(deja2?'#9ca3af':e.color),background:deja2?e.color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                {deja2&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                              <div style={{width:16,height:16,borderRadius:4,border:'1.5px solid '+(sel||dejaRx?e.color:'#d1d5db'),background:(sel||dejaRx)?e.color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                {(sel||dejaRx)&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
                               </div>
-                              {s}
+                              {s}{dejaRx?' (déjà prescrit)':''}
                             </div>;
                           })}
-                          <button onClick={()=>setSubOpen(so=>({...so,[e.id]:false}))} style={{marginTop:8,width:'100%',padding:'6px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer',fontWeight:600}}>Fermer</button>
+                          <div style={{display:'flex',gap:6,marginTop:10}}>
+                            <button onClick={()=>{
+                              const sel=subSel[e.id]||[];
+                              if(sel.length>0){
+                                const texte=e.label+' : '+sel.join(', ');
+                                ajouterPrescription(texte,'examen');
+                              }
+                              setSubSel(prev=>({...prev,[e.id]:[]}));
+                              setSubOpen(so=>({...so,[e.id]:false}));
+                            }} style={{flex:1,padding:'8px',borderRadius:6,background:e.color,color:'#fff',border:'none',fontSize:11,cursor:'pointer',fontWeight:700}}>
+                              Prescrire {(subSel[e.id]||[]).length>0?'('+subSel[e.id].length+')':''}
+                            </button>
+                            <button onClick={()=>setSubOpen(so=>({...so,[e.id]:false}))} style={{padding:'8px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
+                          </div>
                         </div>}
                       </div>
                     );
