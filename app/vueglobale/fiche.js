@@ -24,11 +24,17 @@ function safeJSON(val, fallback = []) {
 const EXAMENS = [
   { id:'bhcg',    label:'bHCG urinaire',        color:'#7c3aed' },
   { id:'bu',      label:'BU',                   color:'#7c3aed' },
+  { id:'ecbu',    label:'ECBU',                 color:'#7c3aed' },
   { id:'dextro',  label:'Dextro',               color:'#f59e0b' },
+  { id:'cetonem', label:'Cétonémie',            color:'#f59e0b' },
   { id:'ecg',     label:'ECG',                  color:'#dc2626' },
   { id:'hemocue', label:'Hémocue',              color:'#dc2626' },
+  { id:'crp',     label:'CRP test',             color:'#ea580c' },
   { id:'tdr_den', label:'TDR Dengue',           color:'#ea580c' },
   { id:'tdr_pal', label:'TDR Paludisme',        color:'#16a34a' },
+  { id:'tdr_tet', label:'Tétanotop',            color:'#16a34a' },
+  { id:'hemocult',label:'Hémoculture',          color:'#0284c7' },
+  { id:'coprocult',label:'Coproculture',        color:'#6b7280' },
   { id:'bio_del', label:'Bio délocalisée',      color:'#0891b2', sub:['NFS + CRP','Gaz du sang','Tropo / D-Dimère / BNP','Iono / Créatinine / BHC'] },
   { id:'bio_mam', label:'Prélèvement Mamoudzou',color:'#0284c7', sub:['NFS','CRP','Iono','Créatinine','BHC','Lipase','Sérologie','Bactério','PSA','Bilan anémie','Hémoculture','ECBU'] },
 ];
@@ -116,6 +122,9 @@ const SOINS = [
   { id:'glyc_ctrl',  label:'Glycémie capillaire contrôle', color:'#f59e0b' },
   { id:'rechauffe',  label:'Réchauffement',              color:'#ea580c' },
   { id:'oxymetre',   label:'Oxymétrie de pouls',         color:'#dc2626' },
+  { id:'spu',        label:'Sonde urinaire',             color:'#6b7280' },
+  { id:'pose_impl',  label:'Pose implant',               color:'#7c3aed' },
+  { id:'retrait_impl',label:'Retrait implant',           color:'#7c3aed' },
   { id:'educ_asthme',label:'Éducation asthme — vidéo TV obs', color:'#0891b2' },
   { id:'reprise_const',label:'Reprise constantes post-thérapeutique', color:'#6b7280' },
 ];
