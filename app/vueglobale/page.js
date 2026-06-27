@@ -502,7 +502,7 @@ export default function PageVueGlobale() {
                     <option value="">Installer...</option>
                     {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
                   </select>
-                  <button onClick={()=>{setFicheOuverte(p);}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+                  <button onClick={()=>{setFicheOuverte(p);setConstPostLocal(Array.isArray(p.constantes_post)?p.constantes_post:(p.constantes_post?JSON.parse(p.constantes_post):[]));}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
                     Cslt
                   </button>
                 </div>
