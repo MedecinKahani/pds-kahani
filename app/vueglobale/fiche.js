@@ -178,6 +178,11 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [collapsed, setCollapsed] = useState({examens:true, therapeutique:true, soins:true});
   const [therapieTab, setTherapieTab] = useState('adulte');
   const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
+
+  useEffect(() => {
+    const fromRedis = safeJSON(p.constantes_post, []);
+    setConstPost(prev => fromRedis.length >= prev.length ? fromRedis : prev);
+  }, [p.constantes_post]);
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
 
   const pam = p.tas && p.tad ? Math.round(parseFloat(p.tad) + (parseFloat(p.tas) - parseFloat(p.tad)) / 3) : null;
