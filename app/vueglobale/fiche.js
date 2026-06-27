@@ -442,23 +442,19 @@ ${ordonnance||'--'}
         {/* Ligne 1 : identité */}
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'7px 14px',borderBottom:'0.5px solid #f0f0f0'}}>
           <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-            <span style={{fontWeight:800,fontSize:15,color:'#111827'}}>
-              <EditSpan field="nom" value={p.nom} placeholder="NOM" w={80}/>{' '}
-              <EditSpan field="prenom" value={p.prenom} placeholder="Prénom" w={70}/>
+            <span style={{fontWeight:800,fontSize:15,color:'#111827'}}>{p.nom} {p.prenom}</span>
+            <span style={{fontSize:12,color:'#6b7280'}}>{p.sexe==='M'?'♂':'♀'} · {p.age} ans</span>
+            {p.ddn&&<span style={{fontSize:11,color:'#9ca3af'}}>{(()=>{const[y,m,d]=(p.ddn||'').split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()}</span>}
+            <span onMouseDown={e=>{e.preventDefault();if(p.ipp){navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),10000);}}}
+              style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:6,padding:'2px 8px',border:'1px solid '+(ippCopied?'#0d9488':'#e5e7eb'),background:ippCopied?'#f0fdfa':'#f3f4f6',cursor:p.ipp?'pointer':'default',userSelect:'none'}}>
+              <span style={{fontSize:9,color:ippCopied?'#0d9488':'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
+              <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
+              {ippCopied&&<span style={{fontSize:10,color:'#0d9488',fontWeight:700}}>✓</span>}
             </span>
-            <span style={{fontSize:12,color:'#6b7280'}}>{p.sexe==='M'?'♂':'♀'} · <EditSpan field="age" value={p.age} placeholder="âge" w={25}/> ans</span>
-            {p.ddn&&<span style={{fontSize:11,color:'#9ca3af'}}><EditSpan field="ddn" value={p.ddn} placeholder="DDN" w={85}/></span>}
-            <span style={{display:'inline-flex',alignItems:'center',gap:5}}>
-              <span onMouseDown={e=>{e.preventDefault();if(p.ipp){navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),10000);}}}
-                style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:6,padding:'2px 8px',border:'1px solid '+(ippCopied?'#0d9488':'#e5e7eb'),background:ippCopied?'#f0fdfa':'#f3f4f6',cursor:p.ipp?'pointer':'default',transition:'all 0.15s',userSelect:'none'}}>
-                <span style={{fontSize:9,color:ippCopied?'#0d9488':'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
-                <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
-                {ippCopied&&<span style={{fontSize:10,color:'#0d9488',fontWeight:700}}>✓</span>}
-              </span>
-              <EditSpan field="ipp" value={null} initVal={p.ipp} placeholder="✎ modifier IPP" w={100}/>
-            </span>
+            <button onMouseDown={e=>{e.preventDefault();openEditIdentite();}} title="Modifier l'identité"
+              style={{fontSize:13,background:'none',border:'none',cursor:'pointer',color:'#9ca3af',padding:'0 2px'}}>✎</button>
             <span style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
-              <EditSpan field="symptome" value={p.symptome?.replace(/_/g,' ')} placeholder="motif" w={100}/>
+              {p.symptome?.replace(/_/g,' ')}
             </span>
           </div>
           <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
