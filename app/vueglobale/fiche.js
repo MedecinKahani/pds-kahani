@@ -35,7 +35,7 @@ const EXAMENS_COMPL = [
   {id:'tdr_dengue', label:'TDR Dengue', color:'#ea580c'},
   {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
   {id:'bhcg', label:'bHCG urinaire', color:'#7c3aed'},
-  {id:'ecbu', label:'ECBU', color:'#7c3aed'},
+
   {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:['NFS + CRP','Gaz du sang','Tropo / D-Dimère / BNP','Iono / Créatinine / BHC']},
   {id:'bio_mam', label:'Prélèvement Mamoudzou', color:'#0284c7', sub:['NFS','CRP','Iono','Créatinine','BHC','Lipase','Hémoculture','ECBU','Sérologie','Bactério']},
 ];
