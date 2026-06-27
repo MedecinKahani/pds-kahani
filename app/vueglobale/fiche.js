@@ -554,8 +554,7 @@ ${ordonnance||'--'}
                       );
                     })}
                   </div>
-                  {/* Transmissions IDE */}
-                  <TransmissionIDE p={p} user={user} transmissions={transmissions} setTransmissions={setTransmissions}/>
+
                 </div>
               ) : (
                 /* VUE MÉDECIN : catégories + colonne droite */
@@ -893,6 +892,44 @@ function IDERxItem({r, color, onCocher, onNonRealise, onCocherAvecResultat, user
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function AjouterNote({cat, color, p, user, transmissions, setTransmissions}) {
+  const [open, setOpen] = useState(false);
+  const [texte, setTexte] = useState('');
+
+  async function ajouter() {
+    if (!texte.trim()) return;
+    const t = [...transmissions, {texte:texte.trim(),categorie:cat,par:user?.matricule||'',nom:user?.nom||'',ts:Date.now()}];
+    setTransmissions(t);
+    setTexte('');
+    setOpen(false);
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update',id:p.id,patch:{transmissions_ide:JSON.stringify(t)}})});
+  }
+
+  if (!open) return (
+    <button onClick={()=>setOpen(true)}
+      style={{marginTop:6,width:'100%',padding:'7px',borderRadius:8,border:'1.5px dashed '+color+'55',background:'#fff',color:color,fontSize:11,fontWeight:600,cursor:'pointer',textAlign:'center'}}>
+      + Ajouter une note
+    </button>
+  );
+
+  return (
+    <div style={{marginTop:6,padding:'10px',borderRadius:8,border:'1.5px solid '+color+'55',background:color+'06'}}>
+      <textarea autoFocus value={texte} onChange={e=>setTexte(e.target.value)}
+        placeholder="Note, observation..."
+        rows={2} style={{width:'100%',padding:'6px 8px',borderRadius:6,border:'1px solid '+color+'44',fontSize:12,outline:'none',resize:'none',boxSizing:'border-box',marginBottom:6}}/>
+      <div style={{display:'flex',gap:5}}>
+        <button onMouseDown={e=>{e.preventDefault();ajouter();}}
+          style={{flex:1,padding:'5px',borderRadius:6,background:color,color:'#fff',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>
+          Ajouter
+        </button>
+        <button onMouseDown={e=>{e.preventDefault();setOpen(false);setTexte('');}}
+          style={{padding:'5px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+      </div>
     </div>
   );
 }
