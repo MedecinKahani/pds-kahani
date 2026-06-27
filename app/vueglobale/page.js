@@ -145,8 +145,7 @@ export default function PageVueGlobale() {
   const [diag,setDiag] = useState('');
   const [orient,setOrient] = useState('');
   const [ficheOuverte,setFicheOuverte] = useState(null);
-  const [fichesSortie,setFichesSortie] = useState(null);
-  const [constPostLocal, setConstPostLocal] = useState([]); // patient en cours de sortie
+  const [fichesSortie,setFichesSortie] = useState(null); // patient en cours de sortie
   const [showSortis,setShowSortis] = useState(false);
   const [patientsSortis,setPatientsSortis] = useState([]);
 
@@ -284,7 +283,7 @@ export default function PageVueGlobale() {
     const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme'?'♂':p?.sexe==='F'||p?.sexe==='Femme'?'♀':'';
 
     return(
-      <div onClick={()=>{if(!p)return;if(isSelected){setFicheOuverte(null);}else{setFicheOuverte(p);setConstPostLocal(Array.isArray(p.constantes_post)?p.constantes_post:(p.constantes_post?JSON.parse(p.constantes_post):[]));}if(!isSelected&&p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
+      <div onClick={()=>{if(!p)return;if(!p)return;setFicheOuverte(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
         style={{background:'#fff',border:'0.5px solid #e5e7eb',borderRadius:16,cursor:p?'pointer':'default',
           position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column',
           transition:'box-shadow 0.15s, transform 0.15s'
@@ -502,7 +501,7 @@ export default function PageVueGlobale() {
                     <option value="">Installer...</option>
                     {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
                   </select>
-                  <button onClick={()=>{setFicheOuverte(p);setConstPostLocal(Array.isArray(p.constantes_post)?p.constantes_post:(p.constantes_post?JSON.parse(p.constantes_post):[]));}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+                  <button onClick={()=>{setFicheOuverte(p);}} style={{padding:'4px 8px',borderRadius:6,background:'#0d9488',color:'#fff',fontSize:10,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
                     Cslt
                   </button>
                 </div>
@@ -531,8 +530,6 @@ export default function PageVueGlobale() {
             }}
             user={user}
             patients={patients}
-            constPostExt={constPostLocal}
-            setConstPostExt={setConstPostLocal}
           />
         </div>
       )}

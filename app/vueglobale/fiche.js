@@ -162,7 +162,7 @@ Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas d
 Abdominal : abdomen souple dépressible indolore.
 ORL : gorge et tympans propres.`;
 
-export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user, patients=[], constPostExt, setConstPostExt }) {
+export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user, patients=[] }) {
   const p = patient || pProp;
   if (!p) return null;
 
@@ -177,9 +177,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [subSel, setSubSel] = useState({});
   const [collapsed, setCollapsed] = useState({examens:true, therapeutique:true, soins:true});
   const [therapieTab, setTherapieTab] = useState('adulte');
-  const [constPostLocal, setConstPostLocal] = useState(safeJSON(p.constantes_post, []));
-  const constPost = constPostExt !== undefined ? constPostExt : constPostLocal;
-  const setConstPost = constPostExt !== undefined ? setConstPostExt : setConstPostLocal;
+  const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
 
   const pam = p.tas && p.tad ? Math.round(parseFloat(p.tad) + (parseFloat(p.tas) - parseFloat(p.tad)) / 3) : null;
@@ -265,7 +263,7 @@ ${ordonnance||'--'}
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
 
         {/* BANDEAU */}
-        <BandeauPatient p={p} pam={pam} constPost={constPost} setConstPost={setConstPost} save={save} onClose={onClose} onUpdate={onUpdate} patients={patients} user={user}/>
+        <BandeauPatient p={p} onClose={onClose} onUpdate={onUpdate} patients={patients} user={user}/>
 
         {/* ONGLETS — masqués pour AS */}
         {user?.role !== 'as' && <div style={{display:'flex',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
@@ -651,12 +649,30 @@ function HydratationSelector({ onAjouter }) {
   );
 }
 
-function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpdate, patients, user }) {
+function BandeauPatient({ p, onClose, onUpdate, patients, user }) {
   const [editField, setEditField] = useState(null);
   const [editVal, setEditVal] = useState('');
   const [ippCopied, setIppCopied] = useState(false);
+  const [openField, setOpenField] = useState(null);
+  const [newVal, setNewVal] = useState('');
 
-  async function saveEdit(field, val) { await save({ [field]: val }); setEditField(null); }
+  const constPost = safeJSON(p.constantes_post, []);
+
+  async function saveConst(key, label, val, unit, extraPatch={}) {
+    const updated = [...constPost, {key, label, val, unit, ts:Date.now()}];
+    await fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'update', id:p.id, patch:{constantes_post:JSON.stringify(updated), ...extraPatch}})});
+    onUpdate?.();
+    setOpenField(null);
+    setNewVal('');
+  }
+
+  async function saveEdit(field, val) {
+    await fetch('/api/patients', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'update', id:p.id, patch:{[field]:val}})});
+    onUpdate?.();
+    setEditField(null);
+  }
 
   function Editable({ field, value, placeholder, w=60 }) {
     if (editField === field) return (
@@ -664,8 +680,8 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
         <input autoFocus value={editVal} onChange={e=>setEditVal(e.target.value)}
           onKeyDown={e=>{if(e.key==='Enter')saveEdit(field,editVal);if(e.key==='Escape')setEditField(null);}}
           style={{fontSize:'inherit',fontWeight:'inherit',border:'none',borderBottom:'2px solid #0d9488',outline:'none',background:'transparent',width:w,padding:0}}/>
-        <button onClick={()=>saveEdit(field,editVal)} style={{fontSize:9,background:'#0d9488',color:'#fff',border:'none',borderRadius:3,padding:'1px 4px',cursor:'pointer'}}>✓</button>
-        <button onClick={()=>setEditField(null)} style={{fontSize:9,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:3,padding:'1px 4px',cursor:'pointer'}}>✕</button>
+        <button onMouseDown={e=>{e.preventDefault();saveEdit(field,editVal);}} style={{fontSize:9,background:'#0d9488',color:'#fff',border:'none',borderRadius:3,padding:'1px 4px',cursor:'pointer'}}>✓</button>
+        <button onMouseDown={e=>{e.preventDefault();setEditField(null);}} style={{fontSize:9,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:3,padding:'1px 4px',cursor:'pointer'}}>✕</button>
       </span>
     );
     return (
@@ -678,124 +694,133 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
 
   function colC(v,k){
     const N={fc:[50,100],tas:[90,150],tad:[60,95],sat:[94,100],temp:[36,38.4],dextro:[0.7,2.5],hemocue:[8,18]};
-    const n=parseFloat(v);if(isNaN(n))return null;
-    const[mn,mx]=N[k]||[0,9999];
-    return n<mn||n>mx?'#ef4444':'#16a34a';
+    const n=parseFloat(v); if(isNaN(n)) return null;
+    const [mn,mx]=N[k]||[0,9999];
+    return n<mn||n>mx ? '#ef4444' : '#16a34a';
   }
 
-  function PlusBtn({ onClick }) {
-    return (
-      <button onClick={onClick}
-        onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
-        onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
-        style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',transition:'all 0.1s',flexShrink:0}}>+</button>
-    );
+  function latest(key) {
+    const matches = constPost.filter(c=>c.key===key);
+    return matches.length ? matches[matches.length-1].val : null;
   }
-
-  // Carte constante numérique
-  const [openField, setOpenField] = useState(null);
-  const [newVal, setNewVal] = useState('');
 
   function CstCard({ label, fieldKey, unit, value }) {
-    const updates = constPost.filter(c=>c.key===fieldKey);
-    const latest = updates[updates.length-1];
-    const cur = latest ? latest.val : value;
-    const color = cur&&cur!=='--'&&cur!=='—' ? (colC(cur,fieldKey)||'#111827') : '#b0b8c4';
+    const newV = latest(fieldKey);
+    const cur = newV || value;
+    const color = cur&&cur!=='--' ? (colC(cur,fieldKey)||'#111827') : '#b0b8c4';
     const isOpen = openField===fieldKey;
     return (
       <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
-        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>{label}</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'wrap'}}>
-          {latest&&<span style={{fontSize:12,color:'#94a3b8',textDecoration:'line-through',marginRight:3,fontVariantNumeric:'tabular-nums'}}>{value||'—'}</span>}
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>{label}</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:4,flexWrap:'wrap'}}>
+          {newV&&value&&<span style={{fontSize:12,color:'#adb5bd',textDecoration:'line-through',fontVariantNumeric:'tabular-nums'}}>{value}</span>}
           <span style={{fontSize:22,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
-          {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:9,color:'#9ca3af'}}>{unit}</span>}
-          <PlusBtn onClick={e=>{e.stopPropagation();setOpenField(isOpen?null:fieldKey);setNewVal('');}}/>
+          {cur&&cur!=='--'&&<span style={{fontSize:9,color:'#9ca3af'}}>{unit}</span>}
+          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(isOpen?null:fieldKey);setNewVal('');}}
+            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
+            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
+            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',transition:'all 0.1s'}}>+</button>
         </div>
-        {isOpen&&<div style={{display:'flex',gap:3,marginTop:6}} onClick={e=>e.stopPropagation()}>
-          <input autoFocus value={newVal} onChange={e=>setNewVal(e.target.value)} placeholder={unit}
-            onKeyDown={e=>{if(e.key==='Enter'&&newVal){const c=[...constPost,{key:fieldKey,label,val:newVal,unit,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});setOpenField(null);setNewVal('');}if(e.key==='Escape')setOpenField(null);}}
-            style={{width:55,fontSize:12,border:'1.5px solid #0d9488',borderRadius:5,padding:'2px 5px',outline:'none'}}/>
-          <button onMouseDown={e=>{e.preventDefault();if(newVal){const c=[...constPost,{key:fieldKey,label,val:newVal,unit,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});}setOpenField(null);setNewVal('');}}
-            style={{fontSize:11,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✓</button>
-          <button onMouseDown={e=>{e.preventDefault();setOpenField(null);setNewVal('');}} style={{fontSize:11,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 4px',cursor:'pointer'}}>✕</button>
-        </div>}
+        {isOpen&&(
+          <div style={{display:'flex',gap:3,marginTop:6}}>
+            <input autoFocus value={newVal} onChange={e=>setNewVal(e.target.value)} placeholder={unit}
+              onKeyDown={e=>{if(e.key==='Enter'&&newVal)saveConst(fieldKey,label,newVal,unit);if(e.key==='Escape'){setOpenField(null);setNewVal('');}}}
+              style={{width:55,fontSize:12,border:'1.5px solid #0d9488',borderRadius:5,padding:'2px 5px',outline:'none'}}/>
+            <button onMouseDown={e=>{e.preventDefault();if(newVal)saveConst(fieldKey,label,newVal,unit);}}
+              style={{fontSize:11,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✓</button>
+            <button onMouseDown={e=>{e.preventDefault();setOpenField(null);setNewVal('');}}
+              style={{fontSize:11,background:'#f3f4f6',color:'#6b7280',border:'none',borderRadius:4,padding:'2px 4px',cursor:'pointer'}}>✕</button>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Carte qualitative
   function QualCard({ label, fieldKey, options, value }) {
-    const updates = constPost.filter(c=>c.key===fieldKey);
-    const latest = updates[updates.length-1];
-    const cur = latest ? latest.val : value;
+    const newV = latest(fieldKey);
+    const cur = newV || value;
     const isPos = cur==='Positif'||cur?.includes('barre');
     const color = cur&&cur!=='—' ? (isPos?'#ef4444':'#16a34a') : '#b0b8c4';
     const isOpen = openField===fieldKey;
     return (
       <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
-        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>{label}</div>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>{label}</div>
         <div style={{display:'flex',alignItems:'center',gap:5}}>
-          {latest&&<span style={{fontSize:11,color:'#94a3b8',textDecoration:'line-through'}}>{value||'—'}</span>}
+          {newV&&value&&<span style={{fontSize:11,color:'#adb5bd',textDecoration:'line-through'}}>{value}</span>}
           <span style={{fontSize:15,fontWeight:700,color}}>{cur||'—'}</span>
-          <PlusBtn onClick={e=>{e.stopPropagation();setOpenField(isOpen?null:fieldKey);}}/>
+          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(isOpen?null:fieldKey);}}
+            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
+            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
+            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',transition:'all 0.1s'}}>+</button>
         </div>
-        {isOpen&&<div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',top:'100%',left:0,display:'flex',gap:4,flexWrap:'wrap',minWidth:160}} onClick={e=>e.stopPropagation()}>
-          {options.map(opt=><button key={opt} onMouseDown={e=>{e.preventDefault();const c=[...constPost,{key:fieldKey,label,val:opt,unit:'',ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});setOpenField(null);}}
-            style={{padding:'4px 10px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:11,fontWeight:600,
-              color:opt==='Positif'||(opt!=='Négatif'&&opt!=='Nég'&&opt!=='—')?'#ef4444':'#16a34a'}}>{opt}</button>)}
-          <button onMouseDown={e=>{e.preventDefault();setOpenField(null);}} style={{padding:'4px 8px',borderRadius:5,background:'#f3f4f6',color:'#9ca3af',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
-        </div>}
+        {isOpen&&(
+          <div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',top:'100%',left:0,display:'flex',gap:4,flexWrap:'wrap',minWidth:160}}>
+            {options.map(opt=>(
+              <button key={opt} onMouseDown={e=>{e.preventDefault();saveConst(fieldKey,label,opt,'');}}
+                style={{padding:'4px 10px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:11,fontWeight:600,
+                  color:opt==='Positif'||(opt!=='Négatif'&&opt!=='Nég')?'#ef4444':'#16a34a'}}>{opt}</button>
+            ))}
+            <button onMouseDown={e=>{e.preventDefault();setOpenField(null);}}
+              style={{padding:'4px 8px',borderRadius:5,background:'#f3f4f6',color:'#9ca3af',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Carte BU
   function BUCard() {
-    const [open, setOpen] = useState(false);
-    const [vals, setVals] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
     const buPost = constPost.filter(c=>c.key==='bu_qual');
-    const latest = buPost[buPost.length-1];
-    const cur = latest ? latest.val : p.bu_resultat;
+    const latestBU = buPost.length ? buPost[buPost.length-1].val : null;
+    const cur = latestBU || p.bu_resultat;
+    const isOpen = openField==='bu_qual';
+    const [buVals, setBuVals] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
     const CROIX = ['Nég','+','++','+++'];
     return (
       <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
-        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>BU</div>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>BU</div>
         <div style={{display:'flex',alignItems:'center',gap:5}}>
-          {latest&&<span style={{fontSize:10,color:'#d1d5db',textDecoration:'line-through',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat||'—'}</span>}
+          {latestBU&&p.bu_resultat&&<span style={{fontSize:10,color:'#adb5bd',textDecoration:'line-through',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat}</span>}
           <span style={{fontSize:12,fontWeight:600,color:cur?'#3b82f6':'#b0b8c4',maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cur||'—'}</span>
-          <PlusBtn onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}/>
+          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpenField(isOpen?null:'bu_qual');}}
+            onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
+            onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
+            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0,transition:'all 0.1s'}}>+</button>
         </div>
-        {open&&<div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',top:'100%',left:0,minWidth:300}}>
-          {[['leuco','Leucocytes'],['nitrite','Nitrites'],['cetone','Cétones'],['glucose','Glucose']].map(([k,l])=>(
-            <div key={k} style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
-              <span style={{fontSize:11,width:70,flexShrink:0,fontWeight:500,color:'#374151'}}>{l}</span>
-              {CROIX.map(v=><button key={v} onClick={()=>setVals(prev=>({...prev,[k]:v}))}
-                style={{padding:'3px 8px',borderRadius:5,fontSize:10,fontWeight:600,cursor:'pointer',
-                  border:'1.5px solid '+(vals[k]===v?'#3b82f6':'#e5e7eb'),
-                  background:vals[k]===v?'#3b82f6':'#fff',
-                  color:vals[k]===v?'#fff':'#374151'}}>{v}</button>)}
+        {isOpen&&(
+          <div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',top:'100%',left:0,minWidth:300}}>
+            {[['leuco','Leucocytes'],['nitrite','Nitrites'],['cetone','Cétones'],['glucose','Glucose']].map(([k,l])=>(
+              <div key={k} style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
+                <span style={{fontSize:11,width:70,flexShrink:0,fontWeight:500,color:'#374151'}}>{l}</span>
+                {CROIX.map(v=>(
+                  <button key={v} onMouseDown={e=>{e.preventDefault();setBuVals(prev=>({...prev,[k]:v}));}}
+                    style={{padding:'3px 8px',borderRadius:5,fontSize:10,fontWeight:600,cursor:'pointer',
+                      border:'1.5px solid '+(buVals[k]===v?'#3b82f6':'#e5e7eb'),
+                      background:buVals[k]===v?'#3b82f6':'#fff',
+                      color:buVals[k]===v?'#fff':'#374151'}}>{v}</button>
+                ))}
+              </div>
+            ))}
+            <div style={{display:'flex',gap:6,marginTop:8,borderTop:'1px solid #f3f4f6',paddingTop:8}}>
+              <button onMouseDown={e=>{e.preventDefault();const res=`Leuco ${buVals.leuco} / Nitrite ${buVals.nitrite} / Cétone ${buVals.cetone} / Glucose ${buVals.glucose}`;saveConst('bu_qual','BU',res,'',{bu_resultat:res});}}
+                style={{flex:1,padding:'6px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:12,fontWeight:600,border:'none',cursor:'pointer'}}>Valider</button>
+              <button onMouseDown={e=>{e.preventDefault();setOpenField(null);}}
+                style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'none',cursor:'pointer'}}>✕</button>
             </div>
-          ))}
-          <div style={{display:'flex',gap:6,marginTop:8,borderTop:'1px solid #f3f4f6',paddingTop:8}}>
-            <button onClick={()=>{const res=`Leuco ${vals.leuco} / Nitrite ${vals.nitrite} / Cétone ${vals.cetone} / Glucose ${vals.glucose}`;const c=[...constPost,{key:'bu_qual',label:'BU',val:res,unit:'',ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c),bu_resultat:res});setOpen(false);}}
-              style={{flex:1,padding:'6px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:12,fontWeight:600,border:'none',cursor:'pointer'}}>Valider</button>
-            <button onClick={()=>setOpen(false)} style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'none',cursor:'pointer'}}>✕</button>
           </div>
-        </div>}
+        )}
       </div>
     );
   }
 
-  // PAM calculée depuis p.tas/p.tad ou dernière valeur mise à jour
-  const tasCur = (() => { const u=constPost.filter(c=>c.key==='tas'); return (u.length ? u[u.length-1].val : null) || p.tas; })();
-  const tadCur = (() => { const u=constPost.filter(c=>c.key==='tad'); return (u.length ? u[u.length-1].val : null) || p.tad; })();
-  const pamVal = (tasCur&&tadCur) ? Math.round(parseFloat(tadCur)+(parseFloat(tasCur)-parseFloat(tadCur))/3) : null;
+  const tasCur = latest('tas') || p.tas;
+  const tadCur = latest('tad') || p.tad;
+  const pamVal = tasCur&&tadCur ? Math.round(parseFloat(tadCur)+(parseFloat(tasCur)-parseFloat(tadCur))/3) : null;
   const pamColor = pamVal ? (pamVal<65?'#ef4444':'#16a34a') : '#b0b8c4';
 
   return (
     <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',flexShrink:0}}>
 
-      {/* LIGNE 1 : Identité */}
+      {/* Identité */}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 14px',borderBottom:'0.5px solid #f0f0f0'}}>
         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',fontSize:13}}>
           <span style={{fontWeight:800,fontSize:15,color:'#111827'}}>
@@ -807,7 +832,7 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
           <span style={{display:'inline-flex',alignItems:'center',gap:5,background:'#f5f6f7',borderRadius:6,padding:'2px 8px',border:'1px solid #e8eaed'}}>
             <span style={{fontSize:9,color:'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
             <span style={{fontSize:12,fontWeight:700,color:'#374151',fontFamily:'monospace'}}><Editable field="ipp" value={p.ipp} placeholder="—" w={70}/></span>
-            {p.ipp&&<button onClick={()=>{navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),1500);}}
+            {p.ipp&&<button onMouseDown={e=>{e.preventDefault();navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),1500);}}
               style={{fontSize:9,padding:'1px 5px',borderRadius:3,border:'none',background:ippCopied?'#0d9488':'#e5e7eb',color:ippCopied?'#fff':'#6b7280',cursor:'pointer',fontWeight:600}}>
               {ippCopied?'✓':'⎘'}
             </button>}
@@ -818,50 +843,41 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
         </div>
         <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
           <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
-          <button onClick={onClose} style={{background:'#f5f6f7',border:'1px solid #e8eaed',width:26,height:26,borderRadius:'50%',cursor:'pointer',fontSize:14,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+          <button onMouseDown={e=>{e.preventDefault();onClose();}} style={{background:'#f5f6f7',border:'1px solid #e8eaed',width:26,height:26,borderRadius:'50%',cursor:'pointer',fontSize:14,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
         </div>
       </div>
 
-      {/* CONSTANTES : fond blanc, cartes grises */}
+      {/* Constantes */}
       <div style={{padding:'8px 10px',background:'#fff',display:'flex',flexDirection:'column',gap:5}}>
-
-        {/* Rangée 1 : FC PAS PAD PAM */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
           <CstCard label="FC" fieldKey="fc" unit="bpm" value={p.fc}/>
           <CstCard label="PAS" fieldKey="tas" unit="mmHg" value={p.tas}/>
           <CstCard label="PAD" fieldKey="tad" unit="mmHg" value={p.tad}/>
           <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
-            <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>PAM <span style={{fontWeight:400,fontSize:8}}>auto</span></div>
+            <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>PAM <span style={{fontWeight:400,fontSize:8}}>auto</span></div>
             <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-              <span style={{fontSize:22,fontWeight:700,color:pamColor,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{pamVal||'—'}</span>
+              <span style={{fontSize:22,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
               {pamVal&&<span style={{fontSize:9,color:'#9ca3af'}}>mmHg</span>}
             </div>
             {pamVal&&pamVal<65&&<div style={{fontSize:9,color:'#ef4444',fontWeight:700,marginTop:2}}>⚠ PAM basse</div>}
           </div>
         </div>
-
-        {/* Rangée 2 : Sat T° Dextro Hémocue */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
           <CstCard label="Saturation" fieldKey="sat" unit="%" value={p.sat}/>
           <CstCard label="Température" fieldKey="temp" unit="°C" value={p.temp}/>
           <CstCard label="Dextro" fieldKey="dextro" unit="g/L" value={p.dextro}/>
           <CstCard label="Hémocue" fieldKey="hemocue" unit="g/dL" value={p.hemocue}/>
         </div>
-
-        {/* Rangée 3 : CRP TDR Palu TDR Dengue Tétanotop */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
           <QualCard label="CRP rapide" fieldKey="crp_test" options={['1 barre','2 barres','3 barres','4 barres','Négatif']} value={p.crp_test}/>
           <QualCard label="TDR Paludisme" fieldKey="tdr_palu" options={['Négatif','Positif']} value={p.tdr_palu}/>
           <QualCard label="TDR Dengue" fieldKey="tdr_dengue" options={['Négatif','Positif']} value={p.tdr_dengue}/>
           <QualCard label="Tétanotop" fieldKey="tdr_tet" options={['Négatif','Positif']} value={p.quicktest}/>
         </div>
-
-        {/* Rangée 4 : BU + bHCG */}
         <div style={{display:'grid',gridTemplateColumns:'3fr 1fr',gap:5}}>
           <BUCard/>
           <QualCard label="bHCG urinaire" fieldKey="bhcg_resultat" options={['Négatif','Positif']} value={p.bhcg_resultat}/>
         </div>
-
       </div>
     </div>
   );
