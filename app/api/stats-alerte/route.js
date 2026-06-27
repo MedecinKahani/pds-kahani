@@ -2,24 +2,22 @@ import { kv } from '@vercel/kv';
 
 export async function GET() {
   try {
-    const val = await kv.get('stats:alerte');
     const now = new Date();
     const isFirst = now.getDate() === 1;
-    return Response.json({ alerte: val === true || isFirst });
+    const alerte = await kv.get('stats:alerte');
+    const impressions = await kv.get('stats:impressions') || {};
+    return Response.json({ alerte: alerte === true || isFirst, impressions });
   } catch {
-    return Response.json({ alerte: false });
+    return Response.json({ alerte: false, impressions: {} });
   }
 }
 
 export async function POST(req) {
   try {
-    const { action } = await req.json();
-    if (action === 'marquer_imprime') {
+    const body = await req.json();
+    if (body.action === 'marquer_imprime') {
       await kv.set('stats:alerte', false);
-      return Response.json({ ok: true });
-    }
-    if (action === 'activer') {
-      await kv.set('stats:alerte', true);
+      await kv.set('stats:impressions', body.impressions || {});
       return Response.json({ ok: true });
     }
     return Response.json({ error: 'Action inconnue' }, { status: 400 });
