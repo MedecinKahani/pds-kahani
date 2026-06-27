@@ -670,17 +670,23 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     );
   }
 
-  function colC(v,k){const N={fc:[50,100],tas:[90,150],tad:[60,95],sat:[94,100],temp:[36,38.4],dextro:[0.7,2.5],hemocue:[8,18]};const n=parseFloat(v);if(isNaN(n))return null;const[mn,mx]=N[k]||[0,9999];return n<mn||n>mx?'#ef4444':'#16a34a';}
+  function colC(v,k){
+    const N={fc:[50,100],tas:[90,150],tad:[60,95],sat:[94,100],temp:[36,38.4],dextro:[0.7,2.5],hemocue:[8,18]};
+    const n=parseFloat(v);if(isNaN(n))return null;
+    const[mn,mx]=N[k]||[0,9999];
+    return n<mn||n>mx?'#ef4444':'#16a34a';
+  }
 
   function PlusBtn({ onClick }) {
     return (
       <button onClick={onClick}
-        onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';e.currentTarget.style.borderColor='#0d9488';}}
-        onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';e.currentTarget.style.borderColor='#0d9488';}}
+        onMouseEnter={e=>{e.currentTarget.style.background='#0d9488';e.currentTarget.style.color='#fff';}}
+        onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#0d9488';}}
         style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0px 5px',cursor:'pointer',lineHeight:'16px',transition:'all 0.1s',flexShrink:0}}>+</button>
     );
   }
 
+  // Carte constante numérique
   function CstCard({ label, fieldKey, unit, value }) {
     const [open, setOpen] = useState(false);
     const [newVal, setNewVal] = useState('');
@@ -688,22 +694,18 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     const latest = updates[updates.length-1];
     const cur = latest ? latest.val : value;
     const color = cur&&cur!=='--'&&cur!=='—' ? (colC(cur,fieldKey)||'#111827') : '#b0b8c4';
-
     return (
-      <div style={{background:'#f5f6f7',borderRadius:8,padding:'7px 10px',border:'0.5px solid #e8eaed'}}>
-        <div style={{fontSize:9,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{label}</div>
+      <div style={{background:'#f5f6f7',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>{label}</div>
         <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'wrap'}}>
-          {latest&&<span style={{fontSize:11,color:'#d1d5db',textDecoration:'line-through'}}>{value||'—'}</span>}
-          <span style={{fontSize:20,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
+          {latest&&<span style={{fontSize:11,color:'#d1d5db',textDecoration:'line-through',marginRight:2}}>{value||'—'}</span>}
+          <span style={{fontSize:22,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
           {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:9,color:'#9ca3af'}}>{unit}</span>}
           <PlusBtn onClick={e=>{e.stopPropagation();setOpen(o=>!o);setNewVal('');}}/>
         </div>
-        {open&&<div style={{display:'flex',gap:3,marginTop:5}}>
+        {open&&<div style={{display:'flex',gap:3,marginTop:6}}>
           <input autoFocus value={newVal} onChange={e=>setNewVal(e.target.value)} placeholder={unit}
-            onKeyDown={e=>{
-              if(e.key==='Enter'&&newVal){const c=[...constPost,{key:fieldKey,label,val:newVal,unit,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});setOpen(false);}
-              if(e.key==='Escape')setOpen(false);
-            }}
+            onKeyDown={e=>{if(e.key==='Enter'&&newVal){const c=[...constPost,{key:fieldKey,label,val:newVal,unit,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});setOpen(false);}if(e.key==='Escape')setOpen(false);}}
             style={{width:55,fontSize:12,border:'1.5px solid #0d9488',borderRadius:5,padding:'2px 5px',outline:'none'}}/>
           <button onClick={()=>{if(newVal){const c=[...constPost,{key:fieldKey,label,val:newVal,unit,ts:Date.now()}];setConstPost(c);save({constantes_post:JSON.stringify(c)});}setOpen(false);}}
             style={{fontSize:11,background:'#0d9488',color:'#fff',border:'none',borderRadius:4,padding:'2px 6px',cursor:'pointer'}}>✓</button>
@@ -713,6 +715,7 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     );
   }
 
+  // Carte qualitative
   function QualCard({ label, fieldKey, options, value }) {
     const [open, setOpen] = useState(false);
     const updates = constPost.filter(c=>c.key===fieldKey);
@@ -721,11 +724,11 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     const isPos = cur==='Positif'||cur?.includes('barre');
     const color = cur&&cur!=='—' ? (isPos?'#ef4444':'#16a34a') : '#b0b8c4';
     return (
-      <div style={{background:'#f5f6f7',borderRadius:8,padding:'7px 10px',border:'0.5px solid #e8eaed',position:'relative'}}>
-        <div style={{fontSize:9,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{label}</div>
-        <div style={{display:'flex',alignItems:'center',gap:4}}>
+      <div style={{background:'#f5f6f7',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>{label}</div>
+        <div style={{display:'flex',alignItems:'center',gap:5}}>
           {latest&&<span style={{fontSize:11,color:'#d1d5db',textDecoration:'line-through'}}>{value||'—'}</span>}
-          <span style={{fontSize:14,fontWeight:700,color,lineHeight:1}}>{cur||'—'}</span>
+          <span style={{fontSize:15,fontWeight:700,color}}>{cur||'—'}</span>
           <PlusBtn onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}/>
         </div>
         {open&&<div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',top:'100%',left:0,display:'flex',gap:4,flexWrap:'wrap',minWidth:160}}>
@@ -738,6 +741,7 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     );
   }
 
+  // Carte BU
   function BUCard() {
     const [open, setOpen] = useState(false);
     const [vals, setVals] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
@@ -746,11 +750,11 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     const cur = latest ? latest.val : p.bu_resultat;
     const CROIX = ['Nég','+','++','+++'];
     return (
-      <div style={{background:'#f5f6f7',borderRadius:8,padding:'7px 10px',border:'0.5px solid #e8eaed',position:'relative'}}>
-        <div style={{fontSize:9,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>BU</div>
-        <div style={{display:'flex',alignItems:'center',gap:4}}>
-          {latest&&<span style={{fontSize:10,color:'#d1d5db',textDecoration:'line-through',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat||'—'}</span>}
-          <span style={{fontSize:12,fontWeight:600,color:cur?'#3b82f6':'#b0b8c4',maxWidth:220,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cur||'—'}</span>
+      <div style={{background:'#f5f6f7',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
+        <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>BU</div>
+        <div style={{display:'flex',alignItems:'center',gap:5}}>
+          {latest&&<span style={{fontSize:10,color:'#d1d5db',textDecoration:'line-through',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat||'—'}</span>}
+          <span style={{fontSize:12,fontWeight:600,color:cur?'#3b82f6':'#b0b8c4',maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cur||'—'}</span>
           <PlusBtn onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}/>
         </div>
         {open&&<div style={{position:'absolute',zIndex:999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',top:'100%',left:0,minWidth:300}}>
@@ -774,7 +778,10 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     );
   }
 
-  const pamVal = p.tas&&p.tad ? Math.round(parseFloat(p.tad)+(parseFloat(p.tas)-parseFloat(p.tad))/3) : null;
+  // PAM calculée depuis les valeurs les plus récentes
+  const tasVal = (() => { const u=constPost.filter(c=>c.key==='tas'); return u.length ? u[u.length-1].val : p.tas; })();
+  const tadVal = (() => { const u=constPost.filter(c=>c.key==='tad'); return u.length ? u[u.length-1].val : p.tad; })();
+  const pamVal = tasVal&&tadVal ? Math.round(parseFloat(tadVal)+(parseFloat(tasVal)-parseFloat(tadVal))/3) : null;
   const pamColor = pamVal ? (pamVal<65?'#ef4444':'#16a34a') : '#b0b8c4';
 
   return (
@@ -789,8 +796,8 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
           </span>
           <span style={{color:'#6b7280',fontSize:12}}><Editable field="age" value={p.age} placeholder="—" w={25}/> ans · {p.sexe==='M'?'♂':'♀'}</span>
           {p.ddn&&<span style={{color:'#9ca3af',fontSize:11}}><Editable field="ddn" value={p.ddn} placeholder="DDN" w={80}/></span>}
-          <span style={{display:'inline-flex',alignItems:'center',gap:5,background:'#f5f6f7',borderRadius:6,padding:'2px 8px',border:'0.5px solid #e8eaed'}}>
-            <span style={{fontSize:9,color:'#9ca3af',fontWeight:600,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
+          <span style={{display:'inline-flex',alignItems:'center',gap:5,background:'#f5f6f7',borderRadius:6,padding:'2px 8px',border:'1px solid #e8eaed'}}>
+            <span style={{fontSize:9,color:'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
             <span style={{fontSize:12,fontWeight:700,color:'#374151',fontFamily:'monospace'}}><Editable field="ipp" value={p.ipp} placeholder="—" w={70}/></span>
             {p.ipp&&<button onClick={()=>{navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),1500);}}
               style={{fontSize:9,padding:'1px 5px',borderRadius:3,border:'none',background:ippCopied?'#0d9488':'#e5e7eb',color:ippCopied?'#fff':'#6b7280',cursor:'pointer',fontWeight:600}}>
@@ -803,25 +810,25 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
         </div>
         <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
           <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
-          <button onClick={onClose} style={{background:'#f5f6f7',border:'0.5px solid #e8eaed',width:26,height:26,borderRadius:'50%',cursor:'pointer',fontSize:14,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+          <button onClick={onClose} style={{background:'#f5f6f7',border:'1px solid #e8eaed',width:26,height:26,borderRadius:'50%',cursor:'pointer',fontSize:14,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
         </div>
       </div>
 
-      {/* CONSTANTES : fond gris global avec cartes blanches */}
-      <div style={{padding:'8px 10px',background:'#f5f6f7',display:'flex',flexDirection:'column',gap:5}}>
+      {/* CONSTANTES : fond blanc, cartes grises */}
+      <div style={{padding:'8px 10px',background:'#fff',display:'flex',flexDirection:'column',gap:5}}>
 
         {/* Rangée 1 : FC PAS PAD PAM */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
           <CstCard label="FC" fieldKey="fc" unit="bpm" value={p.fc}/>
           <CstCard label="PAS" fieldKey="tas" unit="mmHg" value={p.tas}/>
           <CstCard label="PAD" fieldKey="tad" unit="mmHg" value={p.tad}/>
-          <div style={{background:'#f5f6f7',borderRadius:8,padding:'7px 10px',border:'0.5px solid #e8eaed'}}>
-            <div style={{fontSize:9,fontWeight:600,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>PAM <span style={{fontWeight:400,fontSize:8,textTransform:'none'}}>auto</span></div>
+          <div style={{background:'#f5f6f7',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
+            <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>PAM <span style={{fontWeight:400,fontSize:8}}>auto</span></div>
             <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-              <span style={{fontSize:20,fontWeight:700,color:pamColor,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{pamVal||'—'}</span>
+              <span style={{fontSize:22,fontWeight:700,color:pamColor,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{pamVal||'—'}</span>
               {pamVal&&<span style={{fontSize:9,color:'#9ca3af'}}>mmHg</span>}
             </div>
-            {pamVal&&pamVal<65&&<div style={{fontSize:9,color:'#ef4444',fontWeight:600,marginTop:2}}>⚠ PAM basse</div>}
+            {pamVal&&pamVal<65&&<div style={{fontSize:9,color:'#ef4444',fontWeight:700,marginTop:2}}>⚠ PAM basse</div>}
           </div>
         </div>
 
