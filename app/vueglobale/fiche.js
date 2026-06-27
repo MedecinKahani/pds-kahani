@@ -178,11 +178,6 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [collapsed, setCollapsed] = useState({examens:true, therapeutique:true, soins:true});
   const [therapieTab, setTherapieTab] = useState('adulte');
   const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
-
-  useEffect(() => {
-    const fromRedis = safeJSON(p.constantes_post, []);
-    setConstPost(prev => fromRedis.length >= prev.length ? fromRedis : prev);
-  }, [p.constantes_post]);
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
 
   const pam = p.tas && p.tad ? Math.round(parseFloat(p.tad) + (parseFloat(p.tas) - parseFloat(p.tad)) / 3) : null;
@@ -190,10 +185,14 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   async function save(patch) {
     const res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action:'update', id:p.id, patch }) });
-    const data = await res.json();
-    if (data.patients) {
-      const updated = data.patients.find(x => x.id === p.id);
-      if (updated) onUpdate?.(updated);
+    // Ne pas appeler onUpdate pour les saves de constantes — ça écraserait constPost
+    const isConstUpdate = Object.keys(patch).every(k => k === 'constantes_post' || ['fc','sat','temp','tas','tad','dextro','hemocue','bu_resultat','crp_test','tdr_palu','tdr_dengue','bhcg_resultat'].includes(k));
+    if (!isConstUpdate) {
+      const data = await res.json();
+      if (data.patients) {
+        const updated = data.patients.find(x => x.id === p.id);
+        if (updated) onUpdate?.(updated);
+      }
     }
   }
 
