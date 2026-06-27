@@ -339,12 +339,25 @@ export default function PageVueGlobale() {
                 })}
               </div>
 
-              {/* Moitié droite : émojis prescriptions + bouton sortie */}
+              {/* Moitié droite : cercles prescriptions + bouton sortie */}
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingLeft:4}}>
-                <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center'}}>
-                  {hasExamens&&<span style={{fontSize:18}}>🔬</span>}
-                  {hasThera&&<span style={{fontSize:18}}>💊</span>}
-                  {hasSoins&&<span style={{fontSize:18}}>🩹</span>}
+                <div style={{display:'flex',flexDirection:'column',gap:4,alignItems:'center',marginTop:2}}>
+                  {[
+                    {has:hasExamens, icon:'🔬'},
+                    {has:hasThera,   icon:'💊'},
+                    {has:hasSoins,   icon:'🩹'},
+                  ].map(({has,icon},i)=>(
+                    <div key={i} style={{
+                      width:26,height:26,borderRadius:'50%',
+                      border:'1.5px solid '+(has?c+'88':'#d1d5db'),
+                      background:has?cbg:'transparent',
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      fontSize:has?14:0,
+                      transition:'all 0.15s',
+                    }}>
+                      {has?icon:''}
+                    </div>
+                  ))}
                 </div>
                 <button onClick={e=>{
                   e.stopPropagation();
