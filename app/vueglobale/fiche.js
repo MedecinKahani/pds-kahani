@@ -336,7 +336,7 @@ ${ordonnance||'--'}
               <VueIDE p={p} user={user} onUpdate={onUpdate}/>
             ) : (
 
-            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <div style={{display:'flex',flexDirection:'column',gap:12,overflowY:'auto',flex:1}}>
 
               {/* EXAMENS */}
               <div style={{border:'1.5px solid #7c3aed33',borderRadius:10,overflow:'hidden'}}>
@@ -355,17 +355,22 @@ ${ordonnance||'--'}
                           style={{padding:'5px 10px',borderRadius:6,background:e.color+'18',color:e.color,border:'1.5px solid '+e.color+'66',fontSize:11,fontWeight:600}}>
                           {e.label} {subOpen[e.id]?'▲':'▼'}
                         </HBtn>
-                        {subOpen[e.id]&&<div style={{position:'fixed',zIndex:500,background:'#fff',border:'1.5px solid '+e.color+'66',borderRadius:10,padding:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',minWidth:220,maxHeight:300,overflowY:'auto'}}>
+                        {subOpen[e.id]&&<div style={{position:'fixed',zIndex:500,background:'#fff',border:'1.5px solid '+e.color+'66',borderRadius:10,padding:12,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',minWidth:240,maxHeight:320,overflowY:'auto'}}>
+                          <div style={{fontSize:10,fontWeight:700,color:e.color,marginBottom:8,textTransform:'uppercase'}}>Sélectionner (plusieurs possible)</div>
                           {e.sub.map(s=>{
                             const deja2=prescriptions.find(r=>!r.fait&&r.texte===e.label+' : '+s);
-                            if(deja2) return null;
-                            return <div key={s} style={{padding:'4px 8px',borderRadius:5,cursor:'pointer',fontSize:11,color:e.color,fontWeight:600}}
-                              onMouseEnter={ev=>ev.currentTarget.style.background=e.color+'18'}
-                              onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}
-                              onClick={()=>{ajouterPrescription(e.label+' : '+s,'examen');setSubOpen(so=>({...so,[e.id]:false}));}}>
+                            return <div key={s}
+                              onClick={()=>{ if(!deja2) ajouterPrescription(e.label+' : '+s,'examen'); }}
+                              style={{padding:'6px 8px',borderRadius:5,cursor:deja2?'default':'pointer',fontSize:11,color:deja2?'#9ca3af':e.color,fontWeight:600,display:'flex',alignItems:'center',gap:8,opacity:deja2?0.5:1}}
+                              onMouseEnter={ev=>{if(!deja2)ev.currentTarget.style.background=e.color+'18';}}
+                              onMouseLeave={ev=>{ev.currentTarget.style.background='transparent';}}>
+                              <div style={{width:16,height:16,borderRadius:4,border:'1.5px solid '+(deja2?'#9ca3af':e.color),background:deja2?e.color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                {deja2&&<span style={{color:'#fff',fontSize:10,fontWeight:700}}>✓</span>}
+                              </div>
                               {s}
                             </div>;
                           })}
+                          <button onClick={()=>setSubOpen(so=>({...so,[e.id]:false}))} style={{marginTop:8,width:'100%',padding:'6px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer',fontWeight:600}}>Fermer</button>
                         </div>}
                       </div>
                     );
