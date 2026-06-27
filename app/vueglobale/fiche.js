@@ -537,7 +537,17 @@ ${ordonnance||'--'}
                             {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:20}}>Aucune prescription</div>}
                             {items.map((r,i)=>{
                               const gi=prescriptions.indexOf(r);
-                              return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} user={user}/>;
+                              return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} user={user}
+                                onCocherAvecResultat={(val,fk,label)=>{
+                                  // Marquer fait + résultat dans la prescription
+                                  const rx=[...prescriptions];
+                                  rx[gi]={...rx[gi],fait:true,resultat:val,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
+                                  setPrescriptions(rx);
+                                  fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                                    body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+                                  // Ajouter dans localConst pour afficher dans le bandeau
+                                  addConst(fk,label,val,'');
+                                }}/>;
                             })}
                           </div>
                         </div>
@@ -750,9 +760,28 @@ function AutreLibre({categorie, onAjouter}) {
   );
 }
 
-function IDERxItem({r, color, onCocher, onNonRealise, user}) {
+
+const CONST_RX_MAP = {
+  'ECG':           {fk:'ecg',          label:'ECG',          type:'texte',  placeholder:'Normal sinusal, RS, BBG...'},
+  'Dextro':        {fk:'dextro',        label:'Dextro',        type:'nombre', unite:'g/L'},
+  'Hémocue':       {fk:'hemocue',       label:'Hémocue',       type:'nombre', unite:'g/dL'},
+  'BU':            {fk:'bu_resultat',   label:'BU',            type:'bu'},
+  'CRP test':      {fk:'crp_test',      label:'CRP',           type:'choix',  options:['Nég','1 barre','2 barres','3 barres','4 barres']},
+  'TDR Paludisme': {fk:'tdr_palu',      label:'TDR Palu',      type:'choix',  options:['Négatif','Positif']},
+  'TDR Dengue':    {fk:'tdr_dengue',    label:'TDR Dengue',    type:'choix',  options:['Négatif','Positif']},
+  'Tétanotop':     {fk:'tdr_tet',       label:'Tétanotop',     type:'choix',  options:['Négatif','Positif']},
+  'bHCG urinaire': {fk:'bhcg_resultat', label:'bHCG urinaire', type:'choix',  options:['Négatif','Positif']},
+};
+
+function IDERxItem({r, color, onCocher, onNonRealise, onCocherAvecResultat, user}) {
   const [showMotif, setShowMotif] = useState(false);
   const [motif, setMotif] = useState('');
+  const [showResultat, setShowResultat] = useState(false);
+  const [resultatVal, setResultatVal] = useState('');
+  const [buVals, setBuVals] = useState({leuco:'Nég',nitrite:'Nég',cetone:'Nég',glucose:'Nég'});
+
+  // Détecter si cette prescription correspond à une constante
+  const constInfo = Object.entries(CONST_RX_MAP).find(([k])=>r.texte?.startsWith(k))?.[1];
 
   if (r.fait) return (
     <div style={{padding:'10px 12px',borderRadius:8,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.6}}>
@@ -808,6 +837,62 @@ function IDERxItem({r, color, onCocher, onNonRealise, user}) {
           ✕ Non réalisé
         </button>
       </div>
+      {showResultat&&constInfo&&(
+        <div style={{padding:'10px 14px',borderTop:'1px solid '+color+'22',background:color+'06'}}>
+          <div style={{fontSize:11,fontWeight:600,color:color,marginBottom:8}}>Résultat — {constInfo.label}</div>
+          {constInfo.type==='choix'&&(
+            <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+              {constInfo.options.map(opt=>(
+                <button key={opt} onMouseDown={e=>{e.preventDefault();setResultatVal(opt);}}
+                  style={{padding:'4px 10px',borderRadius:5,border:'1.5px solid '+(resultatVal===opt?color:'#e5e7eb'),
+                    background:resultatVal===opt?color:'#fff',color:resultatVal===opt?'#fff':color,fontSize:11,fontWeight:600,cursor:'pointer'}}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+          {constInfo.type==='nombre'&&(
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+              <input autoFocus value={resultatVal} onChange={e=>setResultatVal(e.target.value)} placeholder={constInfo.unite}
+                style={{width:80,padding:'5px 8px',borderRadius:6,border:'1.5px solid '+color,fontSize:13,fontWeight:600,outline:'none',textAlign:'center'}}/>
+              <span style={{fontSize:12,color:'#6b7280'}}>{constInfo.unite}</span>
+            </div>
+          )}
+          {constInfo.type==='texte'&&(
+            <textarea autoFocus value={resultatVal} onChange={e=>setResultatVal(e.target.value)} placeholder={constInfo.placeholder||'Résultat...'}
+              rows={2} style={{width:'100%',padding:'6px 8px',borderRadius:6,border:'1.5px solid '+color,fontSize:12,outline:'none',resize:'none',boxSizing:'border-box',marginBottom:8}}/>
+          )}
+          {constInfo.type==='bu'&&(
+            <div style={{marginBottom:8}}>
+              {[['leuco','Leucocytes'],['nitrite','Nitrites'],['cetone','Cétones'],['glucose','Glucose']].map(([k,l])=>(
+                <div key={k} style={{display:'flex',alignItems:'center',gap:5,marginBottom:4}}>
+                  <span style={{fontSize:10,width:65,flexShrink:0,fontWeight:500}}>{l}</span>
+                  {['Nég','+','++','+++'].map(v=>(
+                    <button key={v} onMouseDown={e=>{e.preventDefault();setBuVals(prev=>({...prev,[k]:v}));}}
+                      style={{padding:'2px 7px',borderRadius:4,fontSize:10,fontWeight:600,cursor:'pointer',
+                        border:'1.5px solid '+(buVals[k]===v?color:'#e5e7eb'),
+                        background:buVals[k]===v?color:'#fff',color:buVals[k]===v?'#fff':'#374151'}}>{v}</button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{display:'flex',gap:6}}>
+            <button onMouseDown={e=>{
+              e.preventDefault();
+              let val = resultatVal;
+              if(constInfo.type==='bu') val=`Leuco ${buVals.leuco} / Nitrite ${buVals.nitrite} / Cétone ${buVals.cetone} / Glucose ${buVals.glucose}`;
+              if(!val.trim()) return;
+              onCocherAvecResultat(val, constInfo.fk, constInfo.label);
+              setShowResultat(false);
+            }} style={{flex:1,padding:'6px',borderRadius:6,background:color,color:'#fff',fontSize:12,fontWeight:600,border:'none',cursor:'pointer'}}>
+              Valider et marquer fait
+            </button>
+            <button onMouseDown={e=>{e.preventDefault();setShowResultat(false);setResultatVal('');}}
+              style={{padding:'6px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'none',cursor:'pointer'}}>✕</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
