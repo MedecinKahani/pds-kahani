@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useEffect, memo } from 'react';
+import { useRef, useState, useEffect, memo, forwardRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Calcul age
@@ -79,6 +79,7 @@ export default function NouveauPatient() {
   };
 
   const ddnRefs = useRef([]);
+  const constRefs = useRef([]);
   const [placesOccupees, setPlacesOccupees] = useState([]);
 
   useEffect(() => {
@@ -323,13 +324,14 @@ export default function NouveauPatient() {
           <div style={{ fontWeight:700, fontSize:14, color:'#111827', marginBottom:12 }}>📊 Constantes vitales</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:10 }}>
             {[
-              {k:'fc',  l:'FC',  u:'bpm', bad:v=>parseFloat(v)<50||parseFloat(v)>100},
-              {k:'sat', l:'SpO2',u:'%',   bad:v=>parseFloat(v)<94},
-              {k:'temp',l:'T°',  u:'°C',  bad:v=>parseFloat(v)<36||parseFloat(v)>38.4},
-              {k:'tas', l:'PAS', u:'mmHg',bad:v=>parseFloat(v)<90||parseFloat(v)>150},
-              {k:'tad', l:'PAD', u:'mmHg',bad:v=>parseFloat(v)<60||parseFloat(v)>95},
-            ].map(({k,l,u,bad}) => (
-              <ConstCell key={k} label={l} unit={u} isBad={bad}
+              {k:'fc',  l:'FC',  u:'bpm', bad:v=>parseFloat(v)<50||parseFloat(v)>100,  autoLen:3, ni:1},
+              {k:'sat', l:'SpO2',u:'%',   bad:v=>parseFloat(v)<94,                      autoLen:2, ni:2},
+              {k:'temp',l:'T°',  u:'°C',  bad:v=>parseFloat(v)<36||parseFloat(v)>38.4,  autoLen:4, ni:3},
+              {k:'tas', l:'PAS', u:'mmHg',bad:v=>parseFloat(v)<90||parseFloat(v)>150,   autoLen:3, ni:4},
+              {k:'tad', l:'PAD', u:'mmHg',bad:v=>parseFloat(v)<60||parseFloat(v)>95,    autoLen:3, ni:5},
+            ].map(({k,l,u,bad,autoLen,ni}) => (
+              <ConstCell key={k} label={l} unit={u} isBad={bad} autoLen={autoLen}
+                nextRef={{current: constRefs.current[ni]}}
                 onChange={v => {
                   vals.current[k] = v;
                   if (k==='tas'||k==='tad') {
@@ -349,15 +351,16 @@ export default function NouveauPatient() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
             <div>
               <label style={lbl}>Poids (kg)</label>
-              <input inputMode="decimal" onChange={e => {
+              <input ref={el=>constRefs.current[5]=el} inputMode="decimal" onChange={e => {
                 vals.current.poids = e.target.value;
                 const p=parseFloat(e.target.value), t=parseFloat(vals.current.taille);
                 if(!isNaN(p)&&!isNaN(t)&&t>0) setUi(pr=>({...pr, imc: (p/Math.pow(t/100,2)).toFixed(1)}));
+                if(e.target.value.replace(/[^0-9]/g,'').length>=3) constRefs.current[6]?.focus();
               }} style={inp} placeholder="--"/>
             </div>
             <div>
               <label style={lbl}>Taille (cm)</label>
-              <input inputMode="decimal" onChange={e => {
+              <input ref={el=>constRefs.current[6]=el} inputMode="decimal" onChange={e => {
                 vals.current.taille = e.target.value;
                 const p=parseFloat(vals.current.poids), t=parseFloat(e.target.value);
                 if(!isNaN(p)&&!isNaN(t)&&t>0) setUi(pr=>({...pr, imc: (p/Math.pow(t/100,2)).toFixed(1)}));
@@ -761,22 +764,25 @@ export default function NouveauPatient() {
 }
 
 // Composant constante stable
-const ConstCell = memo(function ConstCell({label, unit, isBad, onChange}) {
-  const ref = useRef(null);
-  const lblRef = useRef(null);
+const ConstCell = memo(forwardRef(function ConstCell({label, unit, isBad, onChange, autoLen, nextRef}, ref) {
   return (
     <div style={{ background:'#f9fafb', borderRadius:10, padding:'10px 12px', border:'1px solid #e5e7eb' }}>
       <label style={{ fontSize:11, color:'#9ca3af', fontWeight:600, display:'block', marginBottom:4 }}>{label} <span style={{fontSize:10}}>{unit}</span></label>
-      <input ref={ref} inputMode="decimal" placeholder="--"
+      <input ref={el=>{ if(ref) ref.current=el; }} inputMode="decimal" placeholder="--"
         onChange={e => {
           const v = e.target.value;
           const bad = v && isBad(v);
           e.target.style.color = v ? (bad?'#ef4444':'#16a34a') : '#d1d5db';
           onChange(v);
+          const digits = v.replace(',','.').replace(/[^0-9]/g,'');
+          if (autoLen && digits.length >= autoLen) {
+            nextRef?.current?.focus();
+          }
         }}
+        onKeyDown={e => { if(e.key==='Enter' && nextRef) nextRef.current?.focus(); }}
         style={{ width:'100%', border:'none', background:'transparent', fontSize:22, fontWeight:700, outline:'none', padding:0, color:'#d1d5db' }}/>
     </div>
   );
-});
+}));
 
 // PAM et IMC ne sont pas des composants séparés - affichés dans le parent
