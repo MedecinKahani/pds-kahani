@@ -637,7 +637,12 @@ ${ordonnance||'--'}
             return (
               <div key={i} style={{background:'#fff',border:'1.5px solid '+bc+'55',borderRadius:8,padding:'7px 10px',marginBottom:5,display:'flex',alignItems:'flex-start',gap:5}}>
                 <span style={{fontSize:11,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
-                <div style={{flex:1,fontSize:11,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
+                  {r.ts&&<div style={{fontSize:9,color:'#9ca3af',marginTop:1}}>Prescrit {r.par?'par '+r.par+' ':''}{r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>}
+                  {r.faitA&&<div style={{fontSize:9,color:'#16a34a',marginTop:1}}>✓ Réalisé {r.faitPar?'par '+r.faitPar+' ':''}{new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
+                  {r.nonRealise&&<div style={{fontSize:9,color:'#ef4444',marginTop:1}}>✕ Non réalisé — {r.motifNonRealise||''}</div>}
+                </div>
                 <HBtn onClick={()=>cocherFait(globalIdx)} title="Marquer réalisé"
                   style={{flexShrink:0,width:20,height:20,borderRadius:4,border:'1.5px solid #16a34a',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#16a34a',padding:0}}>
                   ✓
@@ -652,10 +657,13 @@ ${ordonnance||'--'}
           {realises.length>0&&<>
             <div style={{fontSize:10,color:'#9ca3af',fontWeight:700,textTransform:'uppercase',margin:'8px 0 4px',padding:'0 2px'}}>Réalisés</div>
             {realises.map((r,i)=>(
-              <div key={i} style={{background:'#f3f4f6',borderRadius:7,padding:'5px 8px',marginBottom:3,display:'flex',gap:5,alignItems:'center',opacity:0.55}}>
-                <span style={{fontSize:10}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
-                <div style={{flex:1,fontSize:10,color:'#6b7280',textDecoration:'line-through'}}>{r.texte}</div>
-                <span style={{fontSize:10,color:'#16a34a',fontWeight:700}}>✓</span>
+              <div key={i} style={{background:'#f3f4f6',borderRadius:7,padding:'5px 8px',marginBottom:3,display:'flex',gap:5,alignItems:'flex-start',opacity:0.7}}>
+                <span style={{fontSize:10,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:10,color:'#6b7280',textDecoration:r.nonRealise?'none':'line-through'}}>{r.texte}</div>
+                  {r.faitA&&<div style={{fontSize:8,color:'#16a34a'}}>✓ {r.faitPar} {new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
+                  {r.nonRealise&&<div style={{fontSize:8,color:'#ef4444'}}>✕ {r.motifNonRealise}</div>}
+                </div>
               </div>
             ))}
           </>}
@@ -851,6 +859,7 @@ function VueIDE({ p, user, onUpdate }) {
         <div>
           <span style={{fontSize:14,fontWeight:400,color:'#9ca3af',textDecoration:'line-through'}}>{r.texte}</span>
           {r.resultat&&<div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{r.resultat}</div>}
+          {r.faitA&&<div style={{fontSize:10,color:'#16a34a',marginTop:2}}>Réalisé {r.faitPar?'par '+r.faitPar+' ':''}{new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
         </div>
       </div>
     );
@@ -865,8 +874,11 @@ function VueIDE({ p, user, onUpdate }) {
         onMouseEnter={e=>e.currentTarget.style.background='#f5f3ff'}
         onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
         <div style={{width:24,height:24,borderRadius:6,border:'2px solid '+couleur,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}/>
-        <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>{r.texte}</span>
-        {(type!=='simple'&&type!=='fait_montre')&&<span style={{marginLeft:'auto',fontSize:11,color:couleur,fontWeight:600}}>Saisir résultat →</span>}
+        <div style={{flex:1}}>
+          <div style={{fontSize:14,fontWeight:600,color:'#374151'}}>{r.texte}</div>
+          {r.ts&&<div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>Prescrit {r.par?'par '+r.par+' ':''}{new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
+        </div>
+        {(type!=='simple'&&type!=='fait_montre')&&<span style={{marginLeft:'auto',fontSize:11,color:couleur,fontWeight:600,flexShrink:0}}>Saisir résultat →</span>}
       </div>
     );
 
@@ -955,6 +967,15 @@ function VueIDE({ p, user, onUpdate }) {
                   .then(r=>r.json()).then(data=>{
                     if(data.patients){const u=data.patients.find(x=>x.id===p.id);if(u)onUpdate?.(u);}
                   });
+                }} onNonRealise={(motif)=>{
+                  const globalIdx=rxAll.indexOf(r);
+                  const rx=[...rxAll];
+                  rx[globalIdx]={...rx[globalIdx],nonRealise:true,motifNonRealise:motif,faitPar:user?.matricule,faitA:Date.now()};
+                  fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})})
+                  .then(r=>r.json()).then(data=>{
+                    if(data.patients){const u=data.patients.find(x=>x.id===p.id);if(u)onUpdate?.(u);}
+                  });
                 }}/>
           ))}
         </div>
@@ -962,22 +983,67 @@ function VueIDE({ p, user, onUpdate }) {
     );
   }
 
-  function ItemSimple({ r, couleur, onCocher }) {
+  function ItemSimple({ r, couleur, onCocher, onNonRealise }) {
+    const [showMotif, setShowMotif] = useState(false);
+    const [motif, setMotif] = useState('');
+
     if (r.fait) return (
-      <div style={{padding:'12px 16px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.6,display:'flex',alignItems:'center',gap:10}}>
-        <div style={{width:24,height:24,borderRadius:6,background:couleur,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-          <span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>
+      <div style={{padding:'12px 16px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.6}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{width:24,height:24,borderRadius:6,background:couleur,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <span style={{color:'#fff',fontSize:14,fontWeight:700}}>✓</span>
+          </div>
+          <div>
+            <div style={{fontSize:14,color:'#9ca3af',textDecoration:'line-through'}}>{r.texte}</div>
+            {r.faitA&&<div style={{fontSize:10,color:'#16a34a',marginTop:2}}>Réalisé {r.faitPar?'par '+r.faitPar+' ':''}{new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
+          </div>
         </div>
-        <span style={{fontSize:14,color:'#9ca3af',textDecoration:'line-through'}}>{r.texte}</span>
       </div>
     );
+
+    if (r.nonRealise) return (
+      <div style={{padding:'12px 16px',borderRadius:10,border:'1.5px solid #fecaca',background:'#fef2f2',opacity:0.7}}>
+        <div style={{fontSize:13,color:'#ef4444',fontWeight:600,textDecoration:'line-through'}}>{r.texte}</div>
+        <div style={{fontSize:11,color:'#dc2626',marginTop:4}}>✕ Non réalisé — {r.motifNonRealise||'sans motif'}</div>
+      </div>
+    );
+
+    if (showMotif) return (
+      <div style={{padding:'12px 16px',borderRadius:10,border:'2px solid #ef4444',background:'#fef2f2'}}>
+        <div style={{fontSize:13,fontWeight:600,color:'#374151',marginBottom:8}}>{r.texte}</div>
+        <div style={{fontSize:11,fontWeight:600,color:'#dc2626',marginBottom:6}}>Motif de non-réalisation</div>
+        <input value={motif} onChange={e=>setMotif(e.target.value)} autoFocus
+          placeholder="Patient parti, refus, contre-indication..." 
+          style={{width:'100%',padding:'8px 10px',borderRadius:7,border:'1.5px solid #fecaca',fontSize:12,outline:'none',boxSizing:'border-box',marginBottom:8}}/>
+        <div style={{display:'flex',gap:6}}>
+          <button onClick={()=>{if(motif.trim())onNonRealise(motif.trim());}}
+            style={{flex:1,padding:'8px',borderRadius:7,background:'#ef4444',color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer'}}>
+            Confirmer non-réalisation
+          </button>
+          <button onClick={()=>{setShowMotif(false);setMotif('');}}
+            style={{padding:'8px 12px',borderRadius:7,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:12,cursor:'pointer'}}>✕</button>
+        </div>
+      </div>
+    );
+
     return (
-      <div onClick={onCocher}
-        style={{padding:'14px 16px',borderRadius:10,border:'2px solid '+couleur+'66',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
-        onMouseEnter={e=>e.currentTarget.style.background=couleur+'11'}
-        onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
-        <div style={{width:24,height:24,borderRadius:6,border:'2px solid '+couleur,background:'#fff',flexShrink:0}}/>
-        <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>{r.texte}</span>
+      <div style={{borderRadius:10,border:'2px solid '+couleur+'66',background:'#fff',overflow:'hidden'}}>
+        <div onClick={onCocher}
+          style={{padding:'14px 16px',cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'all 0.15s'}}
+          onMouseEnter={e=>e.currentTarget.style.background=couleur+'11'}
+          onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+          <div style={{width:24,height:24,borderRadius:6,border:'2px solid '+couleur,background:'#fff',flexShrink:0}}/>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:600,color:'#374151'}}>{r.texte}</div>
+            {r.ts&&<div style={{fontSize:10,color:'#9ca3af',marginTop:2}}>Prescrit {r.par?'par '+r.par+' ':''}{new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
+          </div>
+        </div>
+        <div style={{borderTop:'1px solid '+couleur+'22',padding:'4px 16px 8px',display:'flex',justifyContent:'flex-end'}}>
+          <button onClick={()=>setShowMotif(true)}
+            style={{padding:'3px 10px',borderRadius:5,background:'#fef2f2',color:'#ef4444',fontSize:10,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
+            ✕ Non réalisé
+          </button>
+        </div>
       </div>
     );
   }
