@@ -57,20 +57,22 @@ const EXAMENS_COMPL = [
 ];
 
 const SOINS = [
-  {id:'o2_lun', label:'O2 lunettes (Sat>94%)', color:'#0891b2'},
-  {id:'o2_mas', label:'O2 masque (Sat>94%)', color:'#0891b2'},
-  {id:'demi_assis', label:'Demi-assis', color:'#0891b2'},
-  {id:'allonger', label:'Allonger', color:'#0891b2'},
+  {id:'drp', label:'DRP', color:'#3b82f6'},
   {id:'scoper', label:'Scopé', color:'#dc2626'},
+  {id:'o2_lun', label:'O2 lunettes', color:'#0891b2'},
+  {id:'o2_mas_moy', label:'O2 masque moyenne concentration', color:'#0891b2'},
+  {id:'o2_mas_haut', label:'O2 masque haute concentration', color:'#0891b2'},
+  {id:'demi_assis', label:'Demi-assis', color:'#0891b2'},
+  {id:'assis_strict', label:'Assis strict', color:'#0891b2'},
+  {id:'allonger', label:'Allongé strict', color:'#0891b2'},
   {id:'vvp', label:'VVP', color:'#7c3aed'},
+  {id:'reprise_const', label:'Reprise constantes après thérapeutique', color:'#6b7280'},
   {id:'pst_simple', label:'Pansement simple', color:'#f59e0b'},
   {id:'pst_complexe', label:'Pansement complexe', color:'#f59e0b'},
-  {id:'drp', label:'DRP', color:'#3b82f6'},
-  {id:'spu', label:'Sonde urinaire', color:'#6b7280'},
-  {id:'educ_asthme', label:'Éducation asthme — vidéo TV', color:'#0891b2'},
-  {id:'reprise_const', label:'Reprise constantes', color:'#6b7280'},
-  {id:'oxymetre', label:'Oxymétrie', color:'#dc2626'},
-  {id:'rechauffe', label:'Réchauffement', color:'#ea580c'},
+  {id:'retrait_spu', label:'Retrait sonde urinaire', color:'#6b7280'},
+  {id:'pose_spu', label:'Pose sonde urinaire', color:'#6b7280'},
+  {id:'couv_survie', label:'Couverture de survie', color:'#6b7280'},
+  {id:'educ_asthme', label:'Éducation thérapeutique asthme — salle observation — TV — play vidéo', color:'#0891b2'},
 ];
 
 // ─── Bandeau constantes ───────────────────────────────────────────────────────
