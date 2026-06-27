@@ -104,6 +104,66 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   );
 }
 
+function BUBtn({ baseVal, history, onAdd }) {
+  const [open, setOpen] = useState(false);
+  const latest = history.length ? history[history.length-1] : null;
+  const cur = latest ? latest.val : baseVal;
+  const PARAMS = [['leuco','Leuco'],['nitrite','Nitrite'],['sang','Sang'],['glucose','Glucose'],['cetone','Cétone']];
+  const CROIX = ['+','++','+++'];
+  const [sel, setSel] = useState({});
+  return (
+    <div style={{position:'relative',display:'inline-block'}}>
+      <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70}}>
+        <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>BU</div>
+        <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'nowrap'}}>
+          {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
+          <span style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cur||'—'}</span>
+          <button
+            onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);setSel({});}}
+            onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
+            onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
+            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
+        </div>
+      </div>
+      {open&&(
+        <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'10px 12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',minWidth:280}}
+          onMouseDown={e=>e.stopPropagation()}>
+          <div style={{fontSize:10,fontWeight:700,color:'#3b82f6',marginBottom:8}}>Bandelette urinaire</div>
+          {PARAMS.map(([k,l])=>(
+            <div key={k} style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
+              <div onClick={()=>setSel(prev=>({...prev,[k]:prev[k]?null:'+' }))}
+                style={{width:16,height:16,borderRadius:3,border:'1.5px solid '+(sel[k]?'#3b82f6':'#d1d5db'),background:sel[k]?'#3b82f6':'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                {sel[k]&&<span style={{color:'#fff',fontSize:10}}>✓</span>}
+              </div>
+              <span style={{fontSize:11,fontWeight:500,color:'#374151',width:55,flexShrink:0}}>{l}</span>
+              {sel[k]&&CROIX.map(v=>(
+                <button key={v} onMouseDown={e=>{e.preventDefault();setSel(prev=>({...prev,[k]:v}));}}
+                  style={{padding:'2px 7px',borderRadius:4,fontSize:10,fontWeight:600,cursor:'pointer',
+                    border:'1.5px solid '+(sel[k]===v?'#3b82f6':'#e5e7eb'),
+                    background:sel[k]===v?'#3b82f6':'#fff',
+                    color:sel[k]===v?'#fff':'#374151'}}>{v}</button>
+              ))}
+            </div>
+          ))}
+          <div style={{fontSize:11,color:'#9ca3af',marginBottom:8,marginTop:4}}>
+            Paramètres non cochés = Négatif
+          </div>
+          <div style={{display:'flex',gap:6}}>
+            <button onMouseDown={e=>{
+              e.preventDefault();
+              const parts = PARAMS.map(([k,l])=>sel[k]?`${l} ${sel[k]}`:`${l} Nég`).join(' / ');
+              onAdd('bu_resultat','BU',parts,'');
+              setOpen(false);
+            }} style={{flex:1,padding:'6px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>Valider</button>
+            <button onMouseDown={e=>{e.preventDefault();setOpen(false);}}
+              style={{padding:'6px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
   const [open, setOpen] = useState(false);
   const latest = history.length ? history[history.length-1] : null;
@@ -152,6 +212,20 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const role = user?.role;
   const initConst = safeJSON(p.constantes_post, []);
   const [localConst, setLocalConst] = useState(initConst);
+
+  // Quand on ajoute une nouvelle constante pour hemocue/dextro,
+  // on a besoin que la valeur initiale soit visible comme "ancienne"
+  // -> on vérifie si localConst a déjà une entrée pour hemocue/dextro
+  // si non ET que p.hemocue/p.dextro existe, on l'injecte virtuellement
+  function getLatestWithBase(key, baseVal) {
+    const m = localConst.filter(c=>c.key===key);
+    if (m.length) return m[m.length-1];
+    return null; // baseVal affiché directement
+  }
+
+  function hasUpdate(key) {
+    return localConst.some(c=>c.key===key);
+  }
   const [onglet, setOnglet] = useState(role==='ide' ? 'prescriptions' : 'clinique');
   const [anamnese, setAnamnese] = useState(p.anamnese||'');
   const [examen, setExamen] = useState(p.examen_clinique||'');
@@ -301,8 +375,7 @@ ${ordonnance||'--'}
     {label:'PAD',    fk:'tad',  unit:'mmHg', base:p.tad,  type:'num'},
     {label:'PAM',    fk:'pam',  unit:'mmHg', base:pamVal?.toString(), type:'fixed'},
     {label:'T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
-    {label:'BU',     fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'qual',
-      options:['Nég','Leuco+','Leuco++','Nitrite+','Nitrite++','Sang+','Glucose+','Céto+']},
+    {label:'BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
   ];
 
   const CONSTANTES_R2 = [
@@ -328,6 +401,9 @@ ${ordonnance||'--'}
     );
     if (c.type==='num') return (
       <ConstBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst}/>
+    );
+    if (c.type==='bu') return (
+      <BUBtn key={c.fk} baseVal={c.base} history={localConst.filter(x=>x.key==='bu_resultat')} onAdd={addConst}/>
     );
     return (
       <QualBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} options={c.options} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst}/>
@@ -370,11 +446,11 @@ ${ordonnance||'--'}
         </div>
 
         {/* Ligne 2 : constantes rangée 1 */}
-        <div style={{display:'flex',gap:5,padding:'6px 10px 4px',flexWrap:'wrap'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5,padding:'6px 10px 4px'}}>
           {CONSTANTES_R1.map(renderConst)}
         </div>
         {/* Ligne 3 : constantes rangée 2 */}
-        <div style={{display:'flex',gap:5,padding:'0 10px 7px',flexWrap:'wrap'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5,padding:'0 10px 7px'}}>
           {CONSTANTES_R2.map(renderConst)}
         </div>
       </div>
