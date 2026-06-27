@@ -77,7 +77,7 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
       <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70,cursor:'default'}}>
         <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{label}</div>
         <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'nowrap'}}>
-          {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through',marginRight:2}}>{baseVal}</span>}
+          {latest&&baseVal&&<span style={{fontSize:12,color:'#94a3b8',textDecoration:'line-through',marginRight:3,fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
           <span style={{fontSize:17,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
           {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8,color:'#9ca3af'}}>{unit}</span>}
           <button
@@ -113,11 +113,11 @@ function BUBtn({ baseVal, history, onAdd }) {
   const [sel, setSel] = useState({});
   return (
     <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',width:'100%'}}>
+      <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb'}}>
         <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>BU</div>
         <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'nowrap'}}>
           {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
-          <span style={{fontSize:11,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',lineHeight:1.3,flexWrap:'wrap'}}>{cur||'—'}</span>
+          <span title={cur||''} style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
           <button
             onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);setSel({});}}
             onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
@@ -375,10 +375,10 @@ ${ordonnance||'--'}
     {label:'PAD',    fk:'tad',  unit:'mmHg', base:p.tad,  type:'num'},
     {label:'PAM',    fk:'pam',  unit:'mmHg', base:pamVal?.toString(), type:'fixed'},
     {label:'T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
+    {label:'BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
   ];
 
   const CONSTANTES_R2 = [
-    {label:'BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
     {label:'Hémocue',   fk:'hemocue',     unit:'g/dL', base:p.hemocue,     type:'num'},
     {label:'Dextro',    fk:'dextro',      unit:'g/L',  base:p.dextro,      type:'num'},
     {label:'TDR Palu',  fk:'tdr_palu',    unit:'',     base:p.tdr_palu,    type:'qual', options:['Négatif','Positif']},
@@ -446,11 +446,11 @@ ${ordonnance||'--'}
         </div>
 
         {/* Ligne 2 : constantes rangée 1 */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:5,padding:'6px 10px 4px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5,padding:'6px 10px 4px'}}>
           {CONSTANTES_R1.map(renderConst)}
         </div>
         {/* Ligne 3 : constantes rangée 2 */}
-        <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr',gap:5,padding:'0 10px 7px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5,padding:'0 10px 7px'}}>
           {CONSTANTES_R2.map(renderConst)}
         </div>
       </div>
