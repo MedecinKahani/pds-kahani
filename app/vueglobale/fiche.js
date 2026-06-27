@@ -162,7 +162,7 @@ Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas d
 Abdominal : abdomen souple dépressible indolore.
 ORL : gorge et tympans propres.`;
 
-export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user, patients=[] }) {
+export default function FichePatient({ patient, p: pProp, onClose, onUpdate, user, patients=[], constPostExt, setConstPostExt }) {
   const p = patient || pProp;
   if (!p) return null;
 
@@ -177,7 +177,9 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [subSel, setSubSel] = useState({});
   const [collapsed, setCollapsed] = useState({examens:true, therapeutique:true, soins:true});
   const [therapieTab, setTherapieTab] = useState('adulte');
-  const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
+  const [constPostLocal, setConstPostLocal] = useState(safeJSON(p.constantes_post, []));
+  const constPost = constPostExt !== undefined ? constPostExt : constPostLocal;
+  const setConstPost = constPostExt !== undefined ? setConstPostExt : setConstPostLocal;
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
 
   const pam = p.tas && p.tad ? Math.round(parseFloat(p.tad) + (parseFloat(p.tas) - parseFloat(p.tad)) / 3) : null;

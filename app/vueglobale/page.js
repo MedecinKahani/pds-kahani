@@ -145,7 +145,8 @@ export default function PageVueGlobale() {
   const [diag,setDiag] = useState('');
   const [orient,setOrient] = useState('');
   const [ficheOuverte,setFicheOuverte] = useState(null);
-  const [fichesSortie,setFichesSortie] = useState(null); // patient en cours de sortie
+  const [fichesSortie,setFichesSortie] = useState(null);
+  const [constPostLocal, setConstPostLocal] = useState([]); // patient en cours de sortie
   const [showSortis,setShowSortis] = useState(false);
   const [patientsSortis,setPatientsSortis] = useState([]);
 
@@ -283,7 +284,7 @@ export default function PageVueGlobale() {
     const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme'?'♂':p?.sexe==='F'||p?.sexe==='Femme'?'♀':'';
 
     return(
-      <div onClick={()=>{if(!p)return;setFicheOuverte(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
+      <div onClick={()=>{if(!p)return;if(isSelected){setFicheOuverte(null);}else{setFicheOuverte(p);setConstPostLocal(p.constantes_post?JSON.parse(typeof p.constantes_post==='string'?p.constantes_post:'[]'):[]);}if(!isSelected&&p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
         style={{background:'#fff',border:'0.5px solid #e5e7eb',borderRadius:16,cursor:p?'pointer':'default',
           position:'relative',overflow:'hidden',flex:1,display:'flex',flexDirection:'column',
           transition:'box-shadow 0.15s, transform 0.15s'
@@ -530,6 +531,8 @@ export default function PageVueGlobale() {
             }}
             user={user}
             patients={patients}
+            constPostExt={constPostLocal}
+            setConstPostExt={setConstPostLocal}
           />
         </div>
       )}
