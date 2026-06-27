@@ -695,7 +695,7 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     const cur = latest ? latest.val : value;
     const color = cur&&cur!=='--'&&cur!=='—' ? (colC(cur,fieldKey)||'#111827') : '#b0b8c4';
     return (
-      <div style={{background:'#fff',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
+      <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
         <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>{label}</div>
         <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'wrap'}}>
           {latest&&<span style={{fontSize:11,color:'#d1d5db',textDecoration:'line-through',marginRight:2}}>{value||'—'}</span>}
@@ -724,7 +724,7 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     const isPos = cur==='Positif'||cur?.includes('barre');
     const color = cur&&cur!=='—' ? (isPos?'#ef4444':'#16a34a') : '#b0b8c4';
     return (
-      <div style={{background:'#fff',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
+      <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
         <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>{label}</div>
         <div style={{display:'flex',alignItems:'center',gap:5}}>
           {latest&&<span style={{fontSize:11,color:'#d1d5db',textDecoration:'line-through'}}>{value||'—'}</span>}
@@ -750,7 +750,7 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
     const cur = latest ? latest.val : p.bu_resultat;
     const CROIX = ['Nég','+','++','+++'];
     return (
-      <div style={{background:'#fff',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
+      <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed',position:'relative'}}>
         <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>BU</div>
         <div style={{display:'flex',alignItems:'center',gap:5}}>
           {latest&&<span style={{fontSize:10,color:'#d1d5db',textDecoration:'line-through',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.bu_resultat||'—'}</span>}
@@ -815,14 +815,14 @@ function BandeauPatient({ p, pam, constPost, setConstPost, save, onClose, onUpda
       </div>
 
       {/* CONSTANTES : fond blanc, cartes grises */}
-      <div style={{padding:'8px 10px',background:'#f0f2f4',display:'flex',flexDirection:'column',gap:5}}>
+      <div style={{padding:'8px 10px',background:'#fff',display:'flex',flexDirection:'column',gap:5}}>
 
         {/* Rangée 1 : FC PAS PAD PAM */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
           <CstCard label="FC" fieldKey="fc" unit="bpm" value={p.fc}/>
           <CstCard label="PAS" fieldKey="tas" unit="mmHg" value={p.tas}/>
           <CstCard label="PAD" fieldKey="tad" unit="mmHg" value={p.tad}/>
-          <div style={{background:'#fff',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
+          <div style={{background:'#f0f2f4',borderRadius:10,padding:'8px 12px',border:'1px solid #e8eaed'}}>
             <div style={{fontSize:9,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.6,marginBottom:4}}>PAM <span style={{fontWeight:400,fontSize:8}}>auto</span></div>
             <div style={{display:'flex',alignItems:'baseline',gap:3}}>
               <span style={{fontSize:22,fontWeight:700,color:pamColor,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{pamVal||'—'}</span>
