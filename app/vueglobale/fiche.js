@@ -105,7 +105,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [copied, setCopied] = useState(false);
   const [subOpen, setSubOpen] = useState({});
   const [subSel, setSubSel] = useState({});
-  const [collapsed, setCollapsed] = useState({examens:false, therapeutique:false, soins:false});
+  const [collapsed, setCollapsed] = useState({examens:true, therapeutique:true, soins:true});
   const [therapieTab, setTherapieTab] = useState('adulte');
   const [nouvConst, setNouvConst] = useState({ type:'', val:'' });
   const [constPost, setConstPost] = useState(safeJSON(p.constantes_post, []));
