@@ -720,16 +720,22 @@ function SubBtn({e, prescriptions, onAjouter, subOpen, setSubOpen}) {
         <div style={{position:'fixed',zIndex:9999,top:pos.top,left:pos.left,background:'#fff',border:'1.5px solid '+e.color+'44',borderRadius:10,padding:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',minWidth:220,maxHeight:280,overflowY:'auto'}}>
           <div style={{fontSize:10,fontWeight:700,color:e.color,marginBottom:6,textTransform:'uppercase'}}>Cocher plusieurs</div>
           {e.sub.map(s=>{
-            const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===e.label+' : '+s);
+            const sl = typeof s === 'string' ? s : s.label;
+            const sc = typeof s === 'string' ? e.color : (s.color||e.color);
+            const sn = typeof s === 'object' ? s.note : '';
+            const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===e.label+' : '+sl);
             return (
-              <div key={s} onClick={()=>{if(!deja)onAjouter(e.label+' : '+s,'examen');}}
-                style={{padding:'5px 8px',borderRadius:5,cursor:deja?'default':'pointer',fontSize:11,color:deja?'#9ca3af':e.color,fontWeight:600,display:'flex',alignItems:'center',gap:6,opacity:deja?0.5:1}}
-                onMouseEnter={ev=>{if(!deja)ev.currentTarget.style.background=e.color+'18';}}
+              <div key={sl} onClick={()=>{if(!deja)onAjouter(e.label+' : '+sl,'examen');}}
+                style={{padding:'5px 8px',borderRadius:5,cursor:deja?'default':'pointer',fontSize:11,color:deja?'#9ca3af':sc,fontWeight:600,display:'flex',alignItems:'center',gap:6,opacity:deja?0.5:1}}
+                onMouseEnter={ev=>{if(!deja)ev.currentTarget.style.background=sc+'18';}}
                 onMouseLeave={ev=>{ev.currentTarget.style.background='transparent';}}>
-                <div style={{width:14,height:14,borderRadius:3,border:'1.5px solid '+(deja?'#9ca3af':e.color),background:deja?e.color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{width:14,height:14,borderRadius:3,border:'1.5px solid '+(deja?'#9ca3af':sc),background:deja?sc:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                   {deja&&<span style={{color:'#fff',fontSize:9}}>✓</span>}
                 </div>
-                {s}
+                <div>
+                  <div>{sl}</div>
+                  {sn&&<div style={{fontSize:9,color:'#9ca3af',fontWeight:400}}>{sn}</div>}
+                </div>
               </div>
             );
           })}
