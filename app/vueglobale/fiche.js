@@ -434,7 +434,7 @@ ${ordonnance||'--'}
                 <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
                 {ippCopied&&<span style={{fontSize:10,color:'#0d9488',fontWeight:700}}>✓</span>}
               </span>
-              <EditSpan field="ipp" value={null} initVal={p.ipp} placeholder="✎ modifier" w={80}/>
+              <EditSpan field="ipp" value={null} initVal={p.ipp} placeholder="✎ modifier IPP" w={100}/>
             </span>
             <span style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
               <EditSpan field="symptome" value={p.symptome?.replace(/_/g,' ')} placeholder="motif" w={100}/>
