@@ -233,6 +233,23 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const role = user?.role;
   const initConst = safeJSON(p.constantes_post, []);
   const [localConst, setLocalConst] = useState(initConst);
+  const [showEditIdentite, setShowEditIdentite] = useState(false);
+  const [editIdentite, setEditIdentite] = useState({});
+
+  function openEditIdentite() {
+    setEditIdentite({nom:p.nom||'',prenom:p.prenom||'',ddn:p.ddn||'',ipp:p.ipp||'',age:p.age||'',sexe:p.sexe||''});
+    setShowEditIdentite(true);
+  }
+
+  async function saveIdentite() {
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update',id:p.id,patch:{
+        nom:editIdentite.nom,prenom:editIdentite.prenom,ddn:editIdentite.ddn,
+        ipp:editIdentite.ipp,age:editIdentite.age,sexe:editIdentite.sexe
+      }})});
+    onUpdate?.();
+    setShowEditIdentite(false);
+  }
 
   // Quand on ajoute une nouvelle constante pour hemocue/dextro,
   // on a besoin que la valeur initiale soit visible comme "ancienne"
@@ -1066,21 +1083,6 @@ function TheraSection({prescriptions, onAjouter}) {
   );
 }
 
-function SutureSection({p, save}) {
-  const SUTURES=[{id:'sut_sup5',l:'Suture ≥5 pts',c:'#dc2626'},{id:'sut_inf5',l:'Suture <5 pts',c:'#f59e0b'},{id:'sut_colle',l:'Suture colle',c:'#0891b2'},{id:'sut_agraf',l:'Suture agrafes',c:'#7c3aed'},{id:'sut_steri',l:'Steri-strip',c:'#16a34a'}];
-  const [sel,setSel]=useState(()=>{try{return JSON.parse(p.sutures||'[]');}catch{return [];}});
-  async function toggle(id){const n=sel.includes(id)?sel.filter(x=>x!==id):[...sel,id];setSel(n);await save({sutures:JSON.stringify(n)});}
-  return(
-    <div style={{background:'#fff8f8',border:'1.5px solid #fecaca',borderRadius:8,padding:'8px 12px'}}>
-      <div style={{fontSize:10,fontWeight:700,color:'#dc2626',textTransform:'uppercase',marginBottom:6}}>✂️ Suture / Fermeture</div>
-      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-        {SUTURES.map(s=>{const on=sel.includes(s.id);return(
-          <button key={s.id} onClick={()=>toggle(s.id)}
-            style={{padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',background:on?s.c:'#fff',color:on?'#fff':s.c,border:'2px solid '+s.c}}>
-            {on?'✓ ':''}{s.l}
-          </button>
-        );})}
-      </div>
       {/* Modale édition identité */}
       {showEditIdentite&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10000,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -1122,6 +1124,26 @@ function SutureSection({p, save}) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SutureSection({p, save}) {
+  const SUTURES=[{id:'sut_sup5',l:'Suture ≥5 pts',c:'#dc2626'},{id:'sut_inf5',l:'Suture <5 pts',c:'#f59e0b'},{id:'sut_colle',l:'Suture colle',c:'#0891b2'},{id:'sut_agraf',l:'Suture agrafes',c:'#7c3aed'},{id:'sut_steri',l:'Steri-strip',c:'#16a34a'}];
+  const [sel,setSel]=useState(()=>{try{return JSON.parse(p.sutures||'[]');}catch{return [];}});
+  async function toggle(id){const n=sel.includes(id)?sel.filter(x=>x!==id):[...sel,id];setSel(n);await save({sutures:JSON.stringify(n)});}
+  return(
+    <div style={{background:'#fff8f8',border:'1.5px solid #fecaca',borderRadius:8,padding:'8px 12px'}}>
+      <div style={{fontSize:10,fontWeight:700,color:'#dc2626',textTransform:'uppercase',marginBottom:6}}>✂️ Suture / Fermeture</div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+        {SUTURES.map(s=>{const on=sel.includes(s.id);return(
+          <button key={s.id} onClick={()=>toggle(s.id)}
+            style={{padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',background:on?s.c:'#fff',color:on?'#fff':s.c,border:'2px solid '+s.c}}>
+            {on?'✓ ':''}{s.l}
+          </button>
+        );})}
+      </div>
+      </div>
     </div>
   );
 }
