@@ -41,6 +41,8 @@ const EXAMENS_COMPL = [
 ];
 
 const SOINS = [
+  {id:'o2_lun', label:'O2 lunettes (Sat>94%)', color:'#0891b2'},
+  {id:'o2_mas', label:'O2 masque (Sat>94%)', color:'#0891b2'},
   {id:'demi_assis', label:'Demi-assis', color:'#0891b2'},
   {id:'allonger', label:'Allonger', color:'#0891b2'},
   {id:'scoper', label:'Scopé', color:'#dc2626'},
@@ -992,17 +994,17 @@ function TheraSection({prescriptions, onAjouter}) {
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:['Paracétamol 500mg PO','Paracétamol 1g PO','Ibuprofène 200mg PO','Ibuprofène 400mg PO','Tramadol 50mg PO','Tramadol 100mg PO','Acupan 20mg PO','Kardegic 75mg PO','Amoxicilline 1g PO','Augmentin 1g PO','Azithromycine 500mg PO','Artéméther-Luméfantrine (Coartem)','Métoclopramide 10mg PO','Ondansétron 4mg PO']},
-      {voie:'IV', label:'Voie IV', color:'#2563eb', items:['Perfalgan 1g IV','Kétoprofène 100mg IV','Titration morphine IV','Lasilix 20mg IV','Lasilix 40mg IV','Loxen IV','Ceftriaxone 2g IV','Métronidazole 500mg IV','Solumédrol 40mg IV','Adrénaline 1mg IV']},
-      {voie:'IM', label:'Voie IM', color:'#7c3aed', items:['Kétoprofène 100mg IM','Ceftriaxone 1g IM','Ceftriaxone 2g IM','Adrénaline 0.5mg IM','Adrénaline 1mg IM']},
-      {voie:'SC', label:'Voie SC', color:'#0891b2', items:['Lidocaïne 1% SC','Lidocaïne 2% SC','Lidocaïne adrénalinée SC','Vaccin antitétanique SC']},
-      {voie:'RESPI', label:'Respiratoire', color:'#0369a1', items:['O2 lunettes (Sat>94%)','O2 masque (Sat>94%)','Aérosol Ventoline 2.5mg ×3 + Atrovent','Aérosol Ventoline 5mg ×3 + Atrovent','MEOPA']},
+      {voie:'IV', label:'Voie IV', color:'#dc2626', items:['Perfalgan 1g IV','Kétoprofène 100mg IV','Titration morphine IV','Lasilix 20mg IV','Lasilix 40mg IV','Loxen IV','Ceftriaxone 2g IV','Métronidazole 500mg IV','Solumédrol 40mg IV','Adrénaline 1mg IV']},
+      {voie:'IM', label:'Voie IM', color:'#2563eb', items:['Kétoprofène 100mg IM','Ceftriaxone 1g IM','Ceftriaxone 2g IM','Adrénaline 0.5mg IM','Adrénaline 1mg IM']},
+      {voie:'SC', label:'Voie SC', color:'#7c3aed', items:['Lidocaïne 1% SC','Lidocaïne 2% SC','Lidocaïne adrénalinée SC','Vaccin antitétanique SC']},
+      {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:['Aérosol Ventoline 2.5mg ×3 + Atrovent','Aérosol Ventoline 5mg ×3 + Atrovent','MEOPA']},
     ],
     pediatrie: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:['Paracétamol 15mg/kg PO','Ibuprofène 10mg/kg PO','Tramadol 1-2mg/kg PO','Amoxicilline 50mg/kg/j PO','Artéméther-Luméfantrine selon poids']},
-      {voie:'IV', label:'Voie IV', color:'#2563eb', items:['Perfalgan 15mg/kg IV','Morphine 0.1mg/kg IV','Ceftriaxone 50-100mg/kg IV','Adrénaline 0.01mg/kg IV','Dexaméthasone 0.15mg/kg IV']},
-      {voie:'IM', label:'Voie IM', color:'#7c3aed', items:['Ceftriaxone 50mg/kg IM','Adrénaline 0.01mg/kg IM']},
-      {voie:'SC', label:'Voie SC', color:'#0891b2', items:['Lidocaïne 1% SC','Vaccin antitétanique SC']},
-      {voie:'RESPI', label:'Respiratoire', color:'#0369a1', items:['O2 lunettes (Sat>94%)','Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','MEOPA']},
+      {voie:'IV', label:'Voie IV', color:'#dc2626', items:['Perfalgan 15mg/kg IV','Morphine 0.1mg/kg IV','Ceftriaxone 50-100mg/kg IV','Adrénaline 0.01mg/kg IV','Dexaméthasone 0.15mg/kg IV']},
+      {voie:'IM', label:'Voie IM', color:'#2563eb', items:['Ceftriaxone 50mg/kg IM','Adrénaline 0.01mg/kg IM']},
+      {voie:'SC', label:'Voie SC', color:'#7c3aed', items:['Lidocaïne 1% SC','Vaccin antitétanique SC']},
+      {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:['Aérosol Ventoline 2.5mg','Aérosol Atrovent 0.25mg','MEOPA']},
     ],
   };
   const ROUGE = ['Tramadol','Morphine','MEOPA','Kétoprofène','Lidocaïne'];
