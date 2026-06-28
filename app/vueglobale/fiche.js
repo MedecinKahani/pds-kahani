@@ -1278,9 +1278,9 @@ function AerosolSelector({onAjouter, onAjouterPlusieurs, prescriptions, poidsIni
   const [poids, setPoids] = useState(poidsInitial||'');
   const dejaAero = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Salbutamol'));
 
-  const p = parseFloat(poids);
-  const ventoline = !isNaN(p) ? (p < 16 ? '2.5mg' : '5mg') : null;
-  const atrovent  = !isNaN(p) ? (p < 16 ? '0.25mg' : '0.5mg') : null;
+  const poidsParsed = parseFloat(poids);
+  const ventoline = !isNaN(poidsParsed) ? (poidsParsed < 16 ? '2.5mg' : '5mg') : null;
+  const atrovent  = !isNaN(poidsParsed) ? (poidsParsed < 16 ? '0.25mg' : '0.5mg') : null;
 
   function prescrire() {
     if(!ventoline) return;
