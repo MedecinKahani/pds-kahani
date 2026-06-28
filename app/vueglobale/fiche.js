@@ -634,7 +634,7 @@ ${ordonnance||'--'}
                     {/* Thérapeutique */}
                     <CatSection titre="💊 Thérapeutique" color="#374151"
                       collapsed={collapsed.therapeutique} onToggle={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
-                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx}/>
+                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
                     </CatSection>
                     {/* Soins */}
                     <CatSection titre="🩹 Soins" color="#374151"
@@ -1100,7 +1100,7 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
   );
 }
 
-function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
+function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   const [tab, setTab] = useState('adulte');
   const VOIES = {
     adulte: [
@@ -1232,7 +1232,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
           if(v.special==='morphine') return (
             <div key={v.voie}>
               <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-              <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={p.poids}/>
+              <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
             </div>
           );
           if(v.special==='hydratation') return (
@@ -1247,7 +1247,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
             <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
               {v.items.map(item=>{
-                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={p.poids}/>;
+                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
                 const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
                 if(deja) return null;
                 const rouge=ROUGE.some(s=>item.includes(s));
