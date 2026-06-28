@@ -225,7 +225,10 @@ export default function NouveauPatient() {
     if (!hasConst) return false;
     // Conditions spécifiques par motif
     if (s === 'coma') return ui.respire !== '' && ui.respire !== undefined && ui.respire !== null;
-    if (s === 'detresse_respi') return ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null;
+    if (s === 'detresse_respi') {
+      const drpOk = parseFloat(ui.age||99) >= 2 || ui.drp;
+      return (ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null) && drpOk;
+    }
     if (s === 'asthme') return ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null;
     if (s === 'fievre') return !!ui.fievre_depuis;
     if (s === 'douleur') return ui.douleur_zones && ui.douleur_zones.length > 0;
@@ -523,24 +526,17 @@ export default function NouveauPatient() {
                   </div>}
                 </div>
               )}
-              {/* DRP si < 3 ans */}
-              {ui.age!==null&&ui.age<3&&(
+              {/* DRP obligatoire si < 2 ans */}
+              {parseFloat(ui.age||99)<2&&(
                 <div style={{ background:'#eff6ff', borderTop:'1px solid #bfdbfe', padding:'10px 14px' }}>
-                  <div style={{ color:'#1d4ed8', fontWeight:700, fontSize:12, marginBottom:6 }}>Enfant &lt; 3 ans — Si enrhumé : DRP recommandé</div>
-                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                    <Btn onClick={() => setU('drp', !ui.drp)}
-                      style={{ padding:'6px 14px', borderRadius:6, fontSize:12, fontWeight:600,
-                        background: ui.drp?'#3b82f6':'#fff', color: ui.drp?'#fff':'#374151',
-                        border: '1px solid '+(ui.drp?'#3b82f6':'#e5e7eb') }}>
-                      {ui.drp?'✓ DRP réalisé':'DRP à réaliser'}
-                    </Btn>
-                    <Btn onClick={() => setU('educ_drp', !ui.educ_drp)}
-                      style={{ padding:'6px 14px', borderRadius:6, fontSize:12, fontWeight:600,
-                        background: ui.educ_drp?'#0d9488':'#fff', color: ui.educ_drp?'#fff':'#374151',
-                        border: '1px solid '+(ui.educ_drp?'#0d9488':'#e5e7eb') }}>
-                      {ui.educ_drp?'✓ Éducation lavage de nez':'Éducation lavage de nez'}
-                    </Btn>
-                  </div>
+                  <div style={{ color:'#1d4ed8', fontWeight:700, fontSize:12, marginBottom:4 }}>🚿 Nourrisson &lt; 2 ans — DRP OBLIGATOIRE avant enregistrement</div>
+                  <div style={{ color:'#3b82f6', fontSize:11, marginBottom:8 }}>Faire le lavage de nez, puis reprendre la saturation ci-dessus</div>
+                  <Btn onClick={() => setU('drp', !ui.drp)}
+                    style={{ padding:'8px 16px', borderRadius:7, fontSize:12, fontWeight:700,
+                      background: ui.drp?'#3b82f6':'#fff', color: ui.drp?'#fff':'#1d4ed8',
+                      border: '2px solid '+(ui.drp?'#3b82f6':'#bfdbfe') }}>
+                    {ui.drp?'✓ DRP réalisé — saturation vérifiée':'DRP réalisé ?'}
+                  </Btn>
                 </div>
               )}
             </div>
