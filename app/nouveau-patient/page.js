@@ -106,7 +106,7 @@ export default function NouveauPatient() {
     const age = parseFloat(vals.current.age)||99;
     const adulte = age >= 15;
 
-    // Constantes critiques adulte — priment sur tout le reste
+    // Constantes critiques — seuils selon âge
     if (adulte) {
       const urgenceAbsolue =
         (!isNaN(sat) && sat < 90) ||
@@ -119,6 +119,18 @@ export default function NouveauPatient() {
         (pam !== null && pam < 65);
       if (urgenceAbsolue) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'⚠️ CONSTANTES CRITIQUES — Prévenir médecin EN URGENCE' };
       if (urgenceRelative) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'⚠️ Constantes anormales — Prévenir médecin, ne pas faire patienter dehors' };
+    } else {
+      // Seuils pédiatriques FC selon âge
+      const fcMax = age < 1/12 ? 180 : age < 1 ? 160 : age < 2 ? 150 : age < 5 ? 140 : age < 12 ? 130 : 120;
+      const fcMin = age < 1/12 ? 100 : age < 1 ? 100 : age < 2 ? 90 : age < 5 ? 80 : age < 12 ? 70 : 60;
+      const urgenceAbsolue =
+        (!isNaN(sat) && sat < 90) ||
+        (!isNaN(fc) && (fc < fcMin || fc > fcMax));
+      const urgenceRelative =
+        (!isNaN(sat) && sat < 95) ||
+        (!isNaN(fc) && fc > fcMax * 0.9);
+      if (urgenceAbsolue) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:`⚠️ CONSTANTES CRITIQUES (FC normale ${fcMin}-${fcMax} pour cet âge) — Prévenir médecin EN URGENCE` };
+      if (urgenceRelative) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:`⚠️ Constantes anormales — Prévenir médecin` };
     }
 
     if (s === 'coma') {
