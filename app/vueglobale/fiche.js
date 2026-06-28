@@ -1310,37 +1310,54 @@ function AerosolSelector({onAjouter, prescriptions}) {
 
 function HydratationSelector({onAjouter, prescriptions}) {
   const [solute, setSolute] = useState('');
-  const [qte, setQte] = useState('500');
+  const [qte, setQte] = useState('');
   const [duree, setDuree] = useState('');
-  const SOLUTES = ['NaCl 0.9%','Ringer Lactate','Glucose 5%','Glucose 10%','NaCl 0.9% + KCl 2g','Glucose 5% + NaCl 0.9%'];
+  const SOLUTES = [
+    {id:'NaCl 0.9%', label:'NaCl 0.9%', color:'#0891b2'},
+    {id:'Ringer Lactate', label:'Ringer Lactate', color:'#0891b2'},
+    {id:'G5%', label:'G5%', color:'#f59e0b'},
+    {id:'G10%', label:'G10%', color:'#f59e0b'},
+    {id:'G30%', label:'G30%', color:'#ea580c'},
+    {id:'NaCl 0.9% + KCl 2g', label:'NaCl + KCl 2g', color:'#7c3aed'},
+    {id:'G5% + NaCl 0.9%', label:'G5% + NaCl', color:'#7c3aed'},
+  ];
   const dejaHydrat = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Hydratation'));
-
-  if(dejaHydrat) return (
-    <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Hydratation déjà prescrite</div>
-  );
+  if(dejaHydrat) return <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Hydratation déjà prescrite</div>;
 
   return (
-    <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',padding:'4px 0'}}>
-      <select value={solute} onChange={e=>setSolute(e.target.value)}
-        style={{padding:'4px 8px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:11,color:'#0891b2',fontWeight:600,background:'#f0f9ff',cursor:'pointer',outline:'none'}}>
-        <option value="">Soluté...</option>
-        {SOLUTES.map(s=><option key={s} value={s}>{s}</option>)}
-      </select>
-      <input value={qte} onChange={e=>setQte(e.target.value)} placeholder="Volume ml"
-        style={{width:70,padding:'4px 7px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:11,outline:'none',textAlign:'center'}}/>
-      <span style={{fontSize:11,color:'#6b7280'}}>ml en</span>
-      <input value={duree} onChange={e=>setDuree(e.target.value)} placeholder="durée h"
-        style={{width:60,padding:'4px 7px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:11,outline:'none',textAlign:'center'}}/>
-      <span style={{fontSize:11,color:'#6b7280'}}>h</span>
-      <button onClick={()=>{
-        if(!solute||!qte) return;
-        const txt = `Hydratation ${solute} ${qte}ml${duree?' en '+duree+'h':''}`;
-        onAjouter(txt,'therapeutique');
-        setSolute('');setQte('500');setDuree('');
-      }} disabled={!solute||!qte}
-        style={{padding:'4px 12px',borderRadius:6,background:solute&&qte?'#0891b2':'#e5e7eb',color:solute&&qte?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
-        Prescrire
-      </button>
+    <div style={{background:'#f0f9ff',borderRadius:8,padding:'8px 12px',border:'1.5px solid #bae6fd'}}>
+      <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:solute?8:0}}>
+        {SOLUTES.map(s=>(
+          <button key={s.id} onClick={()=>{setSolute(s.id===solute?'':s.id);setQte('');setDuree('');}}
+            style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',
+              border:'1.5px solid '+(solute===s.id?s.color:s.color+'44'),
+              background:solute===s.id?s.color:s.color+'12',
+              color:solute===s.id?'#fff':s.color}}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      {solute&&(
+        <div style={{display:'flex',alignItems:'center',gap:6,marginTop:6}}>
+          <input value={qte} onChange={e=>setQte(e.target.value)} placeholder="ml" type="number" autoFocus
+            style={{width:65,padding:'4px 8px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:12,outline:'none',textAlign:'center'}}/>
+          <span style={{fontSize:11,color:'#6b7280'}}>ml en</span>
+          <input value={duree} onChange={e=>setDuree(e.target.value)} placeholder="h"
+            style={{width:50,padding:'4px 8px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:12,outline:'none',textAlign:'center'}}/>
+          <span style={{fontSize:11,color:'#6b7280'}}>h</span>
+          <button onClick={()=>{
+            if(!qte) return;
+            const txt=`Hydratation ${solute} ${qte}ml${duree?' en '+duree+'h':''}`;
+            onAjouter(txt,'therapeutique');
+            setSolute('');setQte('');setDuree('');
+          }} disabled={!qte}
+            style={{padding:'4px 12px',borderRadius:6,background:qte?'#0891b2':'#e5e7eb',color:qte?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
+            Prescrire
+          </button>
+          <button onClick={()=>setSolute('')}
+            style={{padding:'4px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+        </div>
+      )}
     </div>
   );
 }
