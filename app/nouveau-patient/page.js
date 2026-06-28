@@ -309,7 +309,7 @@ export default function NouveauPatient() {
             {[
               {k:'fc',l:'FC *',u:'bpm',warn:(v)=>parseFloat(v)<fcMin||parseFloat(v)>fcMax},
               {k:'sat',l:'SpO2 *',u:'%',warn:(v)=>parseFloat(v)<95},
-              {k:'temp',l:'T deg *',u:'C',warn:(v)=>parseFloat(v)<36||parseFloat(v)>38.4},
+              {k:'temp',l:'T° *',u:'°C',warn:(v)=>parseFloat(v)<36||parseFloat(v)>38.4},
               {k:'tas',l:'TAS',u:'mmHg',warn:(v)=>parseFloat(v)<90||parseFloat(v)>160},
               {k:'tad',l:'TAD',u:'mmHg',warn:()=>false},
               {k:'poids',l:'Poids',u:'kg',warn:()=>false},
