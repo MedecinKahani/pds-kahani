@@ -237,14 +237,23 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [editIdentite, setEditIdentite] = useState({});
 
   function openEditIdentite() {
-    setEditIdentite({nom:p.nom||'',prenom:p.prenom||'',ddn:p.ddn||'',ipp:p.ipp||'',age:p.age||'',sexe:p.sexe||''});
+    const ddn = p.ddn||'';
+    const [y,m,d] = ddn.split('-');
+    const ddnAff = d&&m&&y ? `${d}/${m}/${y}` : ddn;
+    setEditIdentite({nom:p.nom||'',prenom:p.prenom||'',ddn:ddnAff,ipp:p.ipp||'',age:p.age||'',sexe:p.sexe||''});
     setShowEditIdentite(true);
   }
 
   async function saveIdentite() {
+    // Reconvertir DDN de JJ/MM/AAAA → AAAA-MM-JJ
+    const ddn = editIdentite.ddn||'';
+    const parts = ddn.includes('/') ? ddn.split('/') : ddn.split('-');
+    const ddnSave = parts.length===3
+      ? (parts[0].length===4 ? ddn.replace(/\//g,'-') : `${parts[2]}-${parts[1]}-${parts[0]}`)
+      : ddn;
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'update',id:p.id,patch:{
-        nom:editIdentite.nom,prenom:editIdentite.prenom,ddn:editIdentite.ddn,
+        nom:editIdentite.nom,prenom:editIdentite.prenom,ddn:ddnSave,
         ipp:editIdentite.ipp,age:editIdentite.age,sexe:editIdentite.sexe
       }})});
     onUpdate?.();
@@ -715,7 +724,7 @@ ${ordonnance||'--'}
               {label:'Nom',    field:'nom',    w:'100%', upper:true},
               {label:'Prénom', field:'prenom', w:'100%'},
               {label:'Sexe',   field:'sexe',   w:'100%', options:['M','F']},
-              {label:'DDN',    field:'ddn',    w:'100%', placeholder:'AAAA-MM-JJ'},
+              {label:'DDN',    field:'ddn',    w:'100%', placeholder:'JJ/MM/AAAA'},
               {label:'Âge',    field:'age',    w:'80px'},
               {label:'IPP',    field:'ipp',    w:'100%'},
             ].map(({label,field,w,upper,placeholder,options})=>(
