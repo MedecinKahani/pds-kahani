@@ -131,7 +131,7 @@ export default function NouveauPatient() {
       const p1dispo = h >= 19 || h < 6;
       return p1dispo
         ? { place:'pansement', label:'P1 — Pansement', urgence:false, msg:'Salle de pansement' }
-        : { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:false, msg:'Salle de pansement fermée (disponible 19h-6h) — Installer en fauteuil' };
+        : { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:false, msg:'' };
     }
     if (s === 'fievre') return { place:'dehors', label:"Salle d'attente dehors", urgence:false, msg:'Faire patienter' };
     return { place:'dehors', label:"Salle d'attente dehors", urgence:false, msg:'Faire patienter' };
