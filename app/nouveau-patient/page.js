@@ -126,7 +126,13 @@ export default function NouveauPatient() {
       if (vals.current.hemocue && hb < 7) return { place:'brancard1', label:'B1 ou L1', urgence:true, msg:'Anemie severe — Allonger patient' };
       return { place:'lit1', label:'L1 — Lit 1', urgence:false, msg:'Surveiller constantes' };
     }
-    if (s === 'plaie') return { place:'pansement', label:'P1 — Pansement', urgence:false, msg:'Salle de pansement' };
+    if (s === 'plaie') {
+      const h = new Date().getHours();
+      const p1dispo = h >= 19 || h < 6;
+      return p1dispo
+        ? { place:'pansement', label:'P1 — Pansement', urgence:false, msg:'Salle de pansement' }
+        : { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:false, msg:'Salle de pansement fermée (disponible 19h-6h) — Installer en fauteuil' };
+    }
     if (s === 'fievre') return { place:'dehors', label:"Salle d'attente dehors", urgence:false, msg:'Faire patienter' };
     return { place:'dehors', label:"Salle d'attente dehors", urgence:false, msg:'Faire patienter' };
   }
