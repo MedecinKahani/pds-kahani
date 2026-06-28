@@ -1172,7 +1172,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL__','Budésonide 0.5mg nébulisation (Pulmicort)','Budésonide 1mg nébulisation (Pulmicort)',
-        'MEOPA','Lidocaïne 5% nébulisation',
+        'MEOPA','Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
       ]},
     ],
     pediatrie: [
