@@ -1138,7 +1138,6 @@ function SutureSection({p, save}) {
           </button>
         );})}
       </div>
-      </div>
     </div>
   );
 }
