@@ -97,8 +97,30 @@ export default function NouveauPatient() {
   function getPlacement() {
     const s = vals.current.symptome;
     const sat = parseFloat(vals.current.sat);
+    const fc  = parseFloat(vals.current.fc);
+    const tas = parseFloat(vals.current.tas);
+    const tad = parseFloat(vals.current.tad);
+    const pam = tas && tad ? Math.round(tad + (tas - tad) / 3) : null;
     const dex = parseFloat(vals.current.dextro);
-    const hb = parseFloat(vals.current.hemocue);
+    const hb  = parseFloat(vals.current.hemocue);
+    const age = parseFloat(vals.current.age)||99;
+    const adulte = age >= 15;
+
+    // Constantes critiques adulte — priment sur tout le reste
+    if (adulte) {
+      const urgenceAbsolue =
+        (!isNaN(sat) && sat < 90) ||
+        (!isNaN(fc) && (fc < 40 || fc > 140)) ||
+        (pam !== null && pam < 65);
+      const urgenceRelative =
+        (!isNaN(sat) && sat < 95) ||
+        (!isNaN(fc) && fc > 120) ||
+        (!isNaN(tas) && tas > 200) ||
+        (pam !== null && pam < 65);
+      if (urgenceAbsolue) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'⚠️ CONSTANTES CRITIQUES — Prévenir médecin EN URGENCE' };
+      if (urgenceRelative) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'⚠️ Constantes anormales — Prévenir médecin, ne pas faire patienter dehors' };
+    }
+
     if (s === 'coma') {
       if (vals.current.respire === false) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Allonger le patient — Alerter le médecin — Commencer le massage cardiaque' };
       return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Dextro + hemocue + alerter medecin' };
