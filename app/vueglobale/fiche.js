@@ -352,6 +352,16 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
   }
 
+  async function ajouterPlusieursRx(items) {
+    // items = [{texte, categorie}]
+    const now = Date.now();
+    const nouvelles = items.map((item,i)=>({texte:item.texte,categorie:item.categorie,fait:false,nonRealise:false,ts:now+i,par:user?.matricule||'',parNom:user?.nom||''}));
+    const rx = [...prescriptions, ...nouvelles];
+    setPrescriptions(rx);
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+  }
+
   async function cocherRx(idx) {
     const rx=[...prescriptions];
     rx[idx]={...rx[idx],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
@@ -624,7 +634,7 @@ ${ordonnance||'--'}
                     {/* Thérapeutique */}
                     <CatSection titre="💊 Thérapeutique" color="#374151"
                       collapsed={collapsed.therapeutique} onToggle={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
-                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx}/>
+                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx}/>
                     </CatSection>
                     {/* Soins */}
                     <CatSection titre="🩹 Soins" color="#374151"
@@ -1090,7 +1100,7 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
   );
 }
 
-function TheraSection({prescriptions, onAjouter}) {
+function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
   const [tab, setTab] = useState('adulte');
   const VOIES = {
     adulte: [
@@ -1222,7 +1232,7 @@ function TheraSection({prescriptions, onAjouter}) {
           if(v.special==='morphine') return (
             <div key={v.voie}>
               <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-              <TitrationMorphine onAjouter={onAjouter} prescriptions={prescriptions}/>
+              <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>
             </div>
           );
           if(v.special==='hydratation') return (
@@ -1237,7 +1247,7 @@ function TheraSection({prescriptions, onAjouter}) {
             <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
               {v.items.map(item=>{
-                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} prescriptions={prescriptions}/>;
+                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>;
                 const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
                 if(deja) return null;
                 const rouge=ROUGE.some(s=>item.includes(s));
@@ -1264,7 +1274,7 @@ function TheraSection({prescriptions, onAjouter}) {
   );
 }
 
-function AerosolSelector({onAjouter, prescriptions}) {
+function AerosolSelector({onAjouter, onAjouterPlusieurs, prescriptions}) {
   const [poids, setPoids] = useState('');
   const dejaAero = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Salbutamol'));
 
@@ -1274,10 +1284,12 @@ function AerosolSelector({onAjouter, prescriptions}) {
 
   function prescrire() {
     if(!ventoline) return;
-    onAjouter(`Salbutamol ${ventoline} nébulisation (Ventoline) — Séance 1/3`,'therapeutique');
-    onAjouter(`Salbutamol ${ventoline} nébulisation (Ventoline) — Séance 2/3`,'therapeutique');
-    onAjouter(`Salbutamol ${ventoline} nébulisation (Ventoline) — Séance 3/3`,'therapeutique');
-    onAjouter(`Ipratropium ${atrovent} nébulisation (Atrovent) — Séance 1/1`,'therapeutique');
+    onAjouterPlusieurs([
+      {texte:`Salbutamol ${ventoline} nébulisation (Ventoline) — Séance 1/3`, categorie:'therapeutique'},
+      {texte:`Salbutamol ${ventoline} nébulisation (Ventoline) — Séance 2/3`, categorie:'therapeutique'},
+      {texte:`Salbutamol ${ventoline} nébulisation (Ventoline) — Séance 3/3`, categorie:'therapeutique'},
+      {texte:`Ipratropium ${atrovent} nébulisation (Atrovent) — Séance 1/1`, categorie:'therapeutique'},
+    ]);
     setPoids('');
   }
 
@@ -1362,7 +1374,7 @@ function HydratationSelector({onAjouter, prescriptions}) {
   );
 }
 
-function TitrationMorphine({onAjouter, prescriptions}) {
+function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions}) {
   const [open, setOpen] = useState(false);
   const [poids, setPoids] = useState('');
   const dejaMorphine = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Titration morphine'));
@@ -1381,9 +1393,11 @@ function TitrationMorphine({onAjouter, prescriptions}) {
       `• Objectif EN < 4\n` +
       `• Surveillance SpO2, FR, sédation toutes les 5 min\n` +
       `• STOP si FR < 12/min ou SpO2 < 94%`;
-    onAjouter(protocole,'therapeutique');
-    if(!dejaScope) onAjouter('Scopé','soin');
-    if(!dejaNarcan) onAjouter('Naloxone 0.4mg — PRÊT à proximité (antidote morphine)','therapeutique');
+    onAjouterPlusieurs([
+      {texte:protocole, categorie:'therapeutique'},
+      ...(!dejaScope?[{texte:'Scopé', categorie:'soin'}]:[]),
+      ...(!dejaNarcan?[{texte:'Naloxone 0.4mg — PRÊT à proximité (antidote morphine)', categorie:'therapeutique'}]:[]),
+    ]);
     setOpen(false);setPoids('');
   }
 
