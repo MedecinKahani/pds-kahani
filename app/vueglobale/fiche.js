@@ -1379,13 +1379,13 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
   const dejaScope = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte==='Scopé');
   const dejaNarcan = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Naloxone'));
 
-  const p = parseFloat(poids);
-  const doseInit = !isNaN(p) ? Math.floor(p * 0.1) : null;
-  const doseBolus = !isNaN(p) ? Math.floor(p * 0.02) : null;
+  const poidsParsed = parseFloat(poids);
+  const doseInit = !isNaN(poidsParsed) ? Math.floor(poidsParsed * 0.1) : null;
+  const doseBolus = !isNaN(poidsParsed) ? Math.floor(poidsParsed * 0.02) : null;
 
   function prescrire() {
     if(doseInit===null) return;
-    const protocole = `Titration morphine IV [STP] — Poids ${p}kg\n` +
+    const protocole = `Titration morphine IV [STP] — Poids ${poidsParsed}kg\n` +
       `• Dose initiale : ${doseInit}mg IV lent\n` +
       `• Bolus : ${doseBolus}mg IV toutes les 5 min si EN ≥ 4\n` +
       `• Objectif EN < 4\n` +
@@ -1426,9 +1426,6 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
           • Objectif EN &lt; 4 — STOP si FR &lt; 12/min ou SpO2 &lt; 94%
         </div>
       )}
-      <div style={{fontSize:10,color:'#dc2626',marginBottom:8}}>
-        Ajoute automatiquement : Scopé + Naloxone prêt à proximité
-      </div>
       <div style={{display:'flex',gap:6}}>
         <button onClick={prescrire} disabled={doseInit===null}
           style={{flex:1,padding:'6px',borderRadius:6,background:doseInit!==null?'#dc2626':'#e5e7eb',color:doseInit!==null?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
