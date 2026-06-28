@@ -166,7 +166,21 @@ export default function NouveauPatient() {
     };
     await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action: 'create', patient }) });
-    router.push('/vueglobale');
+
+    // Prescription automatique rappel tétanos si quicktest négatif
+    if (v.symptome === 'plaie' && (v.plaie_vaccin === 'illisible' || v.plaie_vaccin === 'absent') && v.quicktest === 'Négatif') {
+      // Le patient vient d'être créé — on récupère son id puis on ajoute la prescription
+      const r2 = await fetch('/api/patients');
+      const d2 = await r2.json();
+      const created = (d2.patients||[]).sort((a,b)=>parseInt(b.arrivee)-parseInt(a.arrivee))[0];
+      if (created) {
+        const rx = [{texte:'Rappel vaccin antitétanique SC [Tétanos-quick test négatif]',categorie:'therapeutique',fait:false,nonRealise:false,ts:Date.now(),par:'',parNom:'Auto'}];
+        await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({action:'update',id:created.id,patch:{prescriptions:JSON.stringify(rx)}})});
+      }
+    }
+
+    window.location.href = '/vueglobale';
   }
 
   const canSubmit = (() => {
