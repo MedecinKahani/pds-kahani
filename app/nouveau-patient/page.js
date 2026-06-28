@@ -771,8 +771,8 @@ export default function NouveauPatient() {
         {canSubmit&&(
           <div style={{ textAlign:'center', marginBottom:8 }}>
             <Btn onClick={() => setUi(p=>({...p, showEmplacement:!p.showEmplacement}))}
-              style={{ background:'none', border:'none', color:'#9ca3af', fontSize:12, textDecoration:'underline', padding:0 }}>
-              Choisir un emplacement different {ui.showEmplacement?'▲':'▼'}
+              style={{ width:'100%', padding:'14px', borderRadius:12, fontSize:15, fontWeight:600, background:'#f3f4f6', color:'#374151', border:'1px solid #e5e7eb', cursor:'pointer' }}>
+              Choisir un emplacement différent {ui.showEmplacement?'▲':'▼'}
             </Btn>
             {ui.showEmplacement&&(
               <div style={{ marginTop:10, padding:12, background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', textAlign:'left' }}>
