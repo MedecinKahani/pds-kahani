@@ -324,7 +324,14 @@ export default function NouveauPatient() {
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:10}}>
             <div>
               <label style={lbl}>DDN (JJ/MM/AAAA)</label>
-              <input value={f.ddn} onChange={e=>{const v=e.target.value;set('ddn',v);const a=calcAge(v);if(a!==null)set('age',String(a));}} style={inp} placeholder="JJ/MM/AAAA"/>
+              <input value={f.ddn} onChange={e=>{
+                let v = e.target.value.replace(/\D/g,'');
+                if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+                if(v.length>5) v = v.slice(0,5)+'/'+v.slice(5);
+                if(v.length>10) v = v.slice(0,10);
+                set('ddn',v);
+                if(v.length===10){const a=calcAge(v);if(a!==null)set('age',String(a));}
+              }} style={inp} placeholder="JJ/MM/AAAA" maxLength={10} inputMode="numeric"/>
             </div>
             <div>
               <label style={lbl}>Âge</label>
