@@ -738,17 +738,29 @@ ${ordonnance||'--'}
                       <button onClick={()=>{
                         const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
                         const LABELS = {tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
+                        const today = new Date();
                         const soinsBase = 'Soins de la/des plaie(s) :\n• Laver tous les jours à l\'eau et au savon, bien sécher\n• Compresse + Biseptine 1x/jour si besoin\n• Pansement simple\n\nPour l\'IDEL :\n';
                         const lignes = plaies.map((pl,i)=>{
                           const j = JOURS[pl.zone]||10;
                           const z = LABELS[pl.zone]||pl.zone;
-                          return `• Plaie ${i+1} (${z}) : retirer ${pl.points||'?'} point${(pl.points||0)>1?'s':''} dans ${j} jours`;
+                          const dateRetrait = new Date(today.getTime()+j*24*3600*1000);
+                          const dateStr = dateRetrait.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+                          return `• Plaie ${i+1} (${z}) : retirer ${pl.points||'?'} point${(pl.points||0)>1?'s':''} dans ${j} jours (le ${dateStr})`;
                         }).join('\n');
                         const txt = soinsBase + lignes;
                         setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
                         dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                        // Ajouter prescription soins RDV ablation fils pour chaque plaie
+                        const nouvRx = plaies.map((pl,i)=>{
+                          const j = JOURS[pl.zone]||10;
+                          const z = LABELS[pl.zone]||pl.zone;
+                          const dateRetrait = new Date(today.getTime()+j*24*3600*1000);
+                          const dateStr = dateRetrait.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+                          return {texte:`Programmer RDV ablation fils — Plaie ${i+1} (${z}) le ${dateStr}`,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};
+                        });
+                        ajouterPlusieursRx(nouvRx);
                       }} style={{marginBottom:6,padding:'6px 12px',borderRadius:7,background:'#f0fdfa',color:'#0d9488',fontSize:11,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
-                        ✨ Générer ordonnance plaie(s)
+                        ✨ Générer ordonnance + RDV ablation fils
                       </button>
                     )}
                     <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} rows={4} style={inp} placeholder="Traitements de sortie, conseils, suivi..."/>
