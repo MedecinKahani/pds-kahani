@@ -67,6 +67,7 @@ export default function NouveauPatient() {
     // fievre
     fievre_depuis: '', crp_fait: false, tdr_palu_fait: false, tdr_dengue_fait: false,
     crp_rupture: false, tdr_palu_rupture: false, tdr_dengue_rupture: false,
+    crp_resultat: '', tdr_palu_resultat: '', tdr_dengue_resultat: '',
     // vertige
     dextro: '', hemocue: '',
     // douleur
@@ -250,6 +251,7 @@ export default function NouveauPatient() {
       vomissement:f.vomissement!==null?String(f.vomissement):'',
       tache_peau:f.tache_peau!==null?String(f.tache_peau):'',
       drp_fait:f.drp_fait,
+      crp_resultat:f.crp_resultat, tdr_palu_resultat:f.tdr_palu_resultat, tdr_dengue_resultat:f.tdr_dengue_resultat,
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
       emplacement_suggere:pl.place,
@@ -519,23 +521,45 @@ export default function NouveauPatient() {
               <div style={{background:'#fef9f0',borderRadius:8,padding:'10px 12px',border:'1px solid #fde68a'}}>
                 <div style={{fontWeight:700,fontSize:12,color:'#d97706',marginBottom:8}}>Fièvre {'>'} 3j — Tests obligatoires *</div>
                 {[
-                  {k:'crp',    l:'CRP rapide'},
-                  {k:'tdr_palu', l:'TDR Paludisme'},
-                  {k:'tdr_dengue',l:'TDR Dengue'},
-                ].map(({k,l})=>(
-                  <div key={k} style={{display:'flex',gap:6,alignItems:'center',marginBottom:6}}>
-                    <Btn onClick={()=>set(k+'_fait',!f[k+'_fait'])}
-                      style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
-                        background:f[k+'_fait']?'#16a34a':'#fff',color:f[k+'_fait']?'#fff':'#374151',
-                        border:'1px solid '+(f[k+'_fait']?'#16a34a':'#e5e7eb')}}>
-                      {f[k+'_fait']?'✓ '+l:l}
-                    </Btn>
-                    <Btn onClick={()=>set(k+'_rupture',!f[k+'_rupture'])}
-                      style={{padding:'5px 10px',borderRadius:6,fontSize:10,fontWeight:600,
-                        background:f[k+'_rupture']?'#6b7280':'#f3f4f6',color:f[k+'_rupture']?'#fff':'#6b7280',
-                        border:'1px solid '+(f[k+'_rupture']?'#6b7280':'#e5e7eb')}}>
-                      {f[k+'_rupture']?'✓ Rupture':'Rupture de stock'}
-                    </Btn>
+                  {k:'crp',       l:'CRP rapide',    u:'mg/L', type:'nombre'},
+                  {k:'tdr_palu',  l:'TDR Paludisme', u:'',     type:'posneg'},
+                  {k:'tdr_dengue',l:'TDR Dengue',    u:'',     type:'posneg'},
+                ].map(({k,l,u,type})=>(
+                  <div key={k} style={{marginBottom:8}}>
+                    <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:4}}>
+                      <Btn onClick={()=>set(k+'_fait',!f[k+'_fait'])}
+                        style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                          background:f[k+'_fait']?'#16a34a':'#fff',color:f[k+'_fait']?'#fff':'#374151',
+                          border:'1px solid '+(f[k+'_fait']?'#16a34a':'#e5e7eb')}}>
+                        {f[k+'_fait']?'✓ '+l:l}
+                      </Btn>
+                      <Btn onClick={()=>set(k+'_rupture',!f[k+'_rupture'])}
+                        style={{padding:'5px 10px',borderRadius:6,fontSize:10,fontWeight:600,
+                          background:f[k+'_rupture']?'#6b7280':'#f3f4f6',color:f[k+'_rupture']?'#fff':'#6b7280',
+                          border:'1px solid '+(f[k+'_rupture']?'#6b7280':'#e5e7eb')}}>
+                        {f[k+'_rupture']?'✓ Rupture':'Rupture de stock'}
+                      </Btn>
+                    </div>
+                    {f[k+'_fait']&&(
+                      type==='nombre'
+                        ? <div style={{display:'flex',alignItems:'center',gap:6,paddingLeft:4}}>
+                            <input value={f[k+'_resultat']||''} onChange={e=>set(k+'_resultat',e.target.value)} inputMode="decimal"
+                              style={{width:80,padding:'4px 8px',borderRadius:6,border:'1.5px solid #16a34a',fontSize:12,outline:'none',textAlign:'center'}}
+                              placeholder="--"/>
+                            <span style={{fontSize:11,color:'#6b7280'}}>{u}</span>
+                          </div>
+                        : <div style={{display:'flex',gap:6,paddingLeft:4}}>
+                            {['Positif','Négatif'].map(r=>(
+                              <Btn key={r} onClick={()=>set(k+'_resultat',r)}
+                                style={{padding:'4px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                                  background:f[k+'_resultat']===r?(r==='Positif'?'#ef4444':'#16a34a'):'#fff',
+                                  color:f[k+'_resultat']===r?'#fff':'#374151',
+                                  border:'1px solid '+(f[k+'_resultat']===r?(r==='Positif'?'#ef4444':'#16a34a'):'#e5e7eb')}}>
+                                {r}
+                              </Btn>
+                            ))}
+                          </div>
+                    )}
                   </div>
                 ))}
               </div>
