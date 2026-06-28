@@ -705,11 +705,51 @@ ${ordonnance||'--'}
           </div>
         </div>
       )}
+
+      {/* Modale édition identité */}
+      {showEditIdentite&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10000,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'#fff',borderRadius:14,padding:'24px',width:360,boxShadow:'0 24px 64px rgba(0,0,0,0.2)'}}>
+            <div style={{fontWeight:700,fontSize:15,color:'#111827',marginBottom:16}}>Modifier l'identité</div>
+            {[
+              {label:'Nom',    field:'nom',    w:'100%', upper:true},
+              {label:'Prénom', field:'prenom', w:'100%'},
+              {label:'Sexe',   field:'sexe',   w:'100%', options:['M','F']},
+              {label:'DDN',    field:'ddn',    w:'100%', placeholder:'AAAA-MM-JJ'},
+              {label:'Âge',    field:'age',    w:'80px'},
+              {label:'IPP',    field:'ipp',    w:'100%'},
+            ].map(({label,field,w,upper,placeholder,options})=>(
+              <div key={field} style={{marginBottom:10}}>
+                <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:3}}>{label}</label>
+                {options
+                  ? <div style={{display:'flex',gap:8}}>
+                      {options.map(o=><button key={o} onMouseDown={e=>{e.preventDefault();setEditIdentite(prev=>({...prev,[field]:o}));}}
+                        style={{padding:'6px 16px',borderRadius:7,border:'1.5px solid '+(editIdentite[field]===o?'#0d9488':'#e5e7eb'),background:editIdentite[field]===o?'#f0fdfa':'#fff',color:editIdentite[field]===o?'#0d9488':'#374151',fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                        {o==='M'?'♂ Homme':'♀ Femme'}
+                      </button>)}
+                    </div>
+                  : <input value={editIdentite[field]||''} onChange={e=>setEditIdentite(prev=>({...prev,[field]:upper?e.target.value.toUpperCase():e.target.value}))}
+                      placeholder={placeholder||label}
+                      style={{width:w,padding:'7px 10px',borderRadius:7,border:'1.5px solid #e5e7eb',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                }
+              </div>
+            ))}
+            <div style={{display:'flex',gap:8,marginTop:16}}>
+              <button onMouseDown={e=>{e.preventDefault();saveIdentite();}}
+                style={{flex:1,padding:'10px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:700,border:'none',cursor:'pointer'}}>
+                Enregistrer
+              </button>
+              <button onMouseDown={e=>{e.preventDefault();setShowEditIdentite(false);}}
+                style={{padding:'10px 16px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:13,border:'none',cursor:'pointer'}}>
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// ─── Sous-composants ───────────────────────────────────────────────────────────
 
 function CatSection({titre, color, collapsed, onToggle, children}) {
   return (
@@ -1079,51 +1119,6 @@ function TheraSection({prescriptions, onAjouter}) {
         ))}
         <AutreLibre categorie="therapeutique" onAjouter={onAjouter}/>
       </div>
-    </div>
-  );
-}
-
-      {/* Modale édition identité */}
-      {showEditIdentite&&(
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10000,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{background:'#fff',borderRadius:14,padding:'24px',width:360,boxShadow:'0 24px 64px rgba(0,0,0,0.2)'}}>
-            <div style={{fontWeight:700,fontSize:15,color:'#111827',marginBottom:16}}>Modifier l'identité</div>
-            {[
-              {label:'Nom',    field:'nom',    w:'100%', upper:true},
-              {label:'Prénom', field:'prenom', w:'100%'},
-              {label:'Sexe',   field:'sexe',   w:'100%', options:['M','F']},
-              {label:'DDN',    field:'ddn',    w:'100%', placeholder:'AAAA-MM-JJ'},
-              {label:'Âge',    field:'age',    w:'80px'},
-              {label:'IPP',    field:'ipp',    w:'100%'},
-            ].map(({label,field,w,upper,placeholder,options})=>(
-              <div key={field} style={{marginBottom:10}}>
-                <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:3}}>{label}</label>
-                {options
-                  ? <div style={{display:'flex',gap:8}}>
-                      {options.map(o=><button key={o} onMouseDown={e=>{e.preventDefault();setEditIdentite(prev=>({...prev,[field]:o}));}}
-                        style={{padding:'6px 16px',borderRadius:7,border:'1.5px solid '+(editIdentite[field]===o?'#0d9488':'#e5e7eb'),background:editIdentite[field]===o?'#f0fdfa':'#fff',color:editIdentite[field]===o?'#0d9488':'#374151',fontWeight:600,fontSize:13,cursor:'pointer'}}>
-                        {o==='M'?'♂ Homme':'♀ Femme'}
-                      </button>)}
-                    </div>
-                  : <input value={editIdentite[field]||''} onChange={e=>setEditIdentite(prev=>({...prev,[field]:upper?e.target.value.toUpperCase():e.target.value}))}
-                      placeholder={placeholder||label}
-                      style={{width:w,padding:'7px 10px',borderRadius:7,border:'1.5px solid #e5e7eb',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
-                }
-              </div>
-            ))}
-            <div style={{display:'flex',gap:8,marginTop:16}}>
-              <button onMouseDown={e=>{e.preventDefault();saveIdentite();}}
-                style={{flex:1,padding:'10px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:700,border:'none',cursor:'pointer'}}>
-                Enregistrer
-              </button>
-              <button onMouseDown={e=>{e.preventDefault();setShowEditIdentite(false);}}
-                style={{padding:'10px 16px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:13,border:'none',cursor:'pointer'}}>
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
