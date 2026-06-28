@@ -325,7 +325,8 @@ export default function NouveauPatient() {
             <div>
               <label style={lbl}>DDN (JJ/MM/AAAA)</label>
               <input value={f.ddn} onChange={e=>{
-                let v = e.target.value.replace(/\D/g,'');
+                const raw = e.target.value.replace(/[^0-9]/g,'');
+                let v = raw;
                 if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
                 if(v.length>5) v = v.slice(0,5)+'/'+v.slice(5);
                 if(v.length>10) v = v.slice(0,10);
