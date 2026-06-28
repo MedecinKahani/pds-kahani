@@ -1117,7 +1117,7 @@ function TheraSection({prescriptions, onAjouter}) {
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         'Paracétamol 1g IV (Perfalgan)','Paracétamol 500mg IV (Perfalgan)',
         'Kétoprofène 100mg IV (Profenid)',
-        'Morphine 10mg IV [STP]','Nalbuphine 20mg IV (Nubain)','Naloxone 0.4mg IV (Narcan)',
+        'Nalbuphine 20mg IV (Nubain)','Naloxone 0.4mg IV (Narcan)',
         'Kétamine 250mg IV','Étomidate 20mg IV (Lipuro)',
         'Midazolam 50mg IV (Hypnovel)','Diazépam 10mg IV (Valium)','Clonazépam 1mg IV (Rivotril)','Flumazénil 0.5mg IV (Anexate)',
         'Furosémide 20mg IV (Lasilix)','Furosémide 250mg IV (Lasilix spécial)',
@@ -1130,7 +1130,7 @@ function TheraSection({prescriptions, onAjouter}) {
         'Acide tranexamique 500mg IV (Exacyl)',
         'Magnésium sulfate 10% IV','Calcium gluconate 10% IV','Potassium chlorure 10% IV',
         'Sodium bicarbonate 4.2% IV','Mannitol 20% IV',
-        'Glucose 10% IV','Glucose 30% IV','Ringer Lactate IV','NaCl 0.9% IV',
+        'Glucose 10% IV','Glucose 30% IV',
         'Glucagon 1mg IV (Glucagen)','Digoxine 0.5mg IV',
         'Fondaparinux 2.5mg IV (Arixtra)','Énoxaparine 4000UI IV (Lovenox)',
         'Acétylleucine 500mg IV (Tanganil)',
@@ -1138,6 +1138,8 @@ function TheraSection({prescriptions, onAjouter}) {
         'Dexchlorphéniramine 5mg IV (Polaramine)',
         'Phénobarbital 200mg IV (Gardénal)',
       ]},
+      {voie:'HYDRATATION', label:'Hydratation IV', color:'#0891b2', special:'hydratation'},
+      {voie:'MORPHINE', label:'Titration morphine IV', color:'#dc2626', special:'morphine'},
       {voie:'IM', label:'Voie IM', color:'#6b7280', items:[
         'Kétoprofène 100mg IM (Profenid)',
         'Ceftriaxone 1g IM','Ceftriaxone 2g IM',
@@ -1219,7 +1221,21 @@ function TheraSection({prescriptions, onAjouter}) {
         ))}
       </div>
       <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:8}}>
-        {VOIES[tab].map(v=>(
+        {VOIES[tab].map(v=>{
+          if(v.special==='morphine') return (
+            <div key={v.voie}>
+              <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
+              <TitrationMorphine onAjouter={onAjouter} prescriptions={prescriptions}/>
+            </div>
+          );
+          if(v.special==='hydratation') return (
+            <div key={v.voie}>
+              <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
+              <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
+            </div>
+          );
+          if(!v.items) return null;
+          return (
           <div key={v.voie}>
             <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
@@ -1242,9 +1258,93 @@ function TheraSection({prescriptions, onAjouter}) {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
         <AutreLibre categorie="therapeutique" onAjouter={onAjouter}/>
       </div>
+    </div>
+  );
+}
+
+function HydratationSelector({onAjouter, prescriptions}) {
+  const [solute, setSolute] = useState('');
+  const [qte, setQte] = useState('500');
+  const [duree, setDuree] = useState('');
+  const SOLUTES = ['NaCl 0.9%','Ringer Lactate','Glucose 5%','Glucose 10%','NaCl 0.9% + KCl 2g','Glucose 5% + NaCl 0.9%'];
+  const dejaHydrat = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Hydratation'));
+
+  if(dejaHydrat) return (
+    <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Hydratation déjà prescrite</div>
+  );
+
+  return (
+    <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',padding:'4px 0'}}>
+      <select value={solute} onChange={e=>setSolute(e.target.value)}
+        style={{padding:'4px 8px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:11,color:'#0891b2',fontWeight:600,background:'#f0f9ff',cursor:'pointer',outline:'none'}}>
+        <option value="">Soluté...</option>
+        {SOLUTES.map(s=><option key={s} value={s}>{s}</option>)}
+      </select>
+      <input value={qte} onChange={e=>setQte(e.target.value)} placeholder="Volume ml"
+        style={{width:70,padding:'4px 7px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:11,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:11,color:'#6b7280'}}>ml en</span>
+      <input value={duree} onChange={e=>setDuree(e.target.value)} placeholder="durée h"
+        style={{width:60,padding:'4px 7px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:11,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:11,color:'#6b7280'}}>h</span>
+      <button onClick={()=>{
+        if(!solute||!qte) return;
+        const txt = `Hydratation ${solute} ${qte}ml${duree?' en '+duree+'h':''}`;
+        onAjouter(txt,'therapeutique');
+        setSolute('');setQte('500');setDuree('');
+      }} disabled={!solute||!qte}
+        style={{padding:'4px 12px',borderRadius:6,background:solute&&qte?'#0891b2':'#e5e7eb',color:solute&&qte?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
+        Prescrire
+      </button>
+    </div>
+  );
+}
+
+function TitrationMorphine({onAjouter, prescriptions}) {
+  const [poids, setPoids] = useState('');
+  const dejaMorphine = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Titration morphine'));
+
+  if(dejaMorphine) return (
+    <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Titration morphine déjà prescrite</div>
+  );
+
+  function prescrire() {
+    if(!poids) return;
+    const p = parseFloat(poids);
+    const doseInitiale = Math.round(p * 0.1 * 10) / 10;
+    const doseBolus = Math.round(p * 0.02 * 10) / 10;
+    const protocole = `Titration morphine IV [STP] — Poids ${p}kg\n` +
+      `• Dose initiale : ${doseInitiale}mg IV lent\n` +
+      `• Puis ${doseBolus}mg IV toutes les 5 min si EN ≥ 4\n` +
+      `• Objectif EN < 4\n` +
+      `• Surveillance : FR, SpO2, sédation toutes les 5 min\n` +
+      `• NALOXONE 0.4mg prêt à proximité\n` +
+      `• STOP si FR < 12/min ou SpO2 < 94%`;
+    onAjouter(protocole,'therapeutique');
+    setPoids('');
+  }
+
+  return (
+    <div style={{background:'#fef2f2',borderRadius:8,padding:'8px 12px',border:'1.5px solid #fecaca'}}>
+      <div style={{fontSize:11,color:'#dc2626',fontWeight:600,marginBottom:8}}>
+        ⚠ Protocole standard — Prescription sécurisée [STP]
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <label style={{fontSize:11,color:'#374151',fontWeight:500}}>Poids patient</label>
+        <input value={poids} onChange={e=>setPoids(e.target.value)} placeholder="kg" type="number"
+          style={{width:60,padding:'4px 8px',borderRadius:6,border:'1.5px solid #fecaca',fontSize:12,outline:'none',textAlign:'center'}}/>
+        <span style={{fontSize:11,color:'#6b7280'}}>kg</span>
+        <button onClick={prescrire} disabled={!poids}
+          style={{padding:'5px 14px',borderRadius:6,background:poids?'#dc2626':'#e5e7eb',color:poids?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
+          Générer protocole
+        </button>
+      </div>
+      {poids&&<div style={{fontSize:10,color:'#6b7280',marginTop:6}}>
+        Dose initiale : {Math.round(parseFloat(poids)*0.1*10)/10}mg · Bolus : {Math.round(parseFloat(poids)*0.02*10)/10}mg/5min · NARCAN prêt
+      </div>}
     </div>
   );
 }
