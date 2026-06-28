@@ -155,6 +155,7 @@ export default function PageVueGlobale() {
     const ps=d.patients||[];
     setPatients(ps);
     if(sel){const u=ps.find(p=>p.id===sel.id);if(u)setSel(u);}
+    return ps;
   },[sel?.id]);
 
   useEffect(()=>{
@@ -539,7 +540,7 @@ export default function PageVueGlobale() {
             key={ficheOuverte?.id}
             patient={ficheOuverte}
             onClose={()=>setFicheOuverte(null)}
-            onUpdate={()=>load()}
+            onUpdate={async()=>{const ps=await load();if(ps&&ficheOuverte){const u=ps.find(x=>x.id===ficheOuverte.id);if(u)setFicheOuverte(u);}}}
             user={user}
             patients={patients}
           />
