@@ -404,7 +404,7 @@ export default function PageVueGlobale() {
         <div style={{fontWeight:700,fontSize:16,color:'#111827'}}>PDS Kahani</div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <span style={{fontSize:12,color:'#9ca3af',marginRight:4}}>{user?.nom}</span>
-          <button onClick={()=>router.push('/nouveau-patient')} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
+          <button onClick={()=>{setFicheOuverte(null);setFichesSortie(null);setShowSortis(false);router.push('/nouveau-patient');}} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
           <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Liste agents</button>
           <BoutonStats router={router}/>
           <button onClick={async()=>{
