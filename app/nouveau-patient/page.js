@@ -172,9 +172,8 @@ export default function NouveauPatient() {
   const canSubmit = (() => {
     if (!ui.sexe || !vals.current.nom || !ui.symptome) return false;
     const s = ui.symptome;
-    const v = vals.current;
-    // Constante minimale : FC ou Sat (dans ui car setU les y met)
-    const hasConst = ui.fc || ui.sat;
+    // Constantes minimales : FC + Sat + T°
+    const hasConst = ui.fc && ui.sat && ui.temp;
     if (!hasConst) return false;
     // Conditions spécifiques par motif
     if (s === 'coma') return ui.respire !== '' && ui.respire !== undefined && ui.respire !== null;
@@ -182,7 +181,13 @@ export default function NouveauPatient() {
     if (s === 'asthme') return ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null;
     if (s === 'fievre') return !!ui.fievre_depuis;
     if (s === 'douleur') return ui.douleur_zones && ui.douleur_zones.length > 0;
-    return true; // plaie, vertige, autre
+    if (s === 'vertige') return !!(ui.dextro && ui.hemocue);
+    if (s === 'plaie') {
+      if (!ui.plaie_vaccin) return false;
+      if (ui.plaie_vaccin === 'ok') return true;
+      return !!ui.quicktest;
+    }
+    return true; // autre
   })();
 
   const SYMPTOMES = [
