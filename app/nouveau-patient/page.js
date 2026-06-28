@@ -182,7 +182,11 @@ export default function NouveauPatient() {
     const s = f.symptome;
     if (!f.sexe || !f.nom || !s) return false;
     if (!f.fc || !f.sat || !f.temp) return false;
-    if (s==='coma') return f.respire !== null;
+    if (s==='coma') {
+      if (f.respire===null) return false;
+      if (f.respire===true) return !!(f.dextro && f.hemocue);
+      return true; // respire===false, urgence vitale, on n'attend pas
+    }
     if (s==='avc') {
       if (!f.avc_depuis) return false;
       if (f.avc_depuis==='>4h') return !!(f.dextro && f.hemocue);
@@ -401,9 +405,25 @@ export default function NouveauPatient() {
             {f.respire===false&&<div style={{marginTop:8,padding:'10px 12px',background:'#7f1d1d',borderRadius:8,color:'#fff',fontWeight:700,fontSize:13}}>
               🚨 Alerter médecin + IDE — Commencer massage cardiaque — Dextro + Hémocue dès que possible
             </div>}
-            {f.respire===true&&<div style={{marginTop:8,padding:'8px 12px',background:'#fef2f2',borderRadius:8,color:'#dc2626',fontWeight:700,fontSize:12,border:'1px solid #fecaca'}}>
-              Prévenir médecin — Faire Dextro + Hémocue
-            </div>}
+            {f.respire===true&&(
+              <>
+                <div style={{padding:'8px 12px',background:'#fef2f2',borderRadius:8,color:'#dc2626',fontWeight:700,fontSize:12,border:'1px solid #fecaca',marginBottom:10}}>
+                  Prévenir médecin — Dextro + Hémocue obligatoires
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                  {[{k:'dextro',l:'Dextro *',u:'g/L'},{k:'hemocue',l:'Hémocue *',u:'g/dL'}].map(({k,l,u})=>(
+                    <div key={k}>
+                      <label style={lbl}>{l}</label>
+                      <div style={{position:'relative'}}>
+                        <input value={f[k]} onChange={e=>set(k,e.target.value)} inputMode="decimal"
+                          style={{...inp,paddingRight:36}} placeholder="--"/>
+                        <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#9ca3af'}}>{u}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
