@@ -521,7 +521,7 @@ export default function NouveauPatient() {
               <div style={{background:'#fef9f0',borderRadius:8,padding:'10px 12px',border:'1px solid #fde68a'}}>
                 <div style={{fontWeight:700,fontSize:12,color:'#d97706',marginBottom:8}}>Fièvre {'>'} 3j — Tests obligatoires *</div>
                 {[
-                  {k:'crp',       l:'CRP rapide',    u:'mg/L', type:'nombre'},
+                  {k:'crp',       l:'CRP rapide (Actim)', u:'', type:'barres'},
                   {k:'tdr_palu',  l:'TDR Paludisme', u:'',     type:'posneg'},
                   {k:'tdr_dengue',l:'TDR Dengue',    u:'',     type:'posneg'},
                 ].map(({k,l,u,type})=>(
@@ -541,7 +541,23 @@ export default function NouveauPatient() {
                       </Btn>
                     </div>
                     {f[k+'_fait']&&(
-                      type==='nombre'
+                      type==='barres'
+                        ? <div style={{paddingLeft:4}}>
+                            <div style={{fontSize:10,color:'#6b7280',marginBottom:4}}>Nombre de barres :</div>
+                            <div style={{display:'flex',gap:4}}>
+                              {['1 barre (<10mg/L)','2 barres (10-40mg/L)','3 barres (40-80mg/L)','4 barres (>80mg/L)'].map((r,i)=>(
+                                <Btn key={r} onClick={()=>set(k+'_resultat',r)}
+                                  style={{padding:'4px 8px',borderRadius:6,fontSize:10,fontWeight:600,
+                                    background:f[k+'_resultat']===r?(i===0?'#16a34a':i===1?'#f59e0b':'#ef4444'):'#fff',
+                                    color:f[k+'_resultat']===r?'#fff':'#374151',
+                                    border:'1px solid '+(f[k+'_resultat']===r?(i===0?'#16a34a':i===1?'#f59e0b':'#ef4444'):'#e5e7eb')}}>
+                                  {'▌'.repeat(i+1)}
+                                </Btn>
+                              ))}
+                            </div>
+                            {f[k+'_resultat']&&<div style={{fontSize:10,color:'#6b7280',marginTop:3}}>{f[k+'_resultat']}</div>}
+                          </div>
+                        : type==='nombre'
                         ? <div style={{display:'flex',alignItems:'center',gap:6,paddingLeft:4}}>
                             <input value={f[k+'_resultat']||''} onChange={e=>set(k+'_resultat',e.target.value)} inputMode="decimal"
                               style={{width:80,padding:'4px 8px',borderRadius:6,border:'1.5px solid #16a34a',fontSize:12,outline:'none',textAlign:'center'}}
