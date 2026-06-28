@@ -126,14 +126,14 @@ export default function NouveauPatient() {
       return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Dextro + hemocue + alerter medecin' };
     }
     if (s === 'detresse_respi') {
-      if (vals.current.sat && sat < 95) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'O2 immediat + alerter medecin et IDE' };
-      if (vals.current.signe_lutte === true) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'O2 + alerter medecin' };
+      if (vals.current.sat && sat < 95) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Oxygène immédiat + alerter médecin et IDE' };
+      if (vals.current.signe_lutte === true) return { place:'brancard1', label:'B1 — Brancard 1', urgence:true, msg:'Oxygène + alerter médecin' };
       if (vals.current.signe_lutte === false) return { place:'fauteuil2', label:'F2 (ou L2, L1, F1)', urgence:false, msg:'Position demi-assise — Surveillance saturation' };
       return null;
     }
     if (s === 'asthme') {
-      if (vals.current.sat && sat < 95) return { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:true, msg:'O2 5L + nebulisation + prevenir medecin' };
-      if (vals.current.signe_lutte === true) return { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:true, msg:'O2 + nebulisation + prevenir medecin' };
+      if (vals.current.sat && sat < 95) return { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:true, msg:'Oxygène 5L + nébulisation + prévenir médecin' };
+      if (vals.current.signe_lutte === true) return { place:'fauteuil1', label:'F1 — Fauteuil 1', urgence:true, msg:'Oxygène + nébulisation + prévenir médecin' };
       if (vals.current.signe_lutte === false) return { place:'obs1', label:'O1 — Observation', urgence:false, msg:'Ventoline + Atrovent sous AIR — Video education therapeutique' };
       return null;
     }
