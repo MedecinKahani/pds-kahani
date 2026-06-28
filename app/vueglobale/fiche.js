@@ -1363,47 +1363,68 @@ function HydratationSelector({onAjouter, prescriptions}) {
 }
 
 function TitrationMorphine({onAjouter, prescriptions}) {
+  const [open, setOpen] = useState(false);
   const [poids, setPoids] = useState('');
   const dejaMorphine = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Titration morphine'));
+  const dejaScope = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte==='Scopé');
+  const dejaNarcan = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Naloxone'));
+
+  const p = parseFloat(poids);
+  const doseInit = !isNaN(p) ? Math.floor(p * 0.1) : null;
+  const doseBolus = !isNaN(p) ? Math.floor(p * 0.02) : null;
+
+  function prescrire() {
+    if(doseInit===null) return;
+    const protocole = `Titration morphine IV [STP] — Poids ${p}kg\n` +
+      `• Dose initiale : ${doseInit}mg IV lent\n` +
+      `• Bolus : ${doseBolus}mg IV toutes les 5 min si EN ≥ 4\n` +
+      `• Objectif EN < 4\n` +
+      `• Surveillance SpO2, FR, sédation toutes les 5 min\n` +
+      `• STOP si FR < 12/min ou SpO2 < 94%`;
+    onAjouter(protocole,'therapeutique');
+    if(!dejaScope) onAjouter('Scopé','soin');
+    if(!dejaNarcan) onAjouter('Naloxone 0.4mg — PRÊT à proximité (antidote morphine)','therapeutique');
+    setOpen(false);setPoids('');
+  }
 
   if(dejaMorphine) return (
     <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Titration morphine déjà prescrite</div>
   );
 
-  function prescrire() {
-    if(!poids) return;
-    const p = parseFloat(poids);
-    const doseInitiale = Math.round(p * 0.1 * 10) / 10;
-    const doseBolus = Math.round(p * 0.02 * 10) / 10;
-    const protocole = `Titration morphine IV [STP] — Poids ${p}kg\n` +
-      `• Dose initiale : ${doseInitiale}mg IV lent\n` +
-      `• Puis ${doseBolus}mg IV toutes les 5 min si EN ≥ 4\n` +
-      `• Objectif EN < 4\n` +
-      `• Surveillance : FR, SpO2, sédation toutes les 5 min\n` +
-      `• NALOXONE 0.4mg prêt à proximité\n` +
-      `• STOP si FR < 12/min ou SpO2 < 94%`;
-    onAjouter(protocole,'therapeutique');
-    setPoids('');
-  }
+  if(!open) return (
+    <button onClick={()=>setOpen(true)}
+      style={{padding:'5px 12px',borderRadius:6,background:'#fef2f2',color:'#dc2626',fontSize:11,fontWeight:700,border:'1.5px solid #fecaca',cursor:'pointer'}}>
+      ⚠ Titration morphine IV [STP]
+    </button>
+  );
 
   return (
-    <div style={{background:'#fef2f2',borderRadius:8,padding:'8px 12px',border:'1.5px solid #fecaca'}}>
-      <div style={{fontSize:11,color:'#dc2626',fontWeight:600,marginBottom:8}}>
-        ⚠ Protocole standard — Prescription sécurisée [STP]
-      </div>
-      <div style={{display:'flex',alignItems:'center',gap:8}}>
+    <div style={{background:'#fef2f2',borderRadius:8,padding:'10px 12px',border:'1.5px solid #fecaca'}}>
+      <div style={{fontSize:11,color:'#dc2626',fontWeight:700,marginBottom:8}}>⚠ Titration morphine IV — Prescription sécurisée [STP]</div>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
         <label style={{fontSize:11,color:'#374151',fontWeight:500}}>Poids patient</label>
-        <input value={poids} onChange={e=>setPoids(e.target.value)} placeholder="kg" type="number"
+        <input value={poids} onChange={e=>setPoids(e.target.value)} placeholder="kg" type="number" autoFocus
           style={{width:60,padding:'4px 8px',borderRadius:6,border:'1.5px solid #fecaca',fontSize:12,outline:'none',textAlign:'center'}}/>
         <span style={{fontSize:11,color:'#6b7280'}}>kg</span>
-        <button onClick={prescrire} disabled={!poids}
-          style={{padding:'5px 14px',borderRadius:6,background:poids?'#dc2626':'#e5e7eb',color:poids?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
-          Générer protocole
-        </button>
       </div>
-      {poids&&<div style={{fontSize:10,color:'#6b7280',marginTop:6}}>
-        Dose initiale : {Math.round(parseFloat(poids)*0.1*10)/10}mg · Bolus : {Math.round(parseFloat(poids)*0.02*10)/10}mg/5min · NARCAN prêt
-      </div>}
+      {doseInit!==null&&(
+        <div style={{fontSize:11,color:'#374151',background:'#fff',borderRadius:6,padding:'8px',marginBottom:8,lineHeight:1.6}}>
+          • Dose initiale : <strong>{doseInit}mg</strong> IV lent<br/>
+          • Bolus : <strong>{doseBolus}mg</strong> IV toutes les 5 min si EN ≥ 4<br/>
+          • Objectif EN &lt; 4 — STOP si FR &lt; 12/min ou SpO2 &lt; 94%
+        </div>
+      )}
+      <div style={{fontSize:10,color:'#dc2626',marginBottom:8}}>
+        Ajoute automatiquement : Scopé + Naloxone prêt à proximité
+      </div>
+      <div style={{display:'flex',gap:6}}>
+        <button onClick={prescrire} disabled={doseInit===null}
+          style={{flex:1,padding:'6px',borderRadius:6,background:doseInit!==null?'#dc2626':'#e5e7eb',color:doseInit!==null?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
+          Prescrire le protocole
+        </button>
+        <button onClick={()=>{setOpen(false);setPoids('');}}
+          style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+      </div>
     </div>
   );
 }
