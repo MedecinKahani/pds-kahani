@@ -271,6 +271,8 @@ export default function NouveauPatient() {
   }
 
   function enregistrerAvec(pl) { enregistrer(pl); }
+
+  const ZONES_DOULEUR = [
     {id:'tete',l:'Tête'},{id:'cou',l:'Cou'},{id:'thorax',l:'Thorax/Poitrine'},
     {id:'abdomen',l:'Abdomen'},{id:'dos',l:'Dos'},{id:'bras_d',l:'Bras D'},
     {id:'bras_g',l:'Bras G'},{id:'jambe_d',l:'Jambe D'},{id:'jambe_g',l:'Jambe G'},
