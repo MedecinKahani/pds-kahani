@@ -279,6 +279,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   const [evolution, setEvolution] = useState(p.evolution||'');
   const [diagnostic, setDiagnostic] = useState(p.diagnostic||'');
   const [ordonnance, setOrdonnance] = useState(p.ordonnance||'');
+  const [plaies, setPlaies] = useState(safeJSON(p.plaies_data, []));
   const [prescriptions, setPrescriptions] = useState(safeJSON(p.prescriptions, []));
   const [transmissions, setTransmissions] = useState(safeJSON(p.transmissions_ide, []));
   const [copied, setCopied] = useState(false);
@@ -561,6 +562,7 @@ ${ordonnance||'--'}
                             </button>
                           ))}
                         </div>
+                        {p.symptome==='plaie'&&<SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} />}
                         <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
                           placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
                       </>
@@ -732,6 +734,23 @@ ${ordonnance||'--'}
                   </div>
                   <div>
                     <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Ordonnance de sortie</label>
+                    {p.symptome==='plaie'&&plaies.length>0&&(
+                      <button onClick={()=>{
+                        const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
+                        const LABELS = {tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
+                        const soinsBase = 'Soins de la/des plaie(s) :\n• Laver tous les jours à l\'eau et au savon, bien sécher\n• Compresse + Biseptine 1x/jour si besoin\n• Pansement simple\n\nPour l\'IDEL :\n';
+                        const lignes = plaies.map((pl,i)=>{
+                          const j = JOURS[pl.zone]||10;
+                          const z = LABELS[pl.zone]||pl.zone;
+                          return `• Plaie ${i+1} (${z}) : retirer ${pl.points||'?'} point${(pl.points||0)>1?'s':''} dans ${j} jours`;
+                        }).join('\n');
+                        const txt = soinsBase + lignes;
+                        setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
+                        dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                      }} style={{marginBottom:6,padding:'6px 12px',borderRadius:7,background:'#f0fdfa',color:'#0d9488',fontSize:11,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
+                        ✨ Générer ordonnance plaie(s)
+                      </button>
+                    )}
                     <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} rows={4} style={inp} placeholder="Traitements de sortie, conseils, suivi..."/>
                   </div>
                   <button onClick={()=>{navigator.clipboard.writeText(resume());setCopied(true);}}
@@ -1433,6 +1452,131 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
         </button>
         <button onClick={()=>{setOpen(false);setPoids('');}}
           style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+function SchemaPlaie({plaies, setPlaies}) {
+  const [selected, setSelected] = useState(null);
+  const ZONES = [
+    {id:'tete',      label:'Tête',        x:140, y:12,  w:40, h:40, rx:20},
+    {id:'cou',       label:'Cou',         x:152, y:52,  w:16, h:18, rx:4},
+    {id:'tronc',     label:'Tronc',       x:110, y:70,  w:100,h:80, rx:6},
+    {id:'dos',       label:'Dos',         x:110, y:70,  w:100,h:80, rx:6},
+    {id:'bras',      label:'Bras G',      x:65,  y:72,  w:40, h:60, rx:6},
+    {id:'bras',      label:'Bras D',      x:215, y:72,  w:40, h:60, rx:6},
+    {id:'avant_bras',label:'Av-bras G',   x:55,  y:132, w:35, h:55, rx:6},
+    {id:'avant_bras',label:'Av-bras D',   x:230, y:132, w:35, h:55, rx:6},
+    {id:'main',      label:'Main G',      x:48,  y:187, w:30, h:35, rx:4},
+    {id:'main',      label:'Main D',      x:242, y:187, w:30, h:35, rx:4},
+    {id:'abdomen',   label:'Abdomen',     x:110, y:150, w:100,h:50, rx:6},
+    {id:'cuisse',    label:'Cuisse G',    x:112, y:205, w:44, h:70, rx:6},
+    {id:'cuisse',    label:'Cuisse D',    x:164, y:205, w:44, h:70, rx:6},
+    {id:'genou',     label:'Genou G',     x:112, y:275, w:44, h:25, rx:6},
+    {id:'genou',     label:'Genou D',     x:164, y:275, w:44, h:25, rx:6},
+    {id:'jambe',     label:'Jambe G',     x:115, y:300, w:40, h:65, rx:6},
+    {id:'jambe',     label:'Jambe D',     x:165, y:300, w:40, h:65, rx:6},
+    {id:'cheville',  label:'Cheville G',  x:115, y:365, w:40, h:20, rx:4},
+    {id:'cheville',  label:'Cheville D',  x:165, y:365, w:40, h:20, rx:4},
+    {id:'pied',      label:'Pied G',      x:105, y:385, w:50, h:25, rx:4},
+    {id:'pied',      label:'Pied D',      x:165, y:385, w:50, h:25, rx:4},
+  ];
+
+  function addPlaie(zone, label) {
+    const nouvPlaie = {zone, label, points:''};
+    setPlaies([...plaies, nouvPlaie]);
+    setSelected(plaies.length);
+  }
+
+  function updatePoints(idx, pts) {
+    const p2 = [...plaies];
+    p2[idx] = {...p2[idx], points: pts};
+    setPlaies(p2);
+  }
+
+  function removePlaie(idx) {
+    setPlaies(plaies.filter((_,i)=>i!==idx));
+    setSelected(null);
+  }
+
+  const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
+
+  return (
+    <div style={{background:'#fef9f0',borderRadius:10,border:'1.5px solid #fde68a',padding:'10px 12px',marginBottom:8}}>
+      <div style={{fontSize:10,fontWeight:700,color:'#d97706',textTransform:'uppercase',marginBottom:8}}>🩹 Localisation des plaies — cliquer sur le schéma</div>
+      <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
+        {/* Schéma SVG */}
+        <svg viewBox="0 0 320 420" width={160} height={210} style={{flexShrink:0,cursor:'pointer'}}>
+          {/* Corps simplifié */}
+          <ellipse cx="160" cy="32" rx="20" ry="20" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1.5"/>
+          <rect x="152" y="52" width="16" height="18" rx="4" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="110" y="68" width="100" height="130" rx="6" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1.5"/>
+          <rect x="65" y="70" width="45" height="115" rx="8" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="210" y="70" width="45" height="115" rx="8" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="48" y="185" width="32" height="36" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="240" y="185" width="32" height="36" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="112" y="195" width="44" height="75" rx="6" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="164" y="195" width="44" height="75" rx="6" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="115" y="268" width="40" height="30" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="165" y="268" width="40" height="30" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="117" y="296" width="36" height="68" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="167" y="296" width="36" height="68" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="108" y="362" width="48" height="28" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+          <rect x="164" y="362" width="48" height="28" rx="5" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
+
+          {/* Zones cliquables avec labels */}
+          {[
+            {id:'tete',      label:'Tête',    cx:160, cy:32,  shape:'ellipse', rx:20,ry:20},
+            {id:'cou',       label:'Cou',     cx:160, cy:61,  shape:'rect', x:152,y:52,w:16,h:18},
+            {id:'tronc',     label:'Tronc',   cx:160, cy:120, shape:'rect', x:110,y:68,w:100,h:90},
+            {id:'abdomen',   label:'Abdomen', cx:160, cy:165, shape:'rect', x:110,y:155,w:100,h:43},
+            {id:'bras',      label:'Bras G',  cx:88,  cy:127, shape:'rect', x:65,y:70,w:45,h:115},
+            {id:'bras',      label:'Bras D',  cx:232, cy:127, shape:'rect', x:210,y:70,w:45,h:115},
+            {id:'main',      label:'Main G',  cx:64,  cy:203, shape:'rect', x:48,y:185,w:32,h:36},
+            {id:'main',      label:'Main D',  cx:256, cy:203, shape:'rect', x:240,y:185,w:32,h:36},
+            {id:'cuisse',    label:'Cuisse G',cx:134, cy:233, shape:'rect', x:112,y:195,w:44,h:75},
+            {id:'cuisse',    label:'Cuisse D',cx:186, cy:233, shape:'rect', x:164,y:195,w:44,h:75},
+            {id:'genou',     label:'Genou G', cx:135, cy:283, shape:'rect', x:115,y:268,w:40,h:30},
+            {id:'genou',     label:'Genou D', cx:185, cy:283, shape:'rect', x:165,y:268,w:40,h:30},
+            {id:'jambe',     label:'Jambe G', cx:135, cy:330, shape:'rect', x:117,y:296,w:36,h:68},
+            {id:'jambe',     label:'Jambe D', cx:185, cy:330, shape:'rect', x:167,y:296,w:36,h:68},
+            {id:'pied',      label:'Pied G',  cx:132, cy:376, shape:'rect', x:108,y:362,w:48,h:28},
+            {id:'pied',      label:'Pied D',  cx:188, cy:376, shape:'rect', x:164,y:362,w:48,h:28},
+          ].map((z,i)=>(
+            <g key={i} onClick={()=>addPlaie(z.id, z.label)} style={{cursor:'pointer'}}>
+              {z.shape==='ellipse'
+                ? <ellipse cx={z.cx} cy={z.cy} rx={z.rx} ry={z.ry} fill="transparent"/>
+                : <rect x={z.x} y={z.y} width={z.w} height={z.h} rx="5" fill="transparent"/>
+              }
+            </g>
+          ))}
+
+          {/* Points rouges pour chaque plaie */}
+          {plaies.map((pl,i)=>{
+            const zone = {tete:{x:160,y:32},cou:{x:160,y:61},tronc:{x:160,y:120},abdomen:{x:160,y:165},bras:{x:i%2===0?88:232,y:127},main:{x:i%2===0?64:256,y:203},cuisse:{x:i%2===0?134:186,y:233},genou:{x:i%2===0?135:185,y:283},jambe:{x:i%2===0?135:185,y:330},pied:{x:i%2===0?132:188,y:376}}[pl.zone]||{x:160,y:200};
+            return <circle key={i} cx={zone.x} cy={zone.y} r={6} fill="#ef4444" opacity={0.85} stroke="#fff" strokeWidth="1.5"/>;
+          })}
+        </svg>
+
+        {/* Liste des plaies */}
+        <div style={{flex:1,minWidth:120}}>
+          {plaies.length===0&&<div style={{fontSize:11,color:'#9ca3af',fontStyle:'italic'}}>Cliquer sur le schéma pour ajouter une plaie</div>}
+          {plaies.map((pl,i)=>(
+            <div key={i} style={{background:'#fff',borderRadius:7,border:'1px solid #fde68a',padding:'6px 8px',marginBottom:5}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+                <span style={{fontSize:11,fontWeight:700,color:'#d97706'}}>🩹 Plaie {i+1} — {pl.label}</span>
+                <button onClick={()=>removePlaie(i)} style={{fontSize:10,color:'#ef4444',background:'none',border:'none',cursor:'pointer'}}>✕</button>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:6}}>
+                <label style={{fontSize:10,color:'#6b7280'}}>Points :</label>
+                <input type="number" value={pl.points} onChange={e=>updatePoints(i,e.target.value)} placeholder="nb"
+                  style={{width:50,padding:'2px 5px',borderRadius:5,border:'1px solid #fde68a',fontSize:12,textAlign:'center',outline:'none'}}/>
+                <span style={{fontSize:9,color:'#9ca3af'}}>→ retrait dans {JOURS[pl.zone]||10}j</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
