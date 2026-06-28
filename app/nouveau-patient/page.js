@@ -151,12 +151,14 @@ export default function NouveauPatient() {
     if (s==='plaie') {
       const p1ok = heure>=19||heure<6;
       if (f.plaie_depuis==='>24h') return {place:'dehors', label:'Dehors', urgence:false, msg:'Plaie ancienne — Faire patienter'};
-      const b2libre = !occupees.includes('brancard2');
       const b1libre = !occupees.includes('brancard1');
-      if (b1libre&&b2libre) return {place:'brancard2', label:'Brancard 2', urgence:false, msg:'Plaie recente — Brancard 2 si Brancard 1 libre'};
-      if (!b1libre&&b2libre) return {place:'brancard2', label:'Brancard 2', urgence:false, msg:'Plaie recente'};
-      if (p1ok) return {place:'pansement', label:'Pansement', urgence:false, msg:'Salle de pansement'};
-      return {place:'dehors', label:'Dehors (attente Brancard 2)', urgence:false, msg:'Brancard 1 et 2 occupés — attendre disponibilité ou Pansement à 19h'};
+      const b2libre = !occupees.includes('brancard2');
+      // B1 libre : B2 disponible pour plaie (déchocage non saturé)
+      if (b1libre) return {place:'brancard2', label:'Brancard 2', urgence:false, msg:'Plaie recente — Brancard 2'};
+      // B1 occupé : ne pas utiliser B2 (garder le déchocage disponible)
+      if (p1ok) return {place:'pansement', label:'Pansement', urgence:false, msg:'Brancard 1 occupé — Salle de pansement (nuit)'};
+      const obs = prefPlace(['obs1','obs2'], occupees);
+      return {place:obs, label:obs==='obs1'?'Observation 1':'Observation 2', urgence:false, msg:'Brancard 1 occupé — En observation en attendant libération'};
     }
     if (s==='fievre') {
       const ancienne = ['3j','>3j'].includes(f.fievre_depuis);
