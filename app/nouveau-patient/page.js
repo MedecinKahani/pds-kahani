@@ -72,7 +72,7 @@ export default function NouveauPatient() {
     dextro: '', hemocue: '',
     // douleur
     douleur_zones: [],
-    ecg_fait: false,
+    ecg_fait: false, bu_fait: false, bhcg_fait: false,
     vomissement: null, tache_peau: null,
     // DRP bronchio
     drp_fait: false,
@@ -168,6 +168,7 @@ export default function NouveauPatient() {
       if (z.includes('thorax')) return {place:B, label:B==='brancard1'?'B1':'B2', urgence:true, msg:'ECG obligatoire — Prévenir médecin'};
       if (z.includes('tete') && (f.vomissement===true||f.tache_peau===true)) return {place:B, label:B==='brancard1'?'B1':'B2', urgence:true, msg:'Alerter médecin immédiatement'};
       if (z.includes('tete')) return {place:prefPlace(['lit1','lit2'], occupees), label:'L1 (ou L2)', urgence:false, msg:'Surveiller'};
+      if (f.sexe==='F'&&z.includes('abdomen')) return {place:prefPlace(['lit1','lit2','brancard2'], occupees), label:'L1 (ou L2, B2)', urgence:false, msg:'BU + bHCG — Prévenir médecin'};
       return {place:'dehors', label:'Dehors', urgence:false, msg:'Constantes normales — Faire patienter'};
     }
 
@@ -216,6 +217,7 @@ export default function NouveauPatient() {
       if (!f.douleur_zones.length) return false;
       if (f.douleur_zones.includes('thorax') && !f.ecg_fait) return false;
       if (f.douleur_zones.includes('tete') && (f.vomissement===null||f.tache_peau===null)) return false;
+      if (f.sexe==='F' && f.douleur_zones.includes('abdomen') && (!f.bu_fait||!f.bhcg_fait)) return false;
       return true;
     }
     return true;
@@ -617,6 +619,21 @@ export default function NouveauPatient() {
                 </Btn>
               ))}
             </div>
+            {f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(
+              <div style={{background:'#fdf4ff',borderRadius:8,padding:'10px 12px',border:'1px solid #e9d5ff',marginBottom:8}}>
+                <div style={{color:'#7c3aed',fontWeight:700,fontSize:12,marginBottom:8}}>Femme + douleur abdominale — BU et bHCG urinaire obligatoires</div>
+                <div style={{display:'flex',gap:6}}>
+                  {[{k:'bu_fait',l:'BU'},{k:'bhcg_fait',l:'bHCG urinaire'}].map(({k,l})=>(
+                    <Btn key={k} onClick={()=>set(k,!f[k])}
+                      style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                        background:f[k]?'#7c3aed':'#fff',color:f[k]?'#fff':'#7c3aed',
+                        border:'1px solid '+(f[k]?'#7c3aed':'#e9d5ff')}}>
+                      {f[k]?'✓ '+l:l}
+                    </Btn>
+                  ))}
+                </div>
+              </div>
+            )}
             {f.douleur_zones.includes('thorax')&&(
               <div style={{background:'#fef2f2',borderRadius:8,padding:'10px 12px',border:'1px solid #fecaca',marginBottom:8}}>
                 <div style={{color:'#dc2626',fontWeight:700,fontSize:12,marginBottom:8}}>ECG obligatoire — Prévenir médecin</div>
