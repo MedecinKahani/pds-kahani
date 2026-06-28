@@ -14,6 +14,16 @@ export default function Admin() {
   const [matricule, setMatricule] = useState('');
   const [role, setRole] = useState('as');
   const [msg, setMsg] = useState('');
+  const [userRole, setUserRole] = useState('');
+
+  useEffect(() => {
+    try { const u = JSON.parse(localStorage.getItem('pds_user')||'{}'); setUserRole(u.role||''); } catch {}
+  }, []);
+
+  // Rôles créables selon le rôle connecté
+  const rolesCreables = userRole === 'medecin'
+    ? ['medecin','ide','as']
+    : ['ide','as'];
 
   async function load() {
     const r = await fetch('/api/users');
@@ -84,9 +94,7 @@ export default function Admin() {
               placeholder="Matricule" style={{padding:'9px 12px',borderRadius:8,border:'1px solid #e5e7eb',fontSize:14,width:140,boxSizing:'border-box',fontFamily:'monospace'}}/>
             <select value={role} onChange={e=>setRole(e.target.value)}
               style={{padding:'9px 12px',borderRadius:8,border:'1px solid #e5e7eb',fontSize:14,flex:1}}>
-              <option value="medecin">Médecin</option>
-              <option value="ide">Infirmier</option>
-              <option value="as">Aide-soignant</option>
+              {rolesCreables.map(r=><option key={r} value={r}>{roleLabel[r]}</option>)}
             </select>
             <button onClick={ajouter} disabled={!canAdd}
               style={{padding:'9px 18px',borderRadius:8,background:canAdd?'#0d9488':'#e5e7eb',color:canAdd?'#fff':'#9ca3af',fontWeight:600,fontSize:14,cursor:canAdd?'pointer':'not-allowed',border:'none'}}>
@@ -115,10 +123,10 @@ export default function Admin() {
                       <span style={{fontWeight:600,color:'#374151',fontSize:14}}>{u.nom}</span>
                       <span style={{color:'#9ca3af',fontSize:12,fontFamily:'monospace'}}>{u.matricule}</span>
                     </div>
-                    <button onClick={()=>supprimer(u.matricule)}
+                    {userRole==='medecin'&&<button onClick={()=>supprimer(u.matricule)}
                       style={{padding:'4px 10px',borderRadius:6,background:'#fef2f2',color:'#dc2626',fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid #fecaca'}}>
                       Retirer
-                    </button>
+                    </button>}
                   </div>
                 ))}
               </div>
