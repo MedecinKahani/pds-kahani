@@ -1324,6 +1324,7 @@ function HydratationSelector({onAjouter, prescriptions}) {
   const [solute, setSolute] = useState('');
   const [qte, setQte] = useState('');
   const [duree, setDuree] = useState('');
+  const SOLUTES = [
     {id:'NaCl 0.9%', label:'NaCl 0.9%', color:'#0891b2'},
     {id:'Ringer Lactate', label:'Ringer Lactate', color:'#0891b2'},
     {id:'G5%', label:'G5%', color:'#f59e0b'},
