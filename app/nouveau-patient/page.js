@@ -76,7 +76,7 @@ export default function NouveauPatient() {
     ecg_fait: false, bu_fait: false, bhcg_fait: false,
     vomissement: null, tache_peau: null,
     // DRP bronchio
-    drp_fait: false, autre_motif: '',
+    drp_fait: false, autre_motif: '', douleur_autre: '',
   });
 
   const set = (k, v) => setF(prev => ({...prev, [k]: v}));
@@ -174,7 +174,6 @@ export default function NouveauPatient() {
     }
 
     return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
-  }
 
   const placement = f.symptome && f.fc && f.sat && f.temp ? getPlacement() : null;
 
@@ -257,7 +256,7 @@ export default function NouveauPatient() {
       ecg_fait:f.ecg_fait,
       vomissement:f.vomissement!==null?String(f.vomissement):'',
       tache_peau:f.tache_peau!==null?String(f.tache_peau):'',
-      drp_fait:f.drp_fait, autre_motif:f.autre_motif,
+      drp_fait:f.drp_fait, autre_motif:f.autre_motif, douleur_autre:f.douleur_autre,
       crp_resultat:f.crp_resultat, tdr_palu_resultat:f.tdr_palu_resultat, tdr_dengue_resultat:f.tdr_dengue_resultat,
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
@@ -642,7 +641,13 @@ export default function NouveauPatient() {
                 </Btn>
               ))}
             </div>
-            {f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(
+            {f.douleur_zones.includes('autre')&&(
+              <div style={{marginBottom:8}}>
+                <label style={lbl}>Préciser la localisation</label>
+                <input value={f.douleur_autre||''} onChange={e=>set('douleur_autre',e.target.value)}
+                  style={inp} placeholder="Localisation de la douleur..."/>
+              </div>
+            )}
               <div style={{background:'#fdf4ff',borderRadius:8,padding:'10px 12px',border:'1px solid #e9d5ff',marginBottom:8}}>
                 <div style={{color:'#7c3aed',fontWeight:700,fontSize:12,marginBottom:8}}>Femme + douleur abdominale — BU et bHCG urinaire obligatoires</div>
                 <div style={{display:'flex',gap:6}}>
