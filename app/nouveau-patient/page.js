@@ -49,6 +49,7 @@ export default function NouveauPatient() {
   const [user, setUser] = useState(null);
   const [occupees, setOccupees] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [showAutreEmplacement, setShowAutreEmplacement] = useState(false);
 
   // Un seul state form pour tout
   const [f, setF] = useState({
@@ -227,10 +228,10 @@ export default function NouveauPatient() {
     return true;
   })();
 
-  async function enregistrer() {
+  async function enregistrer(placementForce) {
     if (!canSubmit || saving) return;
     setSaving(true);
-    const pl = placement || {place:'dehors'};
+    const pl = placementForce || placement || {place:'dehors'};
     const ddnISO = f.ddn ? ddnToISO(f.ddn) : '';
     const ageCalc = calcAge(f.ddn) ?? f.age;
 
@@ -269,7 +270,7 @@ export default function NouveauPatient() {
     window.location.href='/vueglobale';
   }
 
-  const ZONES_DOULEUR = [
+  function enregistrerAvec(pl) { enregistrer(pl); }
     {id:'tete',l:'Tête'},{id:'cou',l:'Cou'},{id:'thorax',l:'Thorax/Poitrine'},
     {id:'abdomen',l:'Abdomen'},{id:'dos',l:'Dos'},{id:'bras_d',l:'Bras D'},
     {id:'bras_g',l:'Bras G'},{id:'jambe_d',l:'Jambe D'},{id:'jambe_g',l:'Jambe G'},
@@ -702,11 +703,39 @@ export default function NouveauPatient() {
               background:canSubmit?'#0d9488':'#e5e7eb',color:canSubmit?'#fff':'#9ca3af',border:'none'}}>
             {saving?'Enregistrement...':`Enregistrer le patient${placement?' → '+placement.label:''}`}
           </Btn>
-          {placement&&placement.place!=='dehors'&&<Btn onClick={()=>enregistrer()} disabled={!canSubmit||saving}
-            style={{width:'100%',padding:'12px',borderRadius:12,fontSize:13,fontWeight:600,
-              background:'#fff',color:'#6b7280',border:'1.5px solid #e5e7eb'}}>
-            Enregistrer sans emplacement (attente dehors)
-          </Btn>}
+          {canSubmit&&!saving&&(
+            showAutreEmplacement
+              ? <div style={{background:'#fff',borderRadius:12,border:'1.5px solid #e5e7eb',padding:'12px'}}>
+                  <div style={{fontSize:12,fontWeight:700,color:'#6b7280',marginBottom:8}}>Choisir un autre emplacement :</div>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                    {EMPLACEMENTS.filter(e=>e.id!=='dehors').map(e=>{
+                      const libre = !occupees.includes(e.id);
+                      return (
+                        <Btn key={e.id} onClick={()=>{
+                          if(!libre) return;
+                          const p2 = {place:e.id, label:e.l, urgence:false, msg:''};
+                          enregistrerAvec(p2);
+                        }}
+                          style={{padding:'8px 14px',borderRadius:8,fontSize:12,fontWeight:600,
+                            background:libre?e.c:'#e5e7eb',color:libre?'#fff':'#9ca3af',
+                            border:'none',opacity:libre?1:0.5,cursor:libre?'pointer':'not-allowed'}}>
+                          {e.l} {libre?'':'(occupé)'}
+                        </Btn>
+                      );
+                    })}
+                    <Btn onClick={()=>setShowAutreEmplacement(false)}
+                      style={{padding:'8px 12px',borderRadius:8,fontSize:12,fontWeight:600,
+                        background:'#f3f4f6',color:'#6b7280',border:'1px solid #e5e7eb'}}>
+                      Annuler
+                    </Btn>
+                  </div>
+                </div>
+              : <Btn onClick={()=>setShowAutreEmplacement(true)}
+                  style={{width:'100%',padding:'12px',borderRadius:12,fontSize:13,fontWeight:600,
+                    background:'#fff',color:'#6b7280',border:'1.5px solid #e5e7eb'}}>
+                  Enregistrer sur un autre emplacement
+                </Btn>
+          )}
         </div>
 
       </div>
