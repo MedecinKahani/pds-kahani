@@ -1232,7 +1232,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
           if(v.special==='morphine') return (
             <div key={v.voie}>
               <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-              <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>
+              <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={p.poids}/>
             </div>
           );
           if(v.special==='hydratation') return (
@@ -1247,7 +1247,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
             <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
               {v.items.map(item=>{
-                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>;
+                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={p.poids}/>;
                 const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
                 if(deja) return null;
                 const rouge=ROUGE.some(s=>item.includes(s));
@@ -1274,8 +1274,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs}) {
   );
 }
 
-function AerosolSelector({onAjouter, onAjouterPlusieurs, prescriptions}) {
-  const [poids, setPoids] = useState('');
+function AerosolSelector({onAjouter, onAjouterPlusieurs, prescriptions, poidsInitial}) {
+  const [poids, setPoids] = useState(poidsInitial||'');
   const dejaAero = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Salbutamol'));
 
   const p = parseFloat(poids);
@@ -1372,9 +1372,9 @@ function HydratationSelector({onAjouter, prescriptions}) {
   );
 }
 
-function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions}) {
+function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsInitial}) {
   const [open, setOpen] = useState(false);
-  const [poids, setPoids] = useState('');
+  const [poids, setPoids] = useState(poidsInitial||'');
   const dejaMorphine = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Titration morphine'));
   const dejaScope = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte==='Scopé');
   const dejaNarcan = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Naloxone'));
