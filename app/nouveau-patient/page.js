@@ -412,7 +412,7 @@ export default function NouveauPatient() {
               <Btn onClick={()=>set('avc_depuis','>4h')} style={pStyle(f.avc_depuis==='>4h','#f59e0b')}>Plus de 4h</Btn>
             </div>
             {f.avc_depuis==='<4h'&&<div style={{padding:'10px 12px',background:'#7f1d1d',borderRadius:8,color:'#fff',fontWeight:700,fontSize:13}}>
-              🚨 AVC < 4h — Alerter médecin EN URGENCE — Dextro + Hémocue dès que possible
+              🚨 AVC &lt; 4h — Alerter médecin EN URGENCE — Dextro + Hémocue dès que possible
             </div>}
             {f.avc_depuis==='>4h'&&(
               <>
