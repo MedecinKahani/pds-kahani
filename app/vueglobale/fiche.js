@@ -944,19 +944,19 @@ function IDERxItem({r, color, onCocher, onNonRealise, onCocherAvecResultat, user
   );
 
   return (
-    <div style={{borderRadius:8,border:'2px solid '+color+'55',background:'#fff',overflow:'hidden'}}>
-      <div onClick={onCocher} style={{padding:'12px 14px',cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'background 0.1s'}}
+    <div style={{borderRadius:8,border:'2px solid '+color+'55',background:'#fff',overflow:'hidden',flexShrink:0}}>
+      <div onClick={onCocher} style={{padding:'8px 10px',cursor:'pointer',display:'flex',alignItems:'center',gap:8,transition:'background 0.1s'}}
         onMouseEnter={e=>e.currentTarget.style.background=color+'11'}
         onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
-        <div style={{width:22,height:22,borderRadius:5,border:'2px solid '+color,background:'#fff',flexShrink:0}}/>
+        <div style={{width:20,height:20,borderRadius:5,border:'2px solid '+color,background:'#fff',flexShrink:0}}/>
         <div style={{flex:1}}>
-          <div style={{fontSize:13,fontWeight:600,color:'#374151'}}>{r.texte}</div>
-          {r.ts&&<div style={{fontSize:9,color:'#9ca3af',marginTop:2}}>Prescrit par {r.parNom||r.par} à {new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
+          <div style={{fontSize:12,fontWeight:600,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
+          {r.ts&&<div style={{fontSize:8,color:'#9ca3af',marginTop:1}}>Prescrit par {r.parNom||r.par} à {new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
         </div>
       </div>
-      <div style={{borderTop:'1px solid '+color+'22',padding:'4px 14px',display:'flex',justifyContent:'flex-end'}}>
+      <div style={{borderTop:'1px solid '+color+'22',padding:'2px 10px',display:'flex',justifyContent:'flex-end'}}>
         <button onClick={()=>setShowMotif(true)}
-          style={{padding:'2px 8px',borderRadius:4,background:'#fef2f2',color:'#ef4444',fontSize:9,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
+          style={{padding:'2px 7px',borderRadius:4,background:'#fef2f2',color:'#ef4444',fontSize:9,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
           ✕ Non réalisé
         </button>
       </div>
