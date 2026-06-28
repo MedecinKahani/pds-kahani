@@ -76,7 +76,7 @@ export default function NouveauPatient() {
     ecg_fait: false, bu_fait: false, bhcg_fait: false,
     vomissement: null, tache_peau: null,
     // DRP bronchio
-    drp_fait: false,
+    drp_fait: false, autre_motif: '',
   });
 
   const set = (k, v) => setF(prev => ({...prev, [k]: v}));
@@ -257,7 +257,7 @@ export default function NouveauPatient() {
       ecg_fait:f.ecg_fait,
       vomissement:f.vomissement!==null?String(f.vomissement):'',
       tache_peau:f.tache_peau!==null?String(f.tache_peau):'',
-      drp_fait:f.drp_fait,
+      drp_fait:f.drp_fait, autre_motif:f.autre_motif,
       crp_resultat:f.crp_resultat, tdr_palu_resultat:f.tdr_palu_resultat, tdr_dengue_resultat:f.tdr_dengue_resultat,
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
@@ -686,7 +686,14 @@ export default function NouveauPatient() {
           </div>
         )}
 
-        {/* PLACEMENT SUGGÉRÉ */}
+        {f.symptome==='autre'&&(
+          <div style={card}>
+            <label style={lbl}>Préciser le motif</label>
+            <textarea value={f.autre_motif||''} onChange={e=>set('autre_motif',e.target.value)}
+              rows={3} placeholder="Décrire le motif de consultation..."
+              style={{...inp,resize:'none'}}/>
+          </div>
+        )}
         {placement&&(
           <div style={{...card,border:'2px solid '+(placement.urgence?'#ef4444':'#0d9488'),background:placement.urgence?'#fef2f2':'#f0fdfa'}}>
             <div style={{fontWeight:800,fontSize:15,color:placement.urgence?'#dc2626':'#0d9488',marginBottom:4}}>
