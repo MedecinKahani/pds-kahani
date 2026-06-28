@@ -1324,7 +1324,6 @@ function HydratationSelector({onAjouter, prescriptions}) {
   const [solute, setSolute] = useState('');
   const [qte, setQte] = useState('');
   const [duree, setDuree] = useState('');
-  const SOLUTES = [
     {id:'NaCl 0.9%', label:'NaCl 0.9%', color:'#0891b2'},
     {id:'Ringer Lactate', label:'Ringer Lactate', color:'#0891b2'},
     {id:'G5%', label:'G5%', color:'#f59e0b'},
@@ -1333,8 +1332,6 @@ function HydratationSelector({onAjouter, prescriptions}) {
     {id:'NaCl 0.9% + KCl 2g', label:'NaCl + KCl 2g', color:'#7c3aed'},
     {id:'G5% + NaCl 0.9%', label:'G5% + NaCl', color:'#7c3aed'},
   ];
-  const dejaHydrat = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Hydratation'));
-  if(dejaHydrat) return <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Hydratation déjà prescrite</div>;
 
   return (
     <div style={{background:'#f0f9ff',borderRadius:8,padding:'8px 12px',border:'1.5px solid #bae6fd'}}>
