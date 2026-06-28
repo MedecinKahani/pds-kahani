@@ -573,8 +573,8 @@ ${ordonnance||'--'}
             {onglet==='prescriptions'&&(
               role==='ide' ? (
                 /* VUE IDE : 3 colonnes plein écran */
-                <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                  <div style={{flex:1,display:'flex',gap:0,minHeight:0}}>
+                <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+                  <div style={{flex:1,display:'flex',gap:0,minHeight:0,overflow:'hidden'}}>
                     {[
                       {cat:'examen',        titre:'🔬 Examens',     color:'#7c3aed'},
                       {cat:'therapeutique', titre:'💊 Thérapeutique',color:'#ea580c'},
@@ -582,11 +582,11 @@ ${ordonnance||'--'}
                     ].map(({cat,titre,color})=>{
                       const items = prescriptions.filter(r=>r.categorie===cat);
                       return (
-                        <div key={cat} style={{flex:1,borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                        <div key={cat} style={{flex:1,borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
                           <div style={{background:color+'18',padding:'10px 14px',borderBottom:'1px solid '+color+'22',flexShrink:0}}>
                             <span style={{fontWeight:700,color,fontSize:13}}>{titre}</span>
                           </div>
-                          <div style={{flex:1,overflow:'auto',padding:10,display:'flex',flexDirection:'column',gap:6}}>
+                          <div style={{flex:1,overflowY:'auto',padding:10,display:'flex',flexDirection:'column',gap:6,minHeight:0}}>
                             <AjouterNote cat={cat} color={color} p={p} user={user} transmissions={transmissions} setTransmissions={setTransmissions}/>
                             {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:8}}>Aucune prescription</div>}
                             {items.map((r,i)=>{
