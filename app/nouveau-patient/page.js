@@ -184,7 +184,7 @@ export default function NouveauPatient() {
   }
 
   const canSubmit = (() => {
-    if (!ui.sexe || !vals.current.nom || !ui.symptome) return false;
+    if (!ui.sexe || !ui.nom || !ui.symptome) return false;
     const s = ui.symptome;
     // Constantes minimales : FC + Sat + T°
     const hasConst = ui.fc && ui.sat && ui.temp;
@@ -250,7 +250,7 @@ export default function NouveauPatient() {
             <div>
               <label style={lbl}>Nom</label>
               <input
-                onChange={e => { vals.current.nom = e.target.value.toUpperCase(); }}
+                onChange={e => { vals.current.nom = e.target.value.toUpperCase(); setUi(prev=>({...prev, nom:e.target.value})); }}
                 style={inp} placeholder="NOM" autoComplete="off" autoCorrect="off" spellCheck="false"/>
             </div>
             <div>
@@ -373,6 +373,7 @@ export default function NouveauPatient() {
                 nextRef={{current: constRefs.current[ni]}}
                 onChange={v => {
                   vals.current[k] = v;
+                  setUi(prev=>({...prev, [k]:v}));
                   if (k==='tas'||k==='tad') {
                     const tas = parseFloat(k==='tas'?v:vals.current.tas);
                     const tad = parseFloat(k==='tad'?v:vals.current.tad);
