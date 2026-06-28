@@ -169,7 +169,21 @@ export default function NouveauPatient() {
     router.push('/vueglobale');
   }
 
-  const canSubmit = ui.sexe && vals.current.nom && ui.symptome;
+  const canSubmit = (() => {
+    if (!ui.sexe || !vals.current.nom || !ui.symptome) return false;
+    const s = ui.symptome;
+    const v = vals.current;
+    // Constante minimale : FC ou Sat (dans ui car setU les y met)
+    const hasConst = ui.fc || ui.sat;
+    if (!hasConst) return false;
+    // Conditions spécifiques par motif
+    if (s === 'coma') return ui.respire !== '' && ui.respire !== undefined && ui.respire !== null;
+    if (s === 'detresse_respi') return ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null;
+    if (s === 'asthme') return ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null;
+    if (s === 'fievre') return !!ui.fievre_depuis;
+    if (s === 'douleur') return ui.douleur_zones && ui.douleur_zones.length > 0;
+    return true; // plaie, vertige, autre
+  })();
 
   const SYMPTOMES = [
     { id:'coma',          label:'Coma / Inconscience', icon:'🚨' },
