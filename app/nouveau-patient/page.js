@@ -221,24 +221,24 @@ export default function NouveauPatient() {
     if (!ui.sexe || !ui.nom || !ui.symptome) return false;
     const s = ui.symptome;
     // Constantes minimales : FC + Sat + T°
-    const hasConst = ui.fc && ui.sat && ui.temp;
-    if (!hasConst) return false;
+    if (!ui.fc || !ui.sat || !ui.temp) return false;
     // Conditions spécifiques par motif
-    if (s === 'coma') return ui.respire !== '' && ui.respire !== undefined && ui.respire !== null;
+    if (s === 'coma') return ui.respire === true || ui.respire === false;
     if (s === 'detresse_respi') {
-      const drpOk = parseFloat(ui.age||99) >= 2 || ui.drp;
-      return (ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null) && drpOk;
+      const signeLutteOk = ui.signe_lutte === true || ui.signe_lutte === false;
+      const drpOk = parseFloat(ui.age||99) >= 2 || !!ui.drp;
+      return signeLutteOk && drpOk;
     }
-    if (s === 'asthme') return ui.signe_lutte !== '' && ui.signe_lutte !== undefined && ui.signe_lutte !== null;
+    if (s === 'asthme') return ui.signe_lutte === true || ui.signe_lutte === false;
     if (s === 'fievre') return !!ui.fievre_depuis;
-    if (s === 'douleur') return ui.douleur_zones && ui.douleur_zones.length > 0;
-    if (s === 'vertige') return !!(ui.dextro && ui.hemocue);
+    if (s === 'douleur') return !!(ui.douleur_zones && ui.douleur_zones.length > 0);
+    if (s === 'vertige') return !!(ui.dextro || vals.current.dextro) && !!(ui.hemocue || vals.current.hemocue);
     if (s === 'plaie') {
       if (!ui.plaie_vaccin) return false;
       if (ui.plaie_vaccin === 'ok') return true;
       return !!ui.quicktest;
     }
-    return true; // autre
+    return true;
   })();
 
   const SYMPTOMES = [
@@ -491,7 +491,7 @@ export default function NouveauPatient() {
                   </div>
                   <div>
                     <label style={lbl}>Hemocue (g/dL)</label>
-                    <input inputMode="decimal" onChange={e => { vals.current.hemocue = e.target.value; }} style={inp} placeholder="--"/>
+                    <input inputMode="decimal" onChange={e => { vals.current.hemocue = e.target.value; setUi(p=>({...p,hemocue:e.target.value})); }} style={inp} placeholder="--"/>
                   </div>
                 </div>
               )}
