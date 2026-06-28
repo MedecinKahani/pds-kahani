@@ -734,6 +734,44 @@ ${ordonnance||'--'}
                   </div>
                   <div>
                     <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Ordonnance de sortie</label>
+                    {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
+                      <button onClick={()=>{
+                        const poids = parseFloat(p.poids)||0;
+                        const age = parseFloat(p.age)||99;
+                        // Doses Ventoline selon poids
+                        const bouffees = poids < 15 ? 2 : poids < 30 ? 4 : 6;
+                        // Dispositif selon âge
+                        const dispositif = age < 3
+                          ? 'Chambre d\'inhalation + masque nourrisson (ex : Babyhaler)'
+                          : age < 6
+                          ? 'Chambre d\'inhalation + masque enfant'
+                          : 'Chambre d\'inhalation + embout buccal (ou masque si difficultés)';
+                        const txt = [
+                          '=== TRAITEMENT ASTHME ===',
+                          '',
+                          `Salbutamol (Ventoline) 100µg/dose — ${dispositif}`,
+                          `${bouffees} bouffées (1 à la fois dans la chambre) × 3/jour pendant 3 jours`,
+                          '',
+                          '--- En cas de crise ---',
+                          '• 1 bouffée toutes les 30 secondes jusqu\'à 6 bouffées',
+                          '• Attendre 20 minutes — si pas d\'amélioration : recommencer',
+                          '• Position demi-assise, rester calme',
+                          '',
+                          '--- Signes d\'alerte → Reconsulter IMMÉDIATEMENT ---',
+                          '• Pas d\'amélioration après 12 bouffées',
+                          '• Difficulté à parler ou marcher',
+                          '• Lèvres ou ongles bleutés',
+                          '• Respiration très rapide ou très lente',
+                          '• Somnolence ou perte de connaissance → APPELER LE 15',
+                          '',
+                          '→ Prendre RDV en consultation chronique pour suivi et renouvellement traitement',
+                        ].join('\n');
+                        setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
+                        dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                      }} style={{marginBottom:6,padding:'6px 12px',borderRadius:7,background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:600,border:'1px solid #bfdbfe',cursor:'pointer'}}>
+                        💨 Générer ordonnance asthme
+                      </button>
+                    )}
                     {p.symptome==='plaie'&&plaies.length>0&&(
                       <button onClick={()=>{
                         const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
