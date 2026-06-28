@@ -14,11 +14,9 @@ export default function Admin() {
   const [matricule, setMatricule] = useState('');
   const [role, setRole] = useState('as');
   const [msg, setMsg] = useState('');
-  const [userRole, setUserRole] = useState('');
-
-  useEffect(() => {
-    try { const u = JSON.parse(localStorage.getItem('pds_user')||'{}'); setUserRole(u.role||''); } catch {}
-  }, []);
+  const [userRole, setUserRole] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('pds_user')||'{}').role||''; } catch { return ''; }
+  });
 
   // Rôles créables selon le rôle connecté
   const rolesCreables = userRole === 'medecin'
