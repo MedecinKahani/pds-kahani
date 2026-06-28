@@ -648,6 +648,7 @@ export default function NouveauPatient() {
                   style={inp} placeholder="Localisation de la douleur..."/>
               </div>
             )}
+            {f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(
               <div style={{background:'#fdf4ff',borderRadius:8,padding:'10px 12px',border:'1px solid #e9d5ff',marginBottom:8}}>
                 <div style={{color:'#7c3aed',fontWeight:700,fontSize:12,marginBottom:8}}>Femme + douleur abdominale — BU et bHCG urinaire obligatoires</div>
                 <div style={{display:'flex',gap:6}}>
