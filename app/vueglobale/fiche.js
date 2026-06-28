@@ -654,7 +654,27 @@ ${ordonnance||'--'}
                             <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
                               <span style={{fontSize:10,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
                               <div style={{flex:1,minWidth:0}}>
-                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
+                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3,display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
+                                  {r.texte.includes(' ×')
+                                    ? <>
+                                        <span>{r.texte.replace(/ ×\d+$/,'')}</span>
+                                        <span style={{display:'inline-flex',alignItems:'center',gap:2,background:'#f3f4f6',borderRadius:5,padding:'1px 4px'}}>
+                                          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();
+                                            const m=r.texte.match(/ ×(\d+)$/);const n=m?Math.max(1,parseInt(m[1])-1):1;
+                                            const rx=[...prescriptions];rx[gi]={...rx[gi],texte:r.texte.replace(/ ×\d+$/,' ×'+n)};
+                                            setPrescriptions(rx);fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+                                          }} style={{width:14,height:14,border:'none',background:'#e5e7eb',borderRadius:3,cursor:'pointer',fontSize:11,lineHeight:'14px',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>−</button>
+                                          <span style={{fontSize:11,fontWeight:700,minWidth:14,textAlign:'center'}}>×{r.texte.match(/ ×(\d+)$/)?.[1]||1}</span>
+                                          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();
+                                            const m=r.texte.match(/ ×(\d+)$/);const n=m?parseInt(m[1])+1:2;
+                                            const rx=[...prescriptions];rx[gi]={...rx[gi],texte:r.texte.replace(/ ×\d+$/,' ×'+n)};
+                                            setPrescriptions(rx);fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+                                          }} style={{width:14,height:14,border:'none',background:'#e5e7eb',borderRadius:3,cursor:'pointer',fontSize:11,lineHeight:'14px',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>+</button>
+                                        </span>
+                                      </>
+                                    : <span>{r.texte}</span>
+                                  }
+                                </div>
                                 <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
                               </div>
                               <button onClick={()=>supprimerRx(gi)} title="Supprimer"
@@ -1094,7 +1114,7 @@ function TheraSection({prescriptions, onAjouter}) {
         'Tropatépine 10mg PO (Lépicur)','Salbutamol 100mcg aérosol (Ventoline)',
         'Lévonorgestrel 1.5mg PO','Albendazole 4% PO (Zentel)','Ivermectine PO',
       ]},
-      {voie:'IV', label:'Voie IV', color:'#dc2626', items:[
+      {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         'Paracétamol 1g IV (Perfalgan)','Paracétamol 500mg IV (Perfalgan)',
         'Kétoprofène 100mg IV (Profenid)',
         'Morphine 10mg IV [STP]','Nalbuphine 20mg IV (Nubain)','Naloxone 0.4mg IV (Narcan)',
@@ -1156,7 +1176,7 @@ function TheraSection({prescriptions, onAjouter}) {
         'Albendazole 4% PO (Zentel)','Ivermectine PO',
         'Lévonorgestrel 1.5mg PO',
       ]},
-      {voie:'IV', label:'Voie IV', color:'#dc2626', items:[
+      {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         'Paracétamol 15mg/kg IV (Perfalgan)',
         'Morphine 0.1mg/kg IV [STP]','Kétamine IV','Midazolam IV (Hypnovel)',
         'Ceftriaxone 50mg/kg IV','Ceftriaxone 100mg/kg IV',
@@ -1207,8 +1227,9 @@ function TheraSection({prescriptions, onAjouter}) {
                 const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
                 if(deja) return null;
                 const rouge=ROUGE.some(s=>item.includes(s));
+                const isPO = v.voie==='PO';
                 return (
-                  <button key={item} onClick={()=>onAjouter(item,'therapeutique')}
+                  <button key={item} onClick={()=>onAjouter(isPO?item+' ×1':item,'therapeutique')}
                     onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
                     onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
                     style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
