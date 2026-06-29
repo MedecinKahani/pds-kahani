@@ -361,6 +361,7 @@ export default function NouveauPatient() {
               {id:'vertige',l:'Vertige / Malaise'},
               {id:'douleur',l:'Douleur'},
               {id:'soins_ide',l:'Soins infirmiers'},
+              {id:'autre',l:'Autre'},
             ].map(function(s) {
               return (
                 <Btn key={s.id} onClick={()=>set('symptome',s.id)}
