@@ -364,12 +364,43 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
   }
 
+  const [modalePrelev, setModalePrelev] = useState(null); // {idx}
+  const [prelevTel, setPrelevTel] = useState('');
+  const [prelevVille, setPrelevVille] = useState('');
+
   async function cocherRx(idx) {
     const rx=[...prescriptions];
+    const r = rx[idx];
+    // Si Prélèvement Mamoudzou → modale tél + ville d'abord
+    if (r.texte && r.texte.includes('Mamoudzou') && !r.fait) {
+      setModalePrelev({idx});
+      setPrelevTel(p.tel||'');
+      setPrelevVille(p.ville||'');
+      return;
+    }
     rx[idx]={...rx[idx],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
     setPrescriptions(rx);
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+  }
+
+  async function validerPrelev() {
+    const idx = modalePrelev.idx;
+    const rx=[...prescriptions];
+    rx[idx]={...rx[idx],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
+    setPrescriptions(rx);
+    // Sauvegarder tél + ville dans le patient
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx),tel:prelevTel,ville:prelevVille}})});
+    // Créer entrée dédiée prélevés (TTL 7j)
+    await fetch('/api/prelev',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        id:p.id, nom:p.nom, prenom:p.prenom, ddn:p.ddn, age:p.age,
+        tel:prelevTel, ville:prelevVille,
+        motif:p.symptome, diagnostic:diagnostic, anamnese:anamnese,
+        ts:Date.now(), faitPar:user?.nom||user?.matricule,
+      })});
+    setModalePrelev(null);
   }
 
   async function nonRealiserRx(idx, motif) {
@@ -799,7 +830,39 @@ ${ordonnance||'--'}
         </div>
       )}
 
-      {/* Modale édition identité */}
+      {/* Modale Prélèvement Mamoudzou */}
+      {modalePrelev&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10001,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'#fff',borderRadius:14,padding:24,width:360,boxShadow:'0 24px 64px rgba(0,0,0,0.2)'}}>
+            <div style={{fontWeight:700,fontSize:15,color:'#0284c7',marginBottom:4}}>🧪 Prélèvement Mamoudzou</div>
+            <div style={{fontSize:12,color:'#6b7280',marginBottom:16}}>Coordonnées patient pour suivi des résultats (conservées 7 jours)</div>
+            <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:20}}>
+              <div>
+                <label style={{fontSize:11,fontWeight:700,color:'#374151',display:'block',marginBottom:4}}>Téléphone</label>
+                <input value={prelevTel} onChange={e=>setPrelevTel(e.target.value)} inputMode="tel"
+                  style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',fontSize:14,outline:'none',boxSizing:'border-box'}}
+                  placeholder="06 xx xx xx xx"/>
+              </div>
+              <div>
+                <label style={{fontSize:11,fontWeight:700,color:'#374151',display:'block',marginBottom:4}}>Village / Quartier</label>
+                <input value={prelevVille} onChange={e=>setPrelevVille(e.target.value)}
+                  style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',fontSize:14,outline:'none',boxSizing:'border-box'}}
+                  placeholder="Ex: Bandraboua, Mamoudzou..."/>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>setModalePrelev(null)}
+                style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>
+                Annuler
+              </button>
+              <button onClick={validerPrelev}
+                style={{flex:2,padding:'10px',borderRadius:8,background:'#0284c7',color:'#fff',fontSize:13,fontWeight:700,border:'none',cursor:'pointer'}}>
+                ✓ Confirmer prélèvement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showEditIdentite&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10000,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div style={{background:'#fff',borderRadius:14,padding:'24px',width:360,boxShadow:'0 24px 64px rgba(0,0,0,0.2)'}}>

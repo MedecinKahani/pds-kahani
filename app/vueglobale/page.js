@@ -63,6 +63,9 @@ function BoutonStats({ router }) {
       <button onClick={()=>router.push('/stats-mensuelles')} style={style}>
         {alerte ? '🔴 Statistiques !' : 'Statistiques'}
       </button>
+      <button onClick={()=>router.push('/preleves')} style={style}>
+        🧪 Prélevés
+      </button>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}`}</style>
     </div>
   );
