@@ -562,7 +562,7 @@ ${ordonnance||'--'}
                             </button>
                           ))}
                         </div>
-                        {p.symptome==='plaie'&&<SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} />}
+                        {p.symptome==='plaie'&&<SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>}
                         <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
                           placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
                       </>
@@ -1510,8 +1510,9 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
   );
 }
 
-function SchemaPlaie({plaies, setPlaies}) {
+function SchemaPlaie({plaies, setPlaies, save, notesInit}) {
   const [selected, setSelected] = useState(null);
+  const [notesPlaieLoc, setNotesPlaieLoc] = useState(notesInit||'');
   const ZONES = [
     {id:'tete',      label:'Tête',        x:140, y:12,  w:40, h:40, rx:20},
     {id:'cou',       label:'Cou',         x:152, y:52,  w:16, h:18, rx:4},
@@ -1556,11 +1557,11 @@ function SchemaPlaie({plaies, setPlaies}) {
   const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
 
   return (
-    <div style={{background:'#fef9f0',borderRadius:10,border:'1.5px solid #fde68a',padding:'10px 12px',marginBottom:8}}>
-      <div style={{fontSize:10,fontWeight:700,color:'#d97706',textTransform:'uppercase',marginBottom:8}}>🩹 Localisation des plaies — cliquer sur le schéma</div>
-      <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
-        {/* Schéma SVG */}
-        <svg viewBox="0 0 320 420" width={160} height={210} style={{flexShrink:0,cursor:'pointer'}}>
+    <div style={{background:'#fef9f0',borderRadius:8,border:'1px solid #fde68a',padding:'6px 10px',marginBottom:8}}>
+      <div style={{fontSize:9,fontWeight:700,color:'#d97706',textTransform:'uppercase',marginBottom:6}}>🩹 Plaies — cliquer sur le schéma</div>
+      <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+        {/* Schéma SVG compact */}
+        <svg viewBox="0 0 320 420" width={110} height={145} style={{flexShrink:0,cursor:'pointer'}}>
           {/* Corps simplifié */}
           <ellipse cx="160" cy="32" rx="20" ry="20" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1.5"/>
           <rect x="152" y="52" width="16" height="18" rx="4" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1"/>
@@ -1622,9 +1623,9 @@ function SchemaPlaie({plaies, setPlaies}) {
           })}
         </svg>
 
-        {/* Liste des plaies */}
-        <div style={{flex:1,minWidth:120}}>
-          {plaies.length===0&&<div style={{fontSize:11,color:'#9ca3af',fontStyle:'italic'}}>Cliquer sur le schéma pour ajouter une plaie</div>}
+        {/* Liste des plaies + notes */}
+        <div style={{flex:1,minWidth:100,display:'flex',flexDirection:'column',gap:6}}>
+          {plaies.length===0&&<div style={{fontSize:10,color:'#9ca3af',fontStyle:'italic'}}>Cliquer sur le schéma</div>}
           {plaies.map((pl,i)=>(
             <div key={i} style={{background:'#fff',borderRadius:7,border:'1px solid #fde68a',padding:'6px 8px',marginBottom:5}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
@@ -1639,6 +1640,9 @@ function SchemaPlaie({plaies, setPlaies}) {
               </div>
             </div>
           ))}
+          <textarea value={notesPlaieLoc||''} onChange={e=>setNotesPlaieLoc(e.target.value)} onBlur={()=>save({notes_plaie:notesPlaieLoc})}
+            rows={3} placeholder="Description plaie(s), aspect, profondeur..."
+            style={{width:'100%',padding:'5px 7px',borderRadius:6,border:'1px solid #fde68a',fontSize:11,outline:'none',resize:'none',background:'#fffbeb',boxSizing:'border-box'}}/>
         </div>
       </div>
     </div>
