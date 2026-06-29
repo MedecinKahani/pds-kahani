@@ -58,6 +58,7 @@ const EXAMENS_COMPL = [
 
 const SOINS = [
   {id:'drp', label:'DRP', color:'#3b82f6'},
+  {id:'injection_im', label:'Injection IM', color:'#7c3aed'},
   {id:'scoper', label:'Scopé', color:'#dc2626'},
   {id:'o2_lun', label:'O2 lunettes', color:'#0891b2'},
   {id:'o2_mas_moy', label:'O2 masque moyenne concentration', color:'#0891b2'},
@@ -656,6 +657,29 @@ ${ordonnance||'--'}
               role==='ide' ? (
                 /* VUE IDE : 3 colonnes plein écran */
                 <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+                  {/* Bandeau soins rapides pour patients soins IDE */}
+                  {p.symptome==='soins_ide'&&(
+                    <div style={{background:'#eff6ff',borderBottom:'1px solid #bfdbfe',padding:'8px 12px',flexShrink:0}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#1d4ed8',marginBottom:6}}>Soins infirmiers — prescription rapide</div>
+                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                        {[
+                          {l:'Injection IM',c:'soin'},{l:'Pansement simple',c:'soin'},{l:'Pansement complexe',c:'soin'},
+                          {l:'Biologie délocalisée',c:'examen'},{l:'Prélèvement Mamoudzou',c:'examen'},
+                        ].map(({l,c})=>{
+                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===l);
+                          return !deja&&(
+                            <button key={l} onClick={()=>ajouterRx(l,c)}
+                              style={{padding:'5px 10px',borderRadius:7,fontSize:11,fontWeight:600,cursor:'pointer',
+                                background:c==='soin'?'#fef3c7':'#f3e8ff',
+                                color:c==='soin'?'#92400e':'#6b21a8',
+                                border:'1px solid '+(c==='soin'?'#fde68a':'#e9d5ff')}}>
+                              + {l}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div style={{flex:1,display:'flex',gap:0,minHeight:0,overflow:'hidden'}}>
                     {[
                       {cat:'examen',        titre:'🔬 Examens',     color:'#7c3aed'},
