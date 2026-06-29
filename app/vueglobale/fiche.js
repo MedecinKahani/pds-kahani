@@ -635,6 +635,130 @@ ${ordonnance||'--'}
 
               </div>
             )}
+
+            {/* ── PRESCRIPTIONS (médecin) ── */}
+            {onglet==='prescriptions'&&role!=='ide'&&(
+              <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column',gap:12}}>
+                <CatSection titre="🔬 Examens complémentaires" color="#374151"
+                  open={true}>
+                  <ExamSection prescriptions={prescriptions} onAjouter={ajouterRx} p={p}/>
+                </CatSection>
+                <CatSection titre="💊 Thérapeutique" color="#374151" open={true}>
+                  <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
+                </CatSection>
+                <CatSection titre="🩹 Soins" color="#374151" open={true}>
+                  <SoinsSection prescriptions={prescriptions} onAjouter={ajouterRx}/>
+                </CatSection>
+                {/* Colonne droite prescriptions en attente */}
+                <ColonnePrescriptions prescriptions={prescriptions} p={p} user={user} setPrescriptions={setPrescriptions} supprimerRx={supprimerRx} ajouterPlusieursRx={ajouterPlusieursRx}/>
+              </div>
+            )}
+
+            {/* ── PRESCRIPTIONS ── */}
+            {onglet==='prescriptions'&&(
+              role==='ide' ? (
+                /* VUE IDE : 3 colonnes plein écran */
+                <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+                  <div style={{flex:1,display:'flex',gap:0,minHeight:0,overflow:'hidden'}}>
+                    {[
+                      {cat:'examen',        titre:'🔬 Examens',     color:'#7c3aed'},
+                      {cat:'therapeutique', titre:'💊 Thérapeutique',color:'#ea580c'},
+                      {cat:'soin',          titre:'🩹 Soins',        color:'#d97706'},
+                    ].map(({cat,titre,color})=>{
+                      const items = prescriptions.filter(r=>r.categorie===cat);
+                      return (
+                        <div key={cat} style={{flex:1,borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+                          <div style={{background:color+'18',padding:'10px 14px',borderBottom:'1px solid '+color+'22',flexShrink:0}}>
+                            <span style={{fontWeight:700,color,fontSize:13}}>{titre}</span>
+                          </div>
+                          <div style={{flex:1,overflowY:'auto',padding:10,display:'flex',flexDirection:'column',gap:6,minHeight:0}}>
+                            <AjouterNote cat={cat} color={color} p={p} user={user} transmissions={transmissions} setTransmissions={setTransmissions}/>
+                            {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:8}}>Aucune prescription</div>}
+                            {items.map((r,i)=>{
+                              const gi=prescriptions.indexOf(r);
+                              return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} user={user}
+                                onCocherAvecResultat={(val,fk,label)=>{
+                                  const rx=[...prescriptions];
+                                  rx[gi]={...rx[gi],fait:true,resultat:val,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
+                                  setPrescriptions(rx);
+                                  fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                                    body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+                                  addConst(fk,label,val,'');
+                                }}/>;
+                            })}
+                            {transmissions.filter(t=>t.categorie===cat).map((t,i)=>(
+                              <div key={'n'+i} style={{padding:'8px 10px',borderRadius:8,border:'1.5px dashed '+color+'55',background:color+'08'}}>
+                                <div style={{fontSize:12,color:'#374151'}}>{t.texte}</div>
+                                <div style={{fontSize:9,color:'#9ca3af',marginTop:3}}>{t.nom} · {new Date(t.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                /* VUE MÉDECIN : catégories + colonne droite */
+                <div style={{flex:1,display:'flex',minHeight:0,overflow:'hidden'}}>
+                  <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
+                    <CatSection titre="🔬 Examens complémentaires" color="#374151"
+                      collapsed={collapsed.examens} onToggle={()=>setCollapsed(c=>({...c,examens:!c.examens}))}>
+                      <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
+                        {EXAMENS_COMPL.map(e=>{
+                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
+                          if(deja) return null;
+                          if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
+                          return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
+                        })}
+                        <AutreLibre categorie="examen" onAjouter={ajouterRx}/>
+                      </div>
+                    </CatSection>
+                    <CatSection titre="💊 Thérapeutique" color="#374151"
+                      collapsed={collapsed.therapeutique} onToggle={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
+                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
+                    </CatSection>
+                    <CatSection titre="🩹 Soins" color="#374151"
+                      collapsed={collapsed.soins} onToggle={()=>setCollapsed(c=>({...c,soins:!c.soins}))}>
+                      <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
+                        {SOINS.map(s=>{
+                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
+                          if(deja) return null;
+                          return <RxBtn key={s.id} label={s.label} color={s.color} onClick={()=>ajouterRx(s.label,'soin')}/>;
+                        })}
+                        <AutreLibre categorie="soin" onAjouter={ajouterRx}/>
+                      </div>
+                    </CatSection>
+                  </div>
+                  {/* Colonne droite prescriptions */}
+                  <div style={{width:230,borderLeft:'1px solid #e5e7eb',background:'#fafafa',display:'flex',flexDirection:'column',flexShrink:0}}>
+                    <div style={{padding:'8px 12px',borderBottom:'1px solid #e5e7eb',fontSize:11,fontWeight:700,color:'#374151',display:'flex',alignItems:'center',gap:6}}>
+                      Prescriptions
+                      {enAttente.length>0&&<span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:9,padding:'1px 6px'}}>{enAttente.length}</span>}
+                    </div>
+                    <div style={{flex:1,overflow:'auto',padding:8}}>
+                      {enAttente.map((r,i)=>{
+                        const gi=prescriptions.indexOf(r);
+                        const bc=r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
+                        return (
+                          <div key={i} style={{background:'#fff',border:'1px solid '+bc+'44',borderRadius:7,padding:'6px 8px',marginBottom:4}}>
+                            <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
+                              <span style={{fontSize:10,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
+                                <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+                              </div>
+                              <button onClick={()=>supprimerRx(gi)} title="Supprimer"
+                                style={{flexShrink:0,width:16,height:16,borderRadius:3,border:'1px solid #fecaca',background:'#fef2f2',color:'#ef4444',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
           </div>
         </div>
       )}
