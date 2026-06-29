@@ -539,20 +539,20 @@ ${ordonnance||'--'}
 
                 {/* Ligne 1 : MOTIF + DIAGNOSTIC */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,height:'15%',minHeight:70}}>
-                  <DxCareCell label="Motifs de consultation" copyKey="motif"
+                  <DxCareCell label="Motifs de consultation" copyKey="motif" color="#0d9488"
                     value={anamnese} copyText={anamnese}
                     onChange={v=>{setAnamnese(v);dbSave({anamnese:v});}} readOnly={role==='ide'}/>
-                  <DxCareCell label="Conclusion / Diagnostic final" copyKey="diag"
+                  <DxCareCell label="Conclusion / Diagnostic final" copyKey="diag" color="#7c3aed"
                     value={diagnostic} copyText={diagnostic}
                     onChange={v=>{setDiagnostic(v);dbSave({diagnostic:v});}} readOnly={role==='ide'}/>
                 </div>
 
                 {/* Ligne 2 : ATCD + ALLERGIE */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,height:'15%',minHeight:70}}>
-                  <DxCareCell label="Antécédents" copyKey="atcd"
+                  <DxCareCell label="Antécédents" copyKey="atcd" color="#ea580c"
                     value={p.atcd||''} copyText={p.atcd||''}
                     onChange={v=>dbSave({atcd:v})} readOnly={role==='ide'}/>
-                  <DxCareCell label="Allergie" copyKey="allergie"
+                  <DxCareCell label="Allergie" copyKey="allergie" color="#dc2626"
                     value={p.allergie||''} copyText={p.allergie||''}
                     onChange={v=>dbSave({allergie:v})} readOnly={role==='ide'}/>
                 </div>
@@ -807,11 +807,11 @@ ${ordonnance||'--'}
 
 function CatSection({titre, color, collapsed, onToggle, children}) {
   return (
-    <div style={{border:'1px solid #a7f3d0',borderRadius:6,overflow:'visible'}}>
-      <div style={{background:'#ecfdf5',padding:'4px 8px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',borderRadius:collapsed?'4px':'4px 4px 0 0'}}
+    <div style={{border:'1.5px solid '+color+'33',borderRadius:10,overflow:'visible'}}>
+      <div style={{background:color+'18',padding:'7px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',borderRadius:collapsed?8:'8px 8px 0 0'}}
         onClick={onToggle}>
-        <span style={{fontWeight:700,color:'#047857',fontSize:10,textTransform:'uppercase',letterSpacing:0.4}}>{titre}</span>
-        <span style={{color:'#047857',fontSize:11}}>{collapsed?'▶':'▼'}</span>
+        <span style={{fontWeight:700,color,fontSize:12}}>{titre}</span>
+        <span style={{color,fontSize:12}}>{collapsed?'▶':'▼'}</span>
       </div>
       {!collapsed&&children}
     </div>
@@ -1453,31 +1453,33 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
   );
 }
 
-function CopyBtn({text, label, fullWidth}) {
+function CopyBtn({text, label, fullWidth, color}) {
+  const bg = color||'#065f46';
   const [copied, setCopied] = useState(false);
   return (
     <button onClick={()=>{navigator.clipboard.writeText(text||'');setCopied(true);setTimeout(()=>setCopied(false),3000);}}
       style={{padding:fullWidth?'12px':'2px 7px',borderRadius:fullWidth?8:4,fontSize:fullWidth?14:9,fontWeight:700,cursor:'pointer',border:'none',
-        background:copied?'#059669':'#065f46',color:'#fff',transition:'background 0.2s',
+        background:copied?'#059669':bg,color:'#fff',transition:'background 0.2s',
         width:fullWidth?'100%':'auto',flexShrink:fullWidth?0:1}}>
       {copied?(fullWidth?'✓ Copié ! — Faire Ctrl+V dans le champ CR de DxCare':'✓ Copié'):(label||'Copier')}
     </button>
   );
 }
 
-function DxCareCell({label, value, copyText, onChange, readOnly}) {
+function DxCareCell({label, value, copyText, onChange, readOnly, color}) {
   const [local, setLocal] = useState(value||'');
   useEffect(()=>setLocal(value||''),[value]);
+  const c = color||'#0d9488';
   return (
-    <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#ecfdf5',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-        <label style={{fontSize:10,fontWeight:700,color:'#047857',textTransform:'uppercase',letterSpacing:0.4}}>{label}</label>
-        <CopyBtn text={copyText||local} label="Copier"/>
+    <div style={{display:'flex',flexDirection:'column',overflow:'hidden',border:'1.5px solid '+c+'33',borderRadius:10}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:c+'18',padding:'7px 12px',borderRadius:'8px 8px 0 0',flexShrink:0}}>
+        <label style={{fontSize:12,fontWeight:700,color:c}}>{label}</label>
+        <CopyBtn text={copyText||local} label="Copier" color={c}/>
       </div>
       {readOnly
-        ? <div style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',background:'#fff',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',overflow:'hidden'}}>{local||''}</div>
+        ? <div style={{flex:1,borderTop:'none',borderRadius:'0 0 8px 8px',padding:'4px 6px',background:'#fff',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',overflow:'hidden'}}>{local||''}</div>
         : <textarea value={local} onChange={e=>setLocal(e.target.value)} onBlur={()=>onChange(local)}
-            style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',fontSize:11,outline:'none',resize:'none',fontFamily:'system-ui',background:'#fff',overflow:'hidden'}}/>
+            style={{flex:1,borderTop:'none',borderRadius:'0 0 8px 8px',padding:'4px 6px',fontSize:11,outline:'none',resize:'none',fontFamily:'system-ui',background:'#fff',overflow:'hidden'}}/>
       }
     </div>
   );
