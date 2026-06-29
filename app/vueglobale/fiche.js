@@ -1623,11 +1623,10 @@ function SchemaPlaie({plaies, setPlaies, save, notesInit}) {
           })}
         </svg>
 
-        {/* Liste des plaies + notes */}
-        <div style={{flex:1,minWidth:100,display:'flex',flexDirection:'column',gap:6}}>
+        {/* Colonne liste plaies */}
+        <div style={{minWidth:130,display:'flex',flexDirection:'column',gap:4}}>
           {plaies.length===0&&<div style={{fontSize:10,color:'#9ca3af',fontStyle:'italic'}}>Cliquer sur le schéma</div>}
-          {plaies.map((pl,i)=>(
-            <div key={i} style={{background:'#fff',borderRadius:7,border:'1px solid #fde68a',padding:'6px 8px',marginBottom:5}}>
+          {plaies.map((pl,i)=>(            <div key={i} style={{background:'#fff',borderRadius:7,border:'1px solid #fde68a',padding:'6px 8px',marginBottom:5}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
                 <span style={{fontSize:11,fontWeight:700,color:'#d97706'}}>🩹 Plaie {i+1} — {pl.label}</span>
                 <button onClick={()=>removePlaie(i)} style={{fontSize:10,color:'#ef4444',background:'none',border:'none',cursor:'pointer'}}>✕</button>
@@ -1640,9 +1639,12 @@ function SchemaPlaie({plaies, setPlaies, save, notesInit}) {
               </div>
             </div>
           ))}
+        </div>
+        {/* Colonne textarea notes */}
+        <div style={{flex:1,minWidth:120}}>
           <textarea value={notesPlaieLoc||''} onChange={e=>setNotesPlaieLoc(e.target.value)} onBlur={()=>save({notes_plaie:notesPlaieLoc})}
-            rows={3} placeholder="Description plaie(s), aspect, profondeur..."
-            style={{width:'100%',padding:'5px 7px',borderRadius:6,border:'1px solid #fde68a',fontSize:11,outline:'none',resize:'none',background:'#fffbeb',boxSizing:'border-box'}}/>
+            rows={6} placeholder="Description plaie(s), aspect, profondeur..."
+            style={{width:'100%',height:'100%',minHeight:140,padding:'6px 8px',borderRadius:6,border:'1px solid #fde68a',fontSize:11,outline:'none',resize:'none',background:'#fffbeb',boxSizing:'border-box'}}/>
         </div>
       </div>
     </div>
