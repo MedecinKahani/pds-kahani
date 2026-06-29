@@ -634,8 +634,14 @@ ${ordonnance||'--'}
                   </div>
                 </div>
 
-                {/* Ligne de copie générale */}
-                {role!=='ide'&&<DxCareButtons p={p} anamnese={anamnese} examen={examen} evolution={evolution} diagnostic={diagnostic} ordonnance={ordonnance} prescriptions={prescriptions} pamVal={pamVal} getVal={getVal} compact={true}/>}
+                {/* Bouton copie complète */}
+                {role!=='ide'&&(
+                  <CopyBtn
+                    text={'PATIENT: '+p.nom+' '+p.prenom+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+getVal('fc',p.fc)+'bpm | SpO2:'+getVal('sat',p.sat)+'% | T°:'+getVal('temp',p.temp)+'°C\nPAS:'+getVal('tas',p.tas)+' PAD:'+getVal('tad',p.tad)+' PAM:'+(pamVal||'--')+'mmHg\nDextro:'+getVal('dextro',p.dextro)+' | Hb:'+getVal('hemocue',p.hemocue)+'\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN CLINIQUE:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+prescriptions.map(r=>'- ['+(r.fait?'FAIT':r.nonRealise?'NON REALISE':'EN ATTENTE')+'] '+r.texte).join('\n')+'\n\nORDONNANCE:\n'+(ordonnance||'--')}
+                    label="📋 Copier-coller complet pour DxCare"
+                    fullWidth={true}
+                  />
+                )}
 
               </div>
             )}
@@ -1442,13 +1448,14 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
   );
 }
 
-function CopyBtn({text, label}) {
+function CopyBtn({text, label, fullWidth}) {
   const [copied, setCopied] = useState(false);
   return (
-    <button onClick={()=>{navigator.clipboard.writeText(text||'');setCopied(true);setTimeout(()=>setCopied(false),2500);}}
-      style={{padding:'2px 7px',borderRadius:4,fontSize:9,fontWeight:700,cursor:'pointer',border:'none',
-        background:copied?'#16a34a':'#111827',color:'#fff',transition:'background 0.2s',flexShrink:0}}>
-      {copied?'✓ Copié':label||'Copier'}
+    <button onClick={()=>{navigator.clipboard.writeText(text||'');setCopied(true);setTimeout(()=>setCopied(false),3000);}}
+      style={{padding:fullWidth?'12px':'2px 7px',borderRadius:fullWidth?8:4,fontSize:fullWidth?14:9,fontWeight:700,cursor:'pointer',border:'none',
+        background:copied?'#16a34a':'#111827',color:'#fff',transition:'background 0.2s',
+        width:fullWidth?'100%':'auto',flexShrink:fullWidth?0:1}}>
+      {copied?(fullWidth?'✓ Copié ! — Faire Ctrl+V dans le champ CR de DxCare':'✓ Copié'):(label||'Copier')}
     </button>
   );
 }
