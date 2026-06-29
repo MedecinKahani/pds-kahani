@@ -557,81 +557,86 @@ ${ordonnance||'--'}
                     onChange={v=>dbSave({allergie:v})} readOnly={role==='ide'}/>
                 </div>
 
-                {/* Ligne 3 : CR CONSULTATION + PRESCRIPTION */}
+                {/* Ligne 3 : CR CONSULTATION (gauche) + PRESCRIPTION (droite) */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,flex:1,minHeight:0}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-                    <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Compte rendu de consultation</label>
-                    <CopyBtn text={(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')} label="Copier"/>
-                  </div>
-                  <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
-                    {role!=='ide'&&(
-                      <div style={{display:'flex',gap:4,padding:'3px 4px',borderBottom:'1px solid #e5e7eb',flexShrink:0,background:'#fafafa'}}>
-                        {[{l:'Examen normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Examen normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
-                          <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
-                            style={{padding:'2px 8px',borderRadius:4,fontSize:9,fontWeight:600,cursor:'pointer',background:examen===o.v?o.c:'#fff',color:examen===o.v?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
-                            {examen===o.v?'✓ ':''}{o.l}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {p.symptome==='plaie'
-                      ? <div style={{display:'flex',flex:1,overflow:'hidden',gap:4,padding:4}}>
-                          <SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>
-                          {role==='ide'
-                            ? <div style={{flex:1,overflow:'auto',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',padding:4}}>{examen||''}</div>
-                            : <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}} style={{flex:1,border:'none',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:4}}/>
-                          }
-                        </div>
-                      : role==='ide'
-                        ? <div style={{flex:1,overflow:'auto',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',padding:6}}>{examen||''}<br/>{evolution&&<span style={{color:'#6b7280',fontSize:10}}>{'--- Evolution ---\n'+evolution}</span>}</div>
-                        : <div style={{flex:1,display:'flex',flexDirection:'column'}}>
-                            <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}} placeholder="Examen clinique, constantes, résultats..." style={{flex:2,border:'none',borderBottom:'1px dashed #e5e7eb',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:6}}/>
-                            <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);dbSave({evolution:e.target.value});}} placeholder="Évolution post-traitement..." style={{flex:1,border:'none',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:6,color:'#374151'}}/>
-                          </div>
-                    }
-                  </div>
-                </div>
 
-                {/* PRESCRIPTION */}
-                <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-                    <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Prescription médicale</label>
-                    <CopyBtn text={ordonnance} label="Copier"/>
-                  </div>
-                  <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
-                    {role!=='ide'&&<div style={{display:'flex',gap:4,flexWrap:'wrap',flexShrink:0}}>
-                      {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
-                      {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
-                        <button onClick={()=>{
-                          const pds=parseFloat(p.poids)||0;const ag=parseFloat(p.age)||99;
-                          const b=pds<15?2:pds<30?4:6;
-                          const dev=ag<3?'Chambre + masque nourrisson':ag<6?'Chambre + masque enfant':'Chambre + embout buccal';
-                          const txt='TRAITEMENT ASTHME\n\nSalbutamol (Ventoline) 100µg — '+dev+'\n'+b+' bouffées x 3/j pendant 3j\n\nEn cas de crise: 1 bouffée/30sec jusqu a 6 bouffées\nRepéter après 20min si besoin\n\nSignes alerte → APPELER 15:\n• Pas amélioration, difficulté parler, lèvres bleues, somnolence\n\nRDV consultation chronique';
-                          setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
-                        }} style={{padding:'3px 8px',borderRadius:5,background:'#eff6ff',color:'#3b82f6',fontSize:10,fontWeight:600,border:'1px solid #bfdbfe',cursor:'pointer'}}>
-                          💨 Asthme
-                        </button>
+                  {/* CR CONSULTATION */}
+                  <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
+                      <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Compte rendu de consultation</label>
+                      <CopyBtn text={(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')} label="Copier"/>
+                    </div>
+                    <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
+                      {role!=='ide'&&(
+                        <div style={{display:'flex',gap:4,padding:'3px 4px',borderBottom:'1px solid #e5e7eb',flexShrink:0,background:'#fafafa'}}>
+                          {[{l:'Examen normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Examen normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
+                            <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
+                              style={{padding:'2px 8px',borderRadius:4,fontSize:9,fontWeight:600,cursor:'pointer',background:examen===o.v?o.c:'#fff',color:examen===o.v?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
+                              {examen===o.v?'✓ ':''}{o.l}
+                            </button>
+                          ))}
+                        </div>
                       )}
-                      {p.symptome==='plaie'&&plaies.length>0&&(
-                        <button onClick={()=>{
-                          const JOURS={tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
-                          const LABELS={tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
-                          const today=new Date();const sutAct=safeJSON(p.sutures,[]);const agr=sutAct.includes('sut_agraf');
-                          const base='Soins plaie(s):\n• Laver eau savon, secher\n• Compresse + Biseptine 1x/j\n• Pansement simple\n\nIDEL:\n';
-                          const lig=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return '• Plaie '+(i+1)+' ('+z+'): '+(agr?'retirer agrafes':'retirer fils')+' ('+pl.points+'pt) dans '+j+'j (le '+d+')';}).join('\n');
-                          const txt=base+lig;setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
-                          const rx=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return {texte:'RDV retrait '+(agr?'agrafes':'fils')+' Plaie '+(i+1)+' ('+z+') le '+d,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};});
-                          ajouterPlusieursRx(rx);
-                        }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdfa',color:'#0d9488',fontSize:10,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
-                          ✨ Plaie
-                        </button>
-                      )}
-                    </div>}
-                    {role==='ide'
-                      ? <div style={{flex:1,overflow:'auto',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',padding:4}}>{ordonnance||''}</div>
-                      : <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} placeholder="Ordonnance de sortie..." style={{flex:1,border:'none',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:4}}/>
-                    }
+                      {p.symptome==='plaie'
+                        ? <div style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>
+                            <SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>
+                            {role==='ide'
+                              ? <div style={{flex:1,overflow:'auto',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',padding:4,borderTop:'1px solid #e5e7eb'}}>{examen||''}</div>
+                              : <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}} placeholder="Notes complémentaires..." style={{flex:1,border:'none',borderTop:'1px solid #e5e7eb',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:6}}/>
+                            }
+                          </div>
+                        : role==='ide'
+                          ? <div style={{flex:1,overflow:'auto',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',padding:6}}>{examen||''}{evolution&&'\n\n--- Évolution ---\n'+evolution}</div>
+                          : <div style={{flex:1,display:'flex',flexDirection:'column'}}>
+                              <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}} placeholder="Examen clinique, constantes, résultats..." style={{flex:2,border:'none',borderBottom:'1px dashed #e5e7eb',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:6}}/>
+                              <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);dbSave({evolution:e.target.value});}} placeholder="Évolution post-traitement..." style={{flex:1,border:'none',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:6}}/>
+                            </div>
+                      }
+                    </div>
                   </div>
+
+                  {/* PRESCRIPTION */}
+                  <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
+                      <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Prescription médicale</label>
+                      <CopyBtn text={ordonnance} label="Copier"/>
+                    </div>
+                    <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
+                      {role!=='ide'&&<div style={{display:'flex',gap:4,flexWrap:'wrap',flexShrink:0}}>
+                        {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
+                        {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
+                          <button onClick={()=>{
+                            const pds=parseFloat(p.poids)||0;const ag=parseFloat(p.age)||99;
+                            const b=pds<15?2:pds<30?4:6;
+                            const dev=ag<3?'Chambre + masque nourrisson':ag<6?'Chambre + masque enfant':'Chambre + embout buccal';
+                            const txt='TRAITEMENT ASTHME\n\nSalbutamol (Ventoline) 100µg — '+dev+'\n'+b+' bouffées x 3/j pendant 3j\n\nEn cas de crise: 1 bouffée/30sec jusqu a 6 bouffées\nRepéter après 20min si besoin\n\nSignes alerte → APPELER 15:\n• Pas amélioration, difficulté parler, lèvres bleues, somnolence\n\nRDV consultation chronique';
+                            setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                          }} style={{padding:'3px 8px',borderRadius:5,background:'#eff6ff',color:'#3b82f6',fontSize:10,fontWeight:600,border:'1px solid #bfdbfe',cursor:'pointer'}}>
+                            💨 Asthme
+                          </button>
+                        )}
+                        {p.symptome==='plaie'&&plaies.length>0&&(
+                          <button onClick={()=>{
+                            const JOURS={tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
+                            const LABELS={tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
+                            const today=new Date();const sutAct=safeJSON(p.sutures,[]);const agr=sutAct.includes('sut_agraf');
+                            const base='Soins plaie(s):\n• Laver eau savon, secher\n• Compresse + Biseptine 1x/j\n• Pansement simple\n\nIDEL:\n';
+                            const lig=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return '• Plaie '+(i+1)+' ('+z+'): '+(agr?'retirer agrafes':'retirer fils')+' ('+pl.points+'pt) dans '+j+'j (le '+d+')';}).join('\n');
+                            const txt=base+lig;setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                            const rx=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return {texte:'RDV retrait '+(agr?'agrafes':'fils')+' Plaie '+(i+1)+' ('+z+') le '+d,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};});
+                            ajouterPlusieursRx(rx);
+                          }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdfa',color:'#0d9488',fontSize:10,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
+                            ✨ Plaie
+                          </button>
+                        )}
+                      </div>}
+                      {role==='ide'
+                        ? <div style={{flex:1,overflow:'auto',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',padding:4}}>{ordonnance||''}</div>
+                        : <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} placeholder="Ordonnance de sortie..." style={{flex:1,border:'none',outline:'none',fontSize:11,resize:'none',fontFamily:'system-ui',padding:4}}/>
+                      }
+                    </div>
+                  </div>
+
                 </div>
 
                 {/* Bouton copie complète */}
