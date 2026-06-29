@@ -105,7 +105,7 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
             onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
             onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
             onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',marginLeft:2}}>+</button>
+            style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',marginLeft:2}}>+</button>
         </div>
       </div>
       {open&&(
@@ -143,7 +143,7 @@ function BUBtn({ baseVal, history, onAdd }) {
             onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);setSel({});}}
             onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
             onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
+            style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
         </div>
       </div>
       {open&&(
@@ -203,7 +203,7 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
             onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);}}
             onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
             onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',marginLeft:2}}>+</button>
+            style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',marginLeft:2}}>+</button>
         </div>
       </div>
       {open&&(
@@ -486,11 +486,11 @@ ${ordonnance||'--'}
               style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:6,padding:'2px 8px',border:'1px solid '+(ippCopied?'#0d9488':'#e5e7eb'),background:ippCopied?'#f0fdfa':'#f3f4f6',cursor:p.ipp?'pointer':'default',userSelect:'none'}}>
               <span style={{fontSize:9,color:ippCopied?'#0d9488':'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
               <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
-              {ippCopied&&<span style={{fontSize:10,color:'#0d9488',fontWeight:700}}>✓</span>}
+              {ippCopied&&<span style={{fontSize:10,color:'#374151',fontWeight:700}}>✓</span>}
             </span>
             <button onMouseDown={e=>{e.preventDefault();openEditIdentite();}} title="Modifier l'identité"
               style={{fontSize:13,background:'none',border:'none',cursor:'pointer',color:'#9ca3af',padding:'0 2px'}}>✎</button>
-            <span style={{fontSize:11,fontWeight:700,color:'#0d9488',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
+            <span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
               {p.symptome?.replace(/_/g,' ')}
             </span>
           </div>
@@ -539,20 +539,20 @@ ${ordonnance||'--'}
 
                 {/* Ligne 1 : MOTIF + DIAGNOSTIC */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,height:'15%',minHeight:70}}>
-                  <DxCareCell label="Motifs de consultation" copyKey="motif" color="#0d9488"
+                  <DxCareCell label="Motifs de consultation" copyKey="motif" color="#374151"
                     value={anamnese} copyText={anamnese}
                     onChange={v=>{setAnamnese(v);dbSave({anamnese:v});}} readOnly={role==='ide'}/>
-                  <DxCareCell label="Conclusion / Diagnostic final" copyKey="diag" color="#7c3aed"
+                  <DxCareCell label="Conclusion / Diagnostic final" copyKey="diag" color="#374151"
                     value={diagnostic} copyText={diagnostic}
                     onChange={v=>{setDiagnostic(v);dbSave({diagnostic:v});}} readOnly={role==='ide'}/>
                 </div>
 
                 {/* Ligne 2 : ATCD + ALLERGIE */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,height:'15%',minHeight:70}}>
-                  <DxCareCell label="Antécédents" copyKey="atcd" color="#ea580c"
+                  <DxCareCell label="Antécédents" copyKey="atcd" color="#374151"
                     value={p.atcd||''} copyText={p.atcd||''}
                     onChange={v=>dbSave({atcd:v})} readOnly={role==='ide'}/>
-                  <DxCareCell label="Allergie" copyKey="allergie" color="#dc2626"
+                  <DxCareCell label="Allergie" copyKey="allergie" color="#374151"
                     value={p.allergie||''} copyText={p.allergie||''}
                     onChange={v=>dbSave({allergie:v})} readOnly={role==='ide'}/>
                 </div>
@@ -625,7 +625,7 @@ ${ordonnance||'--'}
                             const txt=base+lig;setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
                             const rx=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return {texte:'RDV retrait '+(agr?'agrafes':'fils')+' Plaie '+(i+1)+' ('+z+') le '+d,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};});
                             ajouterPlusieursRx(rx);
-                          }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdfa',color:'#0d9488',fontSize:10,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
+                          }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdfa',color:'#374151',fontSize:10,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
                             ✨ Plaie
                           </button>
                         )}
