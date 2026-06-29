@@ -527,38 +527,46 @@ export default function PageVueGlobale() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* SOINS IDE */}
-      <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px',margin:'0 12px 12px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-          <div style={{width:8,height:8,borderRadius:'50%',background:soinsIDE.length>0?'#3b82f6':'#e5e7eb'}}/>
-          <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Soins infirmiers</span>
-          {soinsIDE.length>0&&<span style={{background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{soinsIDE.length}</span>}
-        </div>
-        <div style={{display:'flex',flexDirection:'column',gap:6}}>
-          {soinsIDE.length===0&&<div style={{fontSize:12,color:'#9ca3af',fontStyle:'italic'}}>Aucun patient</div>}
-          {soinsIDE.map(p=>{
-            const typeLabel = p.soins_type==='bio'?'Biologie':p.soins_type==='injection'?'Injection':'Autre soin';
-            return (
-              <div key={p.id} onClick={()=>setFicheOuverte(p)}
-                style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px 12px',cursor:'pointer'}}
-                onMouseEnter={e=>e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'}
-                onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
-                <div style={{color:'#3b82f6',fontSize:11,fontWeight:600,marginTop:2}}>{typeLabel}</div>
-                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
-                <div style={{display:'flex',gap:5,marginTop:6}} onClick={e=>e.stopPropagation()}>
-                  <select onChange={async e=>{if(!e.target.value)return;await patch(p.id,{statut:'attente_medecin',emplacement:e.target.value});load();}} defaultValue="" style={{flex:1,padding:'4px 6px',borderRadius:6,border:'1px solid #bfdbfe',fontSize:10,background:'#fff',cursor:'pointer'}}>
-                    <option value="">Installer...</option>
-                    {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
-                  </select>
-                  <button onClick={()=>setFichesSortie(p)} style={{padding:'4px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:10,fontWeight:600,cursor:'pointer',border:'1px solid #e5e7eb',flexShrink:0}}>Sortie</button>
-                </div>
-              </div>
-            );
-          })}
+          {/* SOINS INFIRMIERS */}
+          <div style={{marginTop:12,paddingTop:10,borderTop:'1px solid #f3f4f6'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:soinsIDE.length>0?'#3b82f6':'#e5e7eb'}}/>
+              <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Soins IDE</span>
+              {soinsIDE.length>0&&<span style={{background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{soinsIDE.length}</span>}
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {soinsIDE.length===0&&<div style={{fontSize:11,color:'#9ca3af',fontStyle:'italic'}}>Aucun patient</div>}
+              {soinsIDE.map(p=>{
+                const typeLabel = p.soins_type==='bio'?'Biologie':p.soins_type==='injection'?'Injection':'Autre soin';
+                const placesLibres=[
+                  {id:'brancard1',l:'B1'},{id:'brancard2',l:'B2'},
+                  {id:'fauteuil1',l:'F1'},{id:'fauteuil2',l:'F2'},
+                  {id:'obs1',l:'O1'},{id:'obs2',l:'O2'},
+                  {id:'lit1',l:'L1'},{id:'lit2',l:'L2'},
+                  {id:'pansement',l:'P1'},
+                ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
+                return (
+                  <div key={p.id} onClick={()=>setFicheOuverte(p)}
+                    style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px 10px',flexShrink:0,cursor:'pointer'}}
+                    onMouseEnter={e=>e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'}
+                    onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+                    <div style={{fontWeight:700,color:'#111827',fontSize:12}}>{p.nom} {p.prenom} <span style={{fontSize:10,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                    <div style={{color:'#3b82f6',fontSize:10,fontWeight:600,marginTop:2}}>{typeLabel}</div>
+                    <div style={{color:'#9ca3af',fontSize:9,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
+                    <div style={{display:'flex',gap:4,marginTop:6}} onClick={e=>e.stopPropagation()}>
+                      <select onChange={async e=>{if(!e.target.value)return;await patch(p.id,{statut:'attente_medecin',emplacement:e.target.value});load();}} defaultValue=""
+                        style={{flex:1,padding:'4px 3px',borderRadius:5,border:'1px solid #bfdbfe',fontSize:9,background:'#fff',cursor:'pointer'}}>
+                        <option value="">Installer...</option>
+                        {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
+                      </select>
+                      <button onClick={()=>setFichesSortie(p)} style={{padding:'3px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:600,cursor:'pointer',border:'1px solid #e5e7eb',flexShrink:0}}>Sortie</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
