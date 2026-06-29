@@ -430,10 +430,10 @@ ${ordonnance||'--'}
   const CONSTANTES_R1 = [
     {label:'FC',     fk:'fc',   unit:'bpm',  base:p.fc,   type:'num'},
     {label:'Sat',    fk:'sat',  unit:'%',    base:p.sat,  type:'num'},
+    {label:'T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
     {label:'PAS',    fk:'tas',  unit:'mmHg', base:p.tas,  type:'num'},
     {label:'PAD',    fk:'tad',  unit:'mmHg', base:p.tad,  type:'num'},
     {label:'PAM',    fk:'pam',  unit:'mmHg', base:pamVal?.toString(), type:'fixed'},
-    {label:'T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
     {label:'BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
     {label:'Poids',  fk:'poids', unit:'kg',  base:p.poids, type:'fixed'},
   ];
