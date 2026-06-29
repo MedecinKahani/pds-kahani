@@ -96,11 +96,11 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
 
   return (
     <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70,cursor:'default'}}>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0,cursor:'default'}}>
         <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{label}</div>
         <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'nowrap'}}>
           {latest&&baseVal&&<span style={{fontSize:12,color:'#94a3b8',textDecoration:'line-through',marginRight:3,fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
-          <span style={{fontSize:17,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
+          <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
           {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8,color:'#9ca3af'}}>{unit}</span>}
           <button
             onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
@@ -135,7 +135,7 @@ function BUBtn({ baseVal, history, onAdd }) {
   const [sel, setSel] = useState({});
   return (
     <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb'}}>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb'}}>
         <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>BU</div>
         <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'nowrap'}}>
           {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
@@ -195,7 +195,7 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
 
   return (
     <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70}}>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
         <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{label}</div>
         <div style={{display:'flex',alignItems:'center',gap:3}}>
           {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through'}}>{baseVal}</span>}
@@ -453,10 +453,10 @@ ${ordonnance||'--'}
     if (c.type==='fixed') {
       // PAM : cas spécial avec couleur et alerte
       if (c.fk==='pam') return (
-        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70}}>
+        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
           <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label} <span style={{fontWeight:400}}>auto</span></div>
           <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-            <span style={{fontSize:17,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
+            <span style={{fontSize:13,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
             {pamVal&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
           </div>
           {pamVal&&pamVal<65&&<div style={{fontSize:8,color:'#ef4444',fontWeight:700,marginTop:1}}>⚠ Bas</div>}
@@ -464,10 +464,10 @@ ${ordonnance||'--'}
       );
       // Poids / Taille : valeur simple non éditable
       return (
-        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:60}}>
+        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
           <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label}</div>
           <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-            <span style={{fontSize:17,fontWeight:700,color:'#374151',lineHeight:1}}>{c.base||'—'}</span>
+            <span style={{fontSize:13,fontWeight:700,color:'#374151',lineHeight:1}}>{c.base||'—'}</span>
             {c.base&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
           </div>
         </div>
@@ -517,11 +517,11 @@ ${ordonnance||'--'}
         </div>
 
         {/* Ligne 2 : constantes rangée 1 */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5,padding:'6px 10px 4px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:3,padding:'4px 10px 2px'}}>
           {CONSTANTES_R1.map(renderConst)}
         </div>
         {/* Ligne 3 : constantes rangée 2 */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5,padding:'0 10px 7px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:3,padding:'0 10px 5px'}}>
           {CONSTANTES_R2.map(renderConst)}
         </div>
       </div>
