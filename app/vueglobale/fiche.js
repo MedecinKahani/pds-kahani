@@ -1458,7 +1458,7 @@ function CopyBtn({text, label, fullWidth}) {
   return (
     <button onClick={()=>{navigator.clipboard.writeText(text||'');setCopied(true);setTimeout(()=>setCopied(false),3000);}}
       style={{padding:fullWidth?'12px':'2px 7px',borderRadius:fullWidth?8:4,fontSize:fullWidth?14:9,fontWeight:700,cursor:'pointer',border:'none',
-        background:copied?'#059669':'#10b981',color:'#fff',transition:'background 0.2s',
+        background:copied?'#059669':'#065f46',color:'#fff',transition:'background 0.2s',
         width:fullWidth?'100%':'auto',flexShrink:fullWidth?0:1}}>
       {copied?(fullWidth?'✓ Copié ! — Faire Ctrl+V dans le champ CR de DxCare':'✓ Copié'):(label||'Copier')}
     </button>
