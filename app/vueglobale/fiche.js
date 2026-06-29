@@ -533,46 +533,47 @@ ${ordonnance||'--'}
           <div style={{flex:1,overflow:'hidden',display:'flex',minHeight:0}}>
 
             {/* ── CLINIQUE ── */}
-            {/* ── DOSSIER MÉDICAL (style DxCare) ── */}
             {/* ── DOSSIER MÉDICAL (style DxCare) 2x3 ── */}
             {(onglet==='dxcare'||onglet==='clinique'||onglet==='evolution')&&(
-              <div style={{flex:1,overflow:'hidden',padding:8,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr 2fr',gap:6}}>
+              <div style={{flex:1,overflow:'hidden',padding:8,display:'flex',flexDirection:'column',gap:6}}>
 
-                {/* MOTIF */}
-                <DxCareCell label="Motifs de consultation" copyKey="motif"
-                  value={anamnese} copyText={anamnese}
-                  onChange={v=>{setAnamnese(v);dbSave({anamnese:v});}} readOnly={role==='ide'}/>
+                {/* Ligne 1 : MOTIF + DIAGNOSTIC */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,height:'15%',minHeight:70}}>
+                  <DxCareCell label="Motifs de consultation" copyKey="motif"
+                    value={anamnese} copyText={anamnese}
+                    onChange={v=>{setAnamnese(v);dbSave({anamnese:v});}} readOnly={role==='ide'}/>
+                  <DxCareCell label="Conclusion / Diagnostic final" copyKey="diag"
+                    value={diagnostic} copyText={diagnostic}
+                    onChange={v=>{setDiagnostic(v);dbSave({diagnostic:v});}} readOnly={role==='ide'}/>
+                </div>
 
-                {/* DIAGNOSTIC */}
-                <DxCareCell label="Conclusion / Diagnostic final" copyKey="diag"
-                  value={diagnostic} copyText={diagnostic}
-                  onChange={v=>{setDiagnostic(v);dbSave({diagnostic:v});}} readOnly={role==='ide'}/>
+                {/* Ligne 2 : ATCD + ALLERGIE */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,height:'15%',minHeight:70}}>
+                  <DxCareCell label="Antécédents" copyKey="atcd"
+                    value={p.atcd||''} copyText={p.atcd||''}
+                    onChange={v=>dbSave({atcd:v})} readOnly={role==='ide'}/>
+                  <DxCareCell label="Allergie" copyKey="allergie"
+                    value={p.allergie||''} copyText={p.allergie||''}
+                    onChange={v=>dbSave({allergie:v})} readOnly={role==='ide'}/>
+                </div>
 
-                {/* ATCD */}
-                <DxCareCell label="Antécédents" copyKey="atcd"
-                  value={p.atcd||''} copyText={p.atcd||''}
-                  onChange={v=>dbSave({atcd:v})} readOnly={role==='ide'}/>
-
-                {/* ALLERGIE */}
-                <DxCareCell label="Allergie" copyKey="allergie"
-                  value={p.allergie||''} copyText={p.allergie||''}
-                  onChange={v=>dbSave({allergie:v})} readOnly={role==='ide'}/>
-
-                {/* COMPTE RENDU */}
-                <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                {/* Ligne 3 : CR CONSULTATION + PRESCRIPTION */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,flex:1,minHeight:0}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
                     <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Compte rendu de consultation</label>
-                    <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                      {role!=='ide'&&[{l:'Adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
-                        <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
-                          style={{padding:'2px 6px',borderRadius:4,fontSize:9,fontWeight:600,cursor:'pointer',background:examen===o.v?o.c:'#fff',color:examen===o.v?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
-                          {o.l}
-                        </button>
-                      ))}
-                      <CopyBtn text={(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')} label="CR"/>
-                    </div>
+                    <CopyBtn text={(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')} label="Copier"/>
                   </div>
                   <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
+                    {role!=='ide'&&(
+                      <div style={{display:'flex',gap:4,padding:'3px 4px',borderBottom:'1px solid #e5e7eb',flexShrink:0,background:'#fafafa'}}>
+                        {[{l:'Examen normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Examen normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
+                          <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
+                            style={{padding:'2px 8px',borderRadius:4,fontSize:9,fontWeight:600,cursor:'pointer',background:examen===o.v?o.c:'#fff',color:examen===o.v?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
+                            {examen===o.v?'✓ ':''}{o.l}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {p.symptome==='plaie'
                       ? <div style={{display:'flex',flex:1,overflow:'hidden',gap:4,padding:4}}>
                           <SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>
@@ -632,6 +633,9 @@ ${ordonnance||'--'}
                     }
                   </div>
                 </div>
+
+                {/* Ligne de copie générale */}
+                {role!=='ide'&&<DxCareButtons p={p} anamnese={anamnese} examen={examen} evolution={evolution} diagnostic={diagnostic} ordonnance={ordonnance} prescriptions={prescriptions} pamVal={pamVal} getVal={getVal} compact={true}/>}
 
               </div>
             )}
@@ -1485,11 +1489,11 @@ function DxCareField({label, value, onChange, placeholder, rows, readOnly}) {
   );
 }
 
-function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, prescriptions, pamVal, getVal}) {
+function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, prescriptions, pamVal, getVal, compact}) {
   const [copiedKey, setCopiedKey] = useState(null);
 
   function copy(key, text) {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text||'');
     setCopiedKey(key);
     setTimeout(()=>setCopiedKey(null), 3000);
   }
@@ -1502,50 +1506,30 @@ function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, 
   const dextro = getVal('dextro',p.dextro)||'--';
   const hb = getVal('hemocue',p.hemocue)||'--';
 
+  const rxTxt = prescriptions.map(r=>'- ['+(r.fait?'FAIT':r.nonRealise?'NON REALISE':'EN ATTENTE')+'] '+r.texte+(r.motifNonRealise?' ('+r.motifNonRealise+')':'')).join('\n');
+
   const SECTIONS = [
-    {
-      key:'motif',
-      label:'Motif',
-      icon:'📋',
-      text: (p.symptome?.replace(/_/g,' ')||'--')+(p.autre_motif?' — '+p.autre_motif:''),
-    },
-    {
-      key:'constantes',
-      label:'Paramètres entrée',
-      icon:'📊',
-      text: 'FC : '+fc+' bpm | SpO2 : '+sat+'% | T° : '+temp+'°C\nPAS : '+tas+' mmHg | PAD : '+tad+' mmHg | PAM : '+(pamVal||'--')+' mmHg\nDextro : '+dextro+' g/L | Hb : '+hb+' g/dL\nPoids : '+(p.poids||'--')+' kg | Taille : '+(p.taille||'--')+' cm',
-    },
-    {
-      key:'atcd',
-      label:'Antécédents',
-      icon:'📁',
-      text: anamnese||'--',
-    },
-    {
-      key:'examen',
-      label:'Compte rendu',
-      icon:'🩺',
-      text: examen||'--',
-    },
-    {
-      key:'evolution',
-      label:'Évolution',
-      icon:'📈',
-      text: evolution||'--',
-    },
-    {
-      key:'diagnostic',
-      label:'Diagnostic',
-      icon:'🏷️',
-      text: diagnostic||'--',
-    },
-    {
-      key:'ordonnance',
-      label:'Prescription',
-      icon:'💊',
-      text: ordonnance||'--',
-    },
+    {key:'motif',     label:'Motif',        text:(p.symptome?.replace(/_/g,' ')||'')+(p.autre_motif?' — '+p.autre_motif:'')},
+    {key:'constantes',label:'Paramètres',   text:'FC:'+fc+' | SpO2:'+sat+'% | T°:'+temp+'°C | PAS:'+tas+' PAD:'+tad+' PAM:'+(pamVal||'--')+' | Dextro:'+dextro+' | Hb:'+hb+' | Poids:'+(p.poids||'--')+'kg'},
+    {key:'atcd',      label:'Antécédents',  text:p.atcd||'--'},
+    {key:'examen',    label:'CR consultation',text:(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')},
+    {key:'diag',      label:'Diagnostic',   text:diagnostic||'--'},
+    {key:'ordonnance',label:'Prescription', text:ordonnance||'--'},
+    {key:'tout',      label:'Tout copier',  text:'PATIENT: '+p.nom+' '+p.prenom+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+fc+' | SpO2:'+sat+'% | T°:'+temp+'°C\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+rxTxt+'\n\nORDONNANCE:\n'+(ordonnance||'--')},
   ];
+
+  if(compact) return (
+    <div style={{display:'flex',gap:4,flexWrap:'wrap',padding:'4px 0',flexShrink:0}}>
+      <span style={{fontSize:10,fontWeight:700,color:'#6b7280',alignSelf:'center'}}>Copier pour DxCare :</span>
+      {SECTIONS.map(s=>(
+        <button key={s.key} onClick={()=>copy(s.key,s.text)}
+          style={{padding:'3px 8px',borderRadius:4,fontSize:10,fontWeight:600,cursor:'pointer',border:'none',
+            background:copiedKey===s.key?'#16a34a':'#111827',color:'#fff',transition:'background 0.2s'}}>
+          {copiedKey===s.key?'✓':s.label}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div style={{marginTop:8}}>
@@ -1554,11 +1538,9 @@ function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, 
         {SECTIONS.map(s=>(
           <button key={s.key} onClick={()=>copy(s.key,s.text)}
             style={{padding:'8px 12px',borderRadius:7,fontSize:12,fontWeight:600,cursor:'pointer',textAlign:'left',display:'flex',alignItems:'center',gap:8,
-              background:copiedKey===s.key?'#16a34a':'#111827',
-              color:'#fff',border:'none',transition:'background 0.2s'}}>
-            <span>{s.icon}</span>
+              background:copiedKey===s.key?'#16a34a':'#111827',color:'#fff',border:'none',transition:'background 0.2s'}}>
             <span style={{flex:1}}>{s.label}</span>
-            {copiedKey===s.key && <span style={{fontSize:11,fontWeight:400,color:'#bbf7d0'}}>✓ Copié — Ctrl+V dans DxCare</span>}
+            {copiedKey===s.key&&<span style={{fontSize:11,fontWeight:400,color:'#bbf7d0'}}>✓ Copié — Ctrl+V dans DxCare</span>}
           </button>
         ))}
       </div>
