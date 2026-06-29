@@ -23,6 +23,13 @@ function getMoisOptions() {
   return opts;
 }
 
+function calcStatsPerm(patients, hDebut, hFin) {
+  return patients.filter(p => {
+    const h = new Date(parseInt(p.arrivee)).getHours();
+    return h >= hDebut && h < hFin;
+  }).length;
+}
+
 function calcStats(patients) {
   const toutesRx = patients.flatMap(p => safeJSON(p.prescriptions, []).filter(r => r.fait));
   function countRx(needle) {
@@ -357,10 +364,116 @@ export default function StatsMensuelles() {
         {/* ── ONGLET TABLEAU SECRÉTAIRE ── */}
         {!loading && onglet==='tableau' && (
           <div>
-            <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'20px',textAlign:'center',color:'#9ca3af'}}>
-              <div style={{fontSize:32,marginBottom:8}}>🚧</div>
-              <div style={{fontWeight:600,fontSize:14,color:'#374151',marginBottom:4}}>Tableau secrétaire — À venir</div>
-              <div style={{fontSize:12}}>Ce tableau sera finalisé demain selon le modèle fourni</div>
+            {/* Navigation mois */}
+            <div className="no-print" style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px 16px',marginBottom:12}}>
+              <button onClick={()=>setMoisIdx(i=>Math.min(i+1,6))} disabled={moisIdx>=6}
+                style={{width:36,height:36,borderRadius:'50%',border:'1px solid #e5e7eb',background:moisIdx>=6?'#f9fafb':'#fff',cursor:moisIdx>=6?'not-allowed':'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',color:moisIdx>=6?'#d1d5db':'#374151'}}>←</button>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontWeight:800,fontSize:18,color:'#111827'}}>{mois.label}</div>
+                <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{s.nbPatients} patients</div>
+              </div>
+              <button onClick={()=>setMoisIdx(i=>Math.max(i-1,0))} disabled={moisIdx<=0}
+                style={{width:36,height:36,borderRadius:'50%',border:'1px solid #e5e7eb',background:moisIdx<=0?'#f9fafb':'#fff',cursor:moisIdx<=0?'not-allowed':'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',color:moisIdx<=0?'#d1d5db':'#374151'}}>→</button>
+            </div>
+            <div className="no-print" style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+              <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}}>
+                🖨️ Imprimer
+              </button>
+            </div>
+
+            <div id="print-zone-sec" style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,overflow:'hidden'}}>
+              {/* En-tête */}
+              <div style={{background:'#374151',color:'#fff',padding:'10px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontWeight:800,fontSize:14}}>CMR Kahani — Tableau mensuel</span>
+                <span style={{fontWeight:700,fontSize:14}}>{mois.label}</span>
+              </div>
+
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                <tbody>
+
+                  {/* ── SECTION IDE / AS ── */}
+                  <tr style={{background:'#dbeafe'}}>
+                    <td rowSpan={3} style={{padding:'6px 10px',fontWeight:700,color:'#1e40af',fontSize:11,textTransform:'uppercase',textAlign:'center',border:'1px solid #bfdbfe',width:60,writingMode:'vertical-rl',transform:'rotate(180deg)'}}>IDE / AS</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #bfdbfe',color:'#374151'}}>Nombre de passages AS</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #bfdbfe',fontWeight:700,textAlign:'center',width:80}}>{s.parMotif ? '' : ''}</td>
+                  </tr>
+                  <tr style={{background:'#eff6ff'}}>
+                    <td style={{padding:'6px 12px',border:'1px solid #bfdbfe',color:'#374151'}}>Nombre de passages IDE</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #bfdbfe',fontWeight:700,textAlign:'center'}}></td>
+                  </tr>
+                  <tr style={{background:'#dbeafe'}}>
+                    <td style={{padding:'6px 12px',border:'1px solid #bfdbfe',color:'#374151',fontWeight:600}}>TOTAL passages IDE/AS</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #bfdbfe',fontWeight:800,textAlign:'center',color:'#1e40af'}}>{s.nbPatients}</td>
+                  </tr>
+
+                  {/* ── SECTION PERM ── */}
+                  <tr style={{background:'#fef3c7'}}>
+                    <td rowSpan={5} style={{padding:'6px 10px',fontWeight:700,color:'#92400e',fontSize:11,textTransform:'uppercase',textAlign:'center',border:'1px solid #fde68a',writingMode:'vertical-rl',transform:'rotate(180deg)'}}>PERM</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb passages perm 07h00 à 17h00</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{calcStatsPerm(patientsduMois,7,17)}</td>
+                  </tr>
+                  <tr style={{background:'#fffbeb'}}>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb passages perm 17h00 à 00h00</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{calcStatsPerm(patientsduMois,17,24)}</td>
+                  </tr>
+                  <tr style={{background:'#fef3c7'}}>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb passages perm 00h00 à 07h00</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{calcStatsPerm(patientsduMois,0,7)}</td>
+                  </tr>
+                  <tr style={{background:'#fffbeb'}}>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb total passages perm</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:800,textAlign:'center',color:'#92400e'}}>{s.nbPatients}</td>
+                  </tr>
+
+                  {/* ── SECTION MÉDECINS ── */}
+                  <tr style={{background:'#f3f4f6'}}>
+                    <td colSpan={2} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>MÉDECINS</td>
+                  </tr>
+                  {[
+                    ['Nombre de consultations', s.nbPatients],
+                    ['', ''],
+                    ['Sutures', s.nbSutSup5+s.nbSutInf5+s.nbSutColle+s.nbSutAgraf+s.nbSutSteri],
+                    ['  — Suture ≥ 5 pts', s.nbSutSup5],
+                    ['  — Suture < 5 pts', s.nbSutInf5],
+                    ['  — Suture colle', s.nbSutColle],
+                    ['  — Agrafes', s.nbSutAgraf],
+                    ['  — Steri-strip', s.nbSutSteri],
+                    ['Ablation abcès', s.nbAbces],
+                    ['Implants — Pose', s.nbPoseImpl],
+                    ['Implants — Retrait', s.nbRetrImpl],
+                    ['Vaccins', s.nbVaccin],
+                    ['Sonde urinaire — Pose', s.nbSondeUPose],
+                    ['Sonde urinaire — Retrait', s.nbSondeURetrait],
+                  ].map(([l,v],i)=>(
+                    <tr key={i} style={{background:i%2===0?'#fff':'#f9fafb'}}>
+                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',color:'#374151',paddingLeft:l.startsWith('  ')?24:12}}>{l||' '}</td>
+                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:v>0?'#111827':'#d1d5db'}}>{v===''?' ':v}</td>
+                    </tr>
+                  ))}
+
+                  {/* Sorties */}
+                  <tr style={{background:'#f3f4f6'}}>
+                    <td colSpan={2} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>SORTIES</td>
+                  </tr>
+                  {[
+                    ['Retour à domicile', s.nbDomicile],
+                    ['Transfert Mamoudzou', s.nbTransfMDZ],
+                    ['Transfert hélicoptère (SAMU)', s.nbTransfHellico],
+                    ['GAV — Réquisition', s.nbGAV],
+                    ['Constat (décès)', s.nbDeces],
+                  ].map(([l,v],i)=>(
+                    <tr key={i} style={{background:i%2===0?'#fff':'#f9fafb'}}>
+                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',color:'#374151'}}>{l}</td>
+                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:v>0?'#111827':'#d1d5db'}}>{v}</td>
+                    </tr>
+                  ))}
+
+                </tbody>
+              </table>
+
+              <div style={{padding:'6px 12px',fontSize:10,color:'#9ca3af',borderTop:'1px solid #e5e7eb',textAlign:'right'}}>
+                CMR Kahani PDS — Généré le {dateStr}
+              </div>
             </div>
           </div>
         )}
