@@ -563,11 +563,11 @@ ${ordonnance||'--'}
 
                   {/* CR CONSULTATION */}
                   <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#ecfdf5',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-                      <label style={{fontSize:10,fontWeight:700,color:'#047857',textTransform:'uppercase',letterSpacing:0.4}}>Compte rendu de consultation</label>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#37415118',padding:'7px 12px',borderRadius:'8px 8px 0 0',flexShrink:0}}>
+                      <label style={{fontSize:12,fontWeight:700,color:'#374151'}}>Compte rendu de consultation</label>
                       <CopyBtn text={(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')} label="Copier"/>
                     </div>
-                    <div style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
+                    <div style={{flex:1,border:'1.5px solid #37415133',borderTop:'none',borderRadius:'0 0 8px 8px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
                       {role!=='ide'&&(
                         <div style={{display:'flex',gap:4,padding:'3px 4px',borderBottom:'1px solid #e5e7eb',flexShrink:0,background:'#fafafa'}}>
                           {[{l:'Examen normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Examen normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
@@ -598,11 +598,11 @@ ${ordonnance||'--'}
 
                   {/* PRESCRIPTION */}
                   <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#ecfdf5',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-                      <label style={{fontSize:10,fontWeight:700,color:'#047857',textTransform:'uppercase',letterSpacing:0.4}}>Prescription médicale</label>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#37415118',padding:'7px 12px',borderRadius:'8px 8px 0 0',flexShrink:0}}>
+                      <label style={{fontSize:12,fontWeight:700,color:'#374151'}}>Prescription médicale</label>
                       <CopyBtn text={ordonnance} label="Copier"/>
                     </div>
-                    <div style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
+                    <div style={{flex:1,border:'1.5px solid #37415133',borderTop:'none',borderRadius:'0 0 8px 8px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
                       {role!=='ide'&&<div style={{display:'flex',gap:4,flexWrap:'wrap',flexShrink:0}}>
                         {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
                         {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
