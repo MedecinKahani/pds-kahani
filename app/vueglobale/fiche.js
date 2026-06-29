@@ -650,7 +650,7 @@ ${ordonnance||'--'}
                     </div>
                     <div style={{flex:1,border:'1.5px solid #37415133',borderTop:'none',borderRadius:'0 0 8px 8px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
                       {role!=='ide'&&<div style={{display:'flex',gap:4,flexWrap:'wrap',flexShrink:0}}>
-                        {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
+                        <SutureSection p={p} save={saveNow}/>
                         {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
                           <button onClick={()=>{
                             const pds=parseFloat(p.poids)||0;const ag=parseFloat(p.age)||99;
@@ -1822,12 +1822,12 @@ function SchemaPlaie({plaies, setPlaies, save, notesInit}) {
 }
 
 function SutureSection({p, save}) {
-  const SUTURES=[{id:'sut_sup5',l:'Suture ≥5 pts',c:'#dc2626'},{id:'sut_inf5',l:'Suture <5 pts',c:'#f59e0b'},{id:'sut_colle',l:'Suture colle',c:'#0891b2'},{id:'sut_agraf',l:'Suture agrafes',c:'#7c3aed'},{id:'sut_steri',l:'Steri-strip',c:'#16a34a'}];
+  const SUTURES=[{id:'sut_sup5',l:'Suture ≥5 pts',c:'#dc2626'},{id:'sut_inf5',l:'Suture <5 pts',c:'#f59e0b'},{id:'sut_colle',l:'Suture colle',c:'#0891b2'},{id:'sut_agraf',l:'Suture agrafes',c:'#7c3aed'},{id:'sut_steri',l:'Steri-strip',c:'#16a34a'},{id:'abces',l:'Ablation abcès',c:'#ea580c'}];
   const [sel,setSel]=useState(()=>{try{return JSON.parse(p.sutures||'[]');}catch{return [];}});
   async function toggle(id){const n=sel.includes(id)?sel.filter(x=>x!==id):[...sel,id];setSel(n);await save({sutures:JSON.stringify(n)});}
   return(
     <div style={{background:'#fff8f8',border:'1.5px solid #fecaca',borderRadius:8,padding:'8px 12px'}}>
-      <div style={{fontSize:10,fontWeight:700,color:'#dc2626',textTransform:'uppercase',marginBottom:6}}>✂️ Suture / Fermeture</div>
+      <div style={{fontSize:10,fontWeight:700,color:'#dc2626',textTransform:'uppercase',marginBottom:6}}>✂️ Suture / Fermeture / Actes</div>
       <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
         {SUTURES.map(s=>{const on=sel.includes(s.id);return(
           <button key={s.id} onClick={()=>toggle(s.id)}

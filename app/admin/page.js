@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const roleColor = {medecin:'#0d9488', ide:'#3b82f6', as:'#f59e0b'};
-const roleLabel = {medecin:'Médecin', ide:'Infirmier', as:'Aide-soignant'};
-const roleOrder = {medecin:0, ide:1, as:2};
+const roleColor = {medecin:'#0d9488', ide:'#3b82f6', as:'#f59e0b', secretaire:'#7c3aed'};
+const roleLabel = {medecin:'Médecin', ide:'Infirmier', as:'Aide-soignant', secretaire:'Secrétaire'};
+const roleOrder = {medecin:0, ide:1, as:2, secretaire:3};
 
 export default function Admin() {
   const router = useRouter();
@@ -22,8 +22,8 @@ export default function Admin() {
 
   // Rôles créables selon le rôle connecté
   const rolesCreables = userRole === 'medecin'
-    ? ['medecin','ide','as']
-    : ['ide','as'];
+    ? ['medecin','ide','as','secretaire']
+    : ['ide','as','secretaire'];
 
   async function load() {
     const r = await fetch('/api/users');

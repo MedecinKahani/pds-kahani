@@ -27,7 +27,7 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) { setErreur(data.error || 'Matricule non reconnu'); setChargement(false); return; }
       sessionStorage.setItem('pds_user', JSON.stringify(data.user));
-      router.push('/vueglobale');
+      router.push(data.user.role === 'secretaire' ? '/stats-mensuelles' : '/vueglobale');
     } catch { setErreur('Erreur de connexion'); setChargement(false); }
   }
 
