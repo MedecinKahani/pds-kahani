@@ -654,13 +654,31 @@ ${ordonnance||'--'}
                         {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
                           <button onClick={()=>{
                             const pds=parseFloat(p.poids)||0;const ag=parseFloat(p.age)||99;
-                            const b=pds<15?2:pds<30?4:6;
-                            const dev=ag<3?'Chambre + masque nourrisson':ag<6?'Chambre + masque enfant':'Chambre + embout buccal';
-                            const txt='TRAITEMENT ASTHME\n\nSalbutamol (Ventoline) 100µg — '+dev+'\n'+b+' bouffées x 3/j pendant 3j\n\nEn cas de crise: 1 bouffée/30sec jusqu a 6 bouffées\nRepéter après 20min si besoin\n\nSignes alerte → APPELER 15:\n• Pas amélioration, difficulté parler, lèvres bleues, somnolence\n\nRDV consultation chronique';
+                            const b=pds>0?(pds<15?2:pds<30?4:6):6;
+                            const dev=ag<3?'Chambre d\'inhalation + masque nourrisson (ex: Babyhaler)':ag<6?'Chambre d\'inhalation + masque enfant':'Chambre d\'inhalation + embout buccal';
+                            const txt='TRAITEMENT ASTHME\n\nSalbutamol (Ventoline) 100µg/bouffée\n→ Dispositif : '+dev+'\n→ '+b+' bouffée'+(b>1?'s':'')+' toutes les 4-6h si besoin (max 3x/j)\n→ Technique : 1 bouffée à la fois, attendre 30 sec entre chaque bouffée\n\nEN CAS DE CRISE :\n→ 1 bouffée/30 sec jusqu\'à '+b*2+' bouffées max\n→ Attendre 20 min — si pas d\'amélioration, recommencer\n→ Si pas d\'amélioration après 2 séries → CONSULTER EN URGENCE\n\nSIGNES D\'ALARME → APPELER LE 15 :\n• Difficulté à parler ou marcher\n• Lèvres ou ongles bleutés\n• Pas d\'amélioration malgré le traitement\n• Somnolence\n\nRDV médecin dans les 48h pour réévaluation\nRDV consultation chronique asthme à programmer';
                             setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
                           }} style={{padding:'3px 8px',borderRadius:5,background:'#eff6ff',color:'#3b82f6',fontSize:10,fontWeight:600,border:'1px solid #bfdbfe',cursor:'pointer'}}>
                             💨 Asthme
                           </button>
+                        )}
+                        {p.symptome==='douleur'&&(
+                          <>
+                            <button onClick={()=>{
+                              const pds=parseFloat(p.poids)||0;
+                              const dose=pds>0&&pds<50?'500mg':'1g';
+                              const txt='ANTALGIQUES\n\nParacétamol '+dose+' PO\n→ 1 comprimé toutes les 6h (max 4 prises/j)\n→ Ne pas dépasser 4 comprimés par jour\n→ Espacer les prises d\'au moins 4h\n→ À avaler avec un grand verre d\'eau';
+                              setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                            }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdf4',color:'#16a34a',fontSize:10,fontWeight:600,border:'1px solid #bbf7d0',cursor:'pointer'}}>
+                              🩹 Paracétamol
+                            </button>
+                            <button onClick={()=>{
+                              const txt='Ibuprofène 400mg PO\n→ 1 comprimé matin, midi et soir au cours du repas\n→ Prendre avec un grand verre d\'eau\n→ Ne pas prendre à jeun\n→ Durée max : 5 jours\n→ CONTRE-INDIQUÉ si grossesse, allergie AINS, insuffisance rénale, ulcère gastrique';
+                              setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                            }} style={{padding:'3px 8px',borderRadius:5,background:'#fff7ed',color:'#ea580c',fontSize:10,fontWeight:600,border:'1px solid #fed7aa',cursor:'pointer'}}>
+                              🔥 Ibuprofène
+                            </button>
+                          </>
                         )}
                         {p.symptome==='plaie'&&plaies.length>0&&(
                           <button onClick={()=>{
