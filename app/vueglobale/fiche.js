@@ -662,24 +662,37 @@ ${ordonnance||'--'}
                             💨 Asthme
                           </button>
                         )}
-                        {p.symptome==='douleur'&&(
-                          <>
+                        {(()=>{
+                          const pds=parseFloat(p.poids)||0;
+                          const ag=parseFloat(p.age)||99;
+                          // Dose paracétamol selon poids
+                          let doseParacetamol, posologieParacetamol;
+                          if(pds>0&&pds<=33) {
+                            const mg=Math.round(pds*15/100)*100;
+                            doseParacetamol=mg+'mg';
+                            posologieParacetamol='1 dose-poids ('+mg+'mg = '+Math.round(pds*15)+'mg) toutes les 6h (max 4 prises/j)\n→ Sirop ou sachet selon disponibilité\n→ Ne pas dépasser 60mg/kg/j';
+                          } else if(pds>33&&pds<=50) {
+                            doseParacetamol='500mg';
+                            posologieParacetamol='1 comprimé 500mg toutes les 6h (max 4 prises/j)\n→ Espacer les prises d\'au moins 4h';
+                          } else {
+                            doseParacetamol='1g';
+                            posologieParacetamol='1 comprimé 1g toutes les 6h (max 4 prises/j)\n→ Espacer les prises d\'au moins 4h';
+                          }
+                          return <>
                             <button onClick={()=>{
-                              const pds=parseFloat(p.poids)||0;
-                              const dose=pds>0&&pds<50?'500mg':'1g';
-                              const txt='ANTALGIQUES\n\nParacétamol '+dose+' PO\n→ 1 comprimé toutes les 6h (max 4 prises/j)\n→ Ne pas dépasser 4 comprimés par jour\n→ Espacer les prises d\'au moins 4h\n→ À avaler avec un grand verre d\'eau';
+                              const txt='ANTALGIQUE\n\nParacétamol '+doseParacetamol+' PO\n→ '+posologieParacetamol+'\n→ À avaler avec un grand verre d\'eau';
                               setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
                             }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdf4',color:'#16a34a',fontSize:10,fontWeight:600,border:'1px solid #bbf7d0',cursor:'pointer'}}>
-                              🩹 Paracétamol
+                              🩹 Paracétamol {doseParacetamol}
                             </button>
-                            <button onClick={()=>{
+                            {p.symptome==='douleur'&&<button onClick={()=>{
                               const txt='Ibuprofène 400mg PO\n→ 1 comprimé matin, midi et soir au cours du repas\n→ Prendre avec un grand verre d\'eau\n→ Ne pas prendre à jeun\n→ Durée max : 5 jours\n→ CONTRE-INDIQUÉ si grossesse, allergie AINS, insuffisance rénale, ulcère gastrique';
                               setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
                             }} style={{padding:'3px 8px',borderRadius:5,background:'#fff7ed',color:'#ea580c',fontSize:10,fontWeight:600,border:'1px solid #fed7aa',cursor:'pointer'}}>
                               🔥 Ibuprofène
-                            </button>
-                          </>
-                        )}
+                            </button>}
+                          </>;
+                        })()}
                         {p.symptome==='plaie'&&plaies.length>0&&(
                           <button onClick={()=>{
                             const JOURS={tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
