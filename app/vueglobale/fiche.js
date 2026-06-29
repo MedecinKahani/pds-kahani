@@ -435,6 +435,7 @@ ${ordonnance||'--'}
     {label:'PAM',    fk:'pam',  unit:'mmHg', base:pamVal?.toString(), type:'fixed'},
     {label:'T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
     {label:'BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
+    {label:'Poids',  fk:'poids', unit:'kg',  base:p.poids, type:'fixed'},
   ];
 
   const CONSTANTES_R2 = [
@@ -445,19 +446,33 @@ ${ordonnance||'--'}
     {label:'CRP',       fk:'crp_test',    unit:'',     base:p.crp_test,    type:'qual', options:['Nég','1 barre','2 barres','3 barres','4 barres']},
     {label:'Tétanotop', fk:'tdr_tet',     unit:'',     base:p.quicktest,   type:'qual', options:['Négatif','Positif']},
     {label:'bHCG',      fk:'bhcg_resultat',unit:'',    base:p.bhcg_resultat,type:'qual',options:['Négatif','Positif']},
+    {label:'Taille',    fk:'taille',      unit:'cm',   base:p.taille,      type:'fixed'},
   ];
 
   function renderConst(c) {
-    if (c.type==='fixed') return (
-      <div key={c.fk} style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70}}>
-        <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label} <span style={{fontWeight:400}}>auto</span></div>
-        <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-          <span style={{fontSize:17,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
-          {pamVal&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
+    if (c.type==='fixed') {
+      // PAM : cas spécial avec couleur et alerte
+      if (c.fk==='pam') return (
+        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:70}}>
+          <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label} <span style={{fontWeight:400}}>auto</span></div>
+          <div style={{display:'flex',alignItems:'baseline',gap:3}}>
+            <span style={{fontSize:17,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
+            {pamVal&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
+          </div>
+          {pamVal&&pamVal<65&&<div style={{fontSize:8,color:'#ef4444',fontWeight:700,marginTop:1}}>⚠ Bas</div>}
         </div>
-        {pamVal&&pamVal<65&&<div style={{fontSize:8,color:'#ef4444',fontWeight:700,marginTop:1}}>⚠ Bas</div>}
-      </div>
-    );
+      );
+      // Poids / Taille : valeur simple non éditable
+      return (
+        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:8,padding:'5px 10px',border:'1px solid #e5e7eb',minWidth:60}}>
+          <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label}</div>
+          <div style={{display:'flex',alignItems:'baseline',gap:3}}>
+            <span style={{fontSize:17,fontWeight:700,color:'#374151',lineHeight:1}}>{c.base||'—'}</span>
+            {c.base&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
+          </div>
+        </div>
+      );
+    }
     if (c.type==='num') return (
       <ConstBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst}/>
     );
