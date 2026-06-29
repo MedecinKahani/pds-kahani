@@ -636,24 +636,6 @@ ${ordonnance||'--'}
               </div>
             )}
 
-            {/* ── PRESCRIPTIONS (médecin) ── */}
-            {onglet==='prescriptions'&&role!=='ide'&&(
-              <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column',gap:12}}>
-                <CatSection titre="🔬 Examens complémentaires" color="#374151"
-                  open={true}>
-                  <ExamSection prescriptions={prescriptions} onAjouter={ajouterRx} p={p}/>
-                </CatSection>
-                <CatSection titre="💊 Thérapeutique" color="#374151" open={true}>
-                  <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
-                </CatSection>
-                <CatSection titre="🩹 Soins" color="#374151" open={true}>
-                  <SoinsSection prescriptions={prescriptions} onAjouter={ajouterRx}/>
-                </CatSection>
-                {/* Colonne droite prescriptions en attente */}
-                <ColonnePrescriptions prescriptions={prescriptions} p={p} user={user} setPrescriptions={setPrescriptions} supprimerRx={supprimerRx} ajouterPlusieursRx={ajouterPlusieursRx}/>
-              </div>
-            )}
-
             {/* ── PRESCRIPTIONS ── */}
             {onglet==='prescriptions'&&(
               role==='ide' ? (
