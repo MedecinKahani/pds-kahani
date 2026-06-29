@@ -517,9 +517,8 @@ ${ordonnance||'--'}
           {/* Onglets */}
           <div style={{display:'flex',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
             {[
-              {id:'clinique',      l:'Clinique'},
+              {id:'dxcare',        l:'Dossier médical'},
               {id:'prescriptions', l:'Prescriptions'},
-              {id:'evolution',     l:'Évolution & sortie'},
             ].map(t=>(
               <button key={t.id} onClick={()=>setOnglet(t.id)}
                 style={{padding:'9px 16px',border:'none',background:'none',cursor:'pointer',fontSize:12,fontWeight:onglet===t.id?700:500,
@@ -534,286 +533,98 @@ ${ordonnance||'--'}
           <div style={{flex:1,overflow:'hidden',display:'flex',minHeight:0}}>
 
             {/* ── CLINIQUE ── */}
-            {onglet==='clinique'&&(
-              <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column',gap:12}}>
-                <div style={{flex:1,display:'flex',flexDirection:'column',minHeight:0}}>
-                  <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:4}}>Anamnèse</label>
-                  {role==='ide'
-                    ? <div style={{...inp,flex:1,overflow:'auto',background:'#f9fafb',whiteSpace:'pre-wrap',lineHeight:1.6,color:'#374151'}}>{anamnese||<span style={{color:'#9ca3af'}}>Aucune anamnèse</span>}</div>
-                    : <textarea value={anamnese} onChange={e=>{setAnamnese(e.target.value);dbSave({anamnese:e.target.value});}}
-                        placeholder="Motif, histoire, antécédents, traitements..." style={{...inp,flex:1,resize:'none'}}/>
-                  }
-                </div>
-                <div style={{flex:1,display:'flex',flexDirection:'column',minHeight:0}}>
-                  <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:4}}>Examen clinique</label>
-                  {role==='ide'
-                    ? <div style={{...inp,flex:1,overflow:'auto',background:'#f9fafb',whiteSpace:'pre-wrap',lineHeight:1.6,color:'#374151'}}>{examen||<span style={{color:'#9ca3af'}}>Aucun examen</span>}</div>
-                    : <>
-                        <div style={{display:'flex',gap:8,marginBottom:6}}>
-                          {[{l:'Normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a',bg:'#f0fdf4',border:'#bbf7d0'},
-                            {l:'Normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6',bg:'#eff6ff',border:'#bfdbfe'}].map(o=>(
-                            <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
-                              style={{padding:'6px 12px',borderRadius:7,fontSize:11,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',gap:6,
-                                background:examen===o.v?o.c:o.bg,color:examen===o.v?'#fff':o.c,border:'1px solid '+o.border}}>
-                              <span style={{width:14,height:14,borderRadius:3,border:'2px solid '+(examen===o.v?'#fff':o.c),background:examen===o.v?'#fff':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9}}>
-                                {examen===o.v&&<span style={{color:o.c}}>✓</span>}
-                              </span>
-                              {o.l}
-                            </button>
-                          ))}
+            {/* ── DOSSIER MÉDICAL (style DxCare) ── */}
+            {(onglet==='dxcare'||onglet==='clinique'||onglet==='evolution')&&(
+              <div style={{flex:1,overflow:'auto',padding:10,display:'flex',flexDirection:'column',gap:8}}>
+
+                <DxCareField label="Motifs de consultation"
+                  value={anamnese} onChange={v=>{setAnamnese(v);dbSave({anamnese:v});}}
+                  placeholder="Motif, histoire de la maladie..." rows={3} readOnly={role==='ide'}/>
+
+                <DxCareField label="Antécédents"
+                  value={p.atcd||''} onChange={v=>dbSave({atcd:v})}
+                  placeholder="Antécédents médicaux, chirurgicaux..." rows={2} readOnly={role==='ide'}/>
+
+                <DxCareField label="Allergie"
+                  value={p.allergie||''} onChange={v=>dbSave({allergie:v})}
+                  placeholder="Allergies connues..." rows={1} readOnly={role==='ide'}/>
+
+                <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                  <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4,background:'#e8e8e8',padding:'4px 8px',borderRadius:4,display:'flex',alignItems:'center',gap:8}}>
+                    Compte rendu de consultation
+                    {role!=='ide'&&<span style={{display:'flex',gap:6}}>
+                      {[{l:'Normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a',bg:'#f0fdf4'},{l:'Normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6',bg:'#eff6ff'}].map(o=>(
+                        <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
+                          style={{padding:'3px 8px',borderRadius:5,fontSize:10,fontWeight:600,cursor:'pointer',background:examen===o.v?o.c:o.bg,color:examen===o.v?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
+                          {o.l}
+                        </button>
+                      ))}
+                    </span>}
+                  </label>
+                  <div style={{border:'1.5px solid #c0c0c0',borderRadius:4,padding:8,background:'#fff',display:'flex',flexDirection:'column',gap:6}}>
+                    {p.symptome==='plaie'
+                      ? <div style={{display:'flex',gap:8,minHeight:0}}>
+                          <SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>
+                          {role==='ide'
+                            ? <div style={{...inp,flex:1,overflow:'auto',background:'#f9fafb',whiteSpace:'pre-wrap',color:'#374151'}}>{examen||'--'}</div>
+                            : <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}} placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none',minHeight:120}}/>
+                          }
                         </div>
-                        {p.symptome==='plaie'
-                          ? <div style={{display:'flex',gap:8,flex:1,minHeight:0}}>
-                              <SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>
-                              <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
-                                placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
-                            </div>
-                          : <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
-                              placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
-                        }
-                      </>
-                  }
-                </div>
-              </div>
-            )}
-
-            {/* ── PRESCRIPTIONS ── */}
-            {onglet==='prescriptions'&&(
-              role==='ide' ? (
-                /* VUE IDE : 3 colonnes plein écran */
-                <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
-                  <div style={{flex:1,display:'flex',gap:0,minHeight:0,overflow:'hidden'}}>
-                    {[
-                      {cat:'examen',        titre:'🔬 Examens',     color:'#7c3aed'},
-                      {cat:'therapeutique', titre:'💊 Thérapeutique',color:'#ea580c'},
-                      {cat:'soin',          titre:'🩹 Soins',        color:'#d97706'},
-                    ].map(({cat,titre,color})=>{
-                      const items = prescriptions.filter(r=>r.categorie===cat);
-                      return (
-                        <div key={cat} style={{flex:1,borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
-                          <div style={{background:color+'18',padding:'10px 14px',borderBottom:'1px solid '+color+'22',flexShrink:0}}>
-                            <span style={{fontWeight:700,color,fontSize:13}}>{titre}</span>
-                          </div>
-                          <div style={{flex:1,overflowY:'auto',padding:10,display:'flex',flexDirection:'column',gap:6,minHeight:0}}>
-                            <AjouterNote cat={cat} color={color} p={p} user={user} transmissions={transmissions} setTransmissions={setTransmissions}/>
-                            {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:8}}>Aucune prescription</div>}
-                            {items.map((r,i)=>{
-                              const gi=prescriptions.indexOf(r);
-                              return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} user={user}
-                                onCocherAvecResultat={(val,fk,label)=>{
-                                  const rx=[...prescriptions];
-                                  rx[gi]={...rx[gi],fait:true,resultat:val,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
-                                  setPrescriptions(rx);
-                                  fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
-                                    body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
-                                  addConst(fk,label,val,'');
-                                }}/>;
-                            })}
-                            {transmissions.filter(t=>t.categorie===cat).map((t,i)=>(
-                              <div key={'n'+i} style={{padding:'8px 10px',borderRadius:8,border:'1.5px dashed '+color+'55',background:color+'08'}}>
-                                <div style={{fontSize:12,color:'#374151'}}>{t.texte}</div>
-                                <div style={{fontSize:9,color:'#9ca3af',marginTop:3}}>{t.nom} · {new Date(t.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                </div>
-              ) : (
-                /* VUE MÉDECIN : catégories + colonne droite */
-                <div style={{flex:1,display:'flex',minHeight:0,overflow:'hidden'}}>
-                  <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
-                    {/* Examens */}
-                    <CatSection titre="🔬 Examens complémentaires" color="#374151"
-                      collapsed={collapsed.examens} onToggle={()=>setCollapsed(c=>({...c,examens:!c.examens}))}>
-                      <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
-                        {EXAMENS_COMPL.map(e=>{
-                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
-                          if(deja) return null;
-                          if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
-                          return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
-                        })}
-                        <AutreLibre categorie="examen" onAjouter={ajouterRx}/>
-                      </div>
-                    </CatSection>
-                    {/* Thérapeutique */}
-                    <CatSection titre="💊 Thérapeutique" color="#374151"
-                      collapsed={collapsed.therapeutique} onToggle={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
-                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
-                    </CatSection>
-                    {/* Soins */}
-                    <CatSection titre="🩹 Soins" color="#374151"
-                      collapsed={collapsed.soins} onToggle={()=>setCollapsed(c=>({...c,soins:!c.soins}))}>
-                      <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
-                        {SOINS.map(s=>{
-                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
-                          if(deja) return null;
-                          return <RxBtn key={s.id} label={s.label} color={s.color} onClick={()=>ajouterRx(s.label,'soin')}/>;
-                        })}
-                        <AutreLibre categorie="soin" onAjouter={ajouterRx}/>
-                      </div>
-                    </CatSection>
-                  </div>
-                  {/* Colonne droite prescriptions */}
-                  <div style={{width:230,borderLeft:'1px solid #e5e7eb',background:'#fafafa',display:'flex',flexDirection:'column',flexShrink:0}}>
-                    <div style={{padding:'8px 12px',borderBottom:'1px solid #e5e7eb',fontSize:11,fontWeight:700,color:'#374151',display:'flex',alignItems:'center',gap:6}}>
-                      Prescriptions
-                      {enAttente.length>0&&<span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:9,padding:'1px 6px'}}>{enAttente.length}</span>}
-                    </div>
-                    <div style={{flex:1,overflow:'auto',padding:8}}>
-                      {enAttente.map((r,i)=>{
-                        const gi=prescriptions.indexOf(r);
-                        const bc=r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
-                        return (
-                          <div key={i} style={{background:'#fff',border:'1px solid '+bc+'44',borderRadius:7,padding:'6px 8px',marginBottom:4}}>
-                            <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
-                              <span style={{fontSize:10,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
-                              <div style={{flex:1,minWidth:0}}>
-                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3,display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
-                                  {r.texte.includes(' ×')
-                                    ? <>
-                                        <span>{r.texte.replace(/ ×\d+$/,'')}</span>
-                                        <span style={{display:'inline-flex',alignItems:'center',gap:2,background:'#f3f4f6',borderRadius:5,padding:'1px 4px'}}>
-                                          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();
-                                            const m=r.texte.match(/ ×(\d+)$/);const n=m?Math.max(1,parseInt(m[1])-1):1;
-                                            const rx=[...prescriptions];rx[gi]={...rx[gi],texte:r.texte.replace(/ ×\d+$/,' ×'+n)};
-                                            setPrescriptions(rx);fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
-                                          }} style={{width:14,height:14,border:'none',background:'#e5e7eb',borderRadius:3,cursor:'pointer',fontSize:11,lineHeight:'14px',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>−</button>
-                                          <span style={{fontSize:11,fontWeight:700,minWidth:14,textAlign:'center'}}>×{r.texte.match(/ ×(\d+)$/)?.[1]||1}</span>
-                                          <button onMouseDown={e=>{e.preventDefault();e.stopPropagation();
-                                            const m=r.texte.match(/ ×(\d+)$/);const n=m?parseInt(m[1])+1:2;
-                                            const rx=[...prescriptions];rx[gi]={...rx[gi],texte:r.texte.replace(/ ×\d+$/,' ×'+n)};
-                                            setPrescriptions(rx);fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
-                                          }} style={{width:14,height:14,border:'none',background:'#e5e7eb',borderRadius:3,cursor:'pointer',fontSize:11,lineHeight:'14px',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>+</button>
-                                        </span>
-                                      </>
-                                    : <span>{r.texte}</span>
-                                  }
-                                </div>
-                                <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
-                              </div>
-                              <button onClick={()=>supprimerRx(gi)} title="Supprimer"
-                                style={{flexShrink:0,width:16,height:16,borderRadius:3,border:'1px solid #fecaca',background:'#fef2f2',color:'#ef4444',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {termines.length>0&&<>
-                        <div style={{fontSize:9,color:'#9ca3af',fontWeight:700,textTransform:'uppercase',margin:'8px 0 4px'}}>Terminées</div>
-                        {termines.map((r,i)=>(
-                          <div key={i} style={{background:'#f9fafb',borderRadius:6,padding:'4px 7px',marginBottom:3,display:'flex',gap:4,opacity:0.6}}>
-                            <span style={{fontSize:9}}>{r.fait?'✓':'✕'}</span>
-                            <div style={{flex:1}}>
-                              <div style={{fontSize:10,color:'#6b7280',textDecoration:'line-through'}}>{r.texte}</div>
-                              {r.faitA&&<div style={{fontSize:8,color:'#9ca3af'}}>{r.faitNom} · {new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
-                              {r.motifNonRealise&&<div style={{fontSize:8,color:'#ef4444'}}>{r.motifNonRealise}</div>}
-                            </div>
-                          </div>
-                        ))}
-                      </>}
-                    </div>
+                      : role==='ide'
+                        ? <div style={{...inp,overflow:'auto',background:'#f9fafb',whiteSpace:'pre-wrap',color:'#374151',minHeight:60}}>{examen||'--'}</div>
+                        : <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}} placeholder="Examen clinique, constantes, résultats..." style={{...inp,resize:'none',minHeight:80}}/>
+                    }
+                    {role==='ide'
+                      ? evolution&&<div style={{borderTop:'1px dashed #e5e7eb',paddingTop:6,marginTop:4,fontSize:11,color:'#374151',whiteSpace:'pre-wrap'}}><span style={{fontWeight:700}}>Évolution : </span>{evolution}</div>
+                      : <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);dbSave({evolution:e.target.value});}} placeholder="Évolution post-traitement..." style={{...inp,resize:'none',minHeight:60}}/>
+                    }
                   </div>
                 </div>
-              )
-            )}
 
-            {/* ── ÉVOLUTION ── */}
-            {onglet==='evolution'&&(
-              <div style={{flex:1,overflow:'auto',padding:14,display:'flex',flexDirection:'column',gap:12}}>
-                {role==='ide' ? <>
-                  {evolution&&<div><label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Évolution</label><div style={{...inp,background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap'}}>{evolution}</div></div>}
-                  {diagnostic&&<div><label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Diagnostic</label><div style={{...inp,background:'#f9fafb',color:'#374151'}}>{diagnostic}</div></div>}
-                  {ordonnance&&<div><label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Ordonnance</label><div style={{...inp,background:'#f9fafb',color:'#374151',whiteSpace:'pre-wrap'}}>{ordonnance}</div></div>}
-                  {!evolution&&!diagnostic&&!ordonnance&&<div style={{color:'#9ca3af',textAlign:'center',padding:'2rem'}}>Aucune évolution renseignée</div>}
-                </> : <>
-                  {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
-                  <div>
-                    <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Évolution au dispensaire</label>
-                    <textarea value={evolution} onChange={e=>{setEvolution(e.target.value);dbSave({evolution:e.target.value});}} rows={4} style={inp} placeholder="Évolution clinique..."/>
+                <DxCareField label="Conclusion / Diagnostic final"
+                  value={diagnostic} onChange={v=>{setDiagnostic(v);dbSave({diagnostic:v});}}
+                  placeholder="Diagnostic retenu..." rows={2} readOnly={role==='ide'}/>
+
+                <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                  <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4,background:'#e8e8e8',padding:'4px 8px',borderRadius:4}}>Prescription médicale</label>
+                  <div style={{border:'1.5px solid #c0c0c0',borderRadius:4,padding:8,background:'#fff',display:'flex',flexDirection:'column',gap:6}}>
+                    {role!=='ide'&&<>
+                      {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
+                      {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
+                        <button onClick={()=>{
+                          const pds=parseFloat(p.poids)||0;const ag=parseFloat(p.age)||99;
+                          const b=pds<15?2:pds<30?4:6;
+                          const dev=ag<3?'Chambre + masque nourrisson':ag<6?'Chambre + masque enfant':'Chambre + embout buccal';
+                          const txt='TRAITEMENT ASTHME\n\nSalbutamol (Ventoline) 100µg — '+dev+'\n'+b+' bouffées x 3/j pendant 3j\n\nEn cas de crise: 1 bouffée/30sec jusqu à 6 bouffées\nRépéter après 20min si besoin\n\nSignes alerte → APPELER 15:\n• Pas amélioration, difficulté parler, lèvres bleues, somnolence\n\nRDV consultation chronique';
+                          setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                        }} style={{padding:'5px 10px',borderRadius:6,background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:600,border:'1px solid #bfdbfe',cursor:'pointer',alignSelf:'flex-start'}}>
+                          💨 Générer ordonnance asthme
+                        </button>
+                      )}
+                      {p.symptome==='plaie'&&plaies.length>0&&(
+                        <button onClick={()=>{
+                          const JOURS={tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
+                          const LABELS={tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
+                          const today=new Date();const sutAct=safeJSON(p.sutures,[]);const agr=sutAct.includes('sut_agraf');
+                          const base='Soins plaie(s):\n• Laver eau savon, bien secher\n• Compresse + Biseptine 1x/j\n• Pansement simple\n\nIDEL:\n';
+                          const lig=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return '• Plaie '+(i+1)+' ('+z+'): '+(agr?'retirer agrafes':'retirer fils')+' ('+pl.points+'pt) dans '+j+'j (le '+d+')';}).join('\n');
+                          const txt=base+lig;setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+                          const rx=plaies.map((pl,i)=>{const j=JOURS[pl.zone]||10;const z=LABELS[pl.zone]||pl.zone;const d=new Date(today.getTime()+j*24*3600*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return {texte:'RDV retrait '+(agr?'agrafes':'fils')+' Plaie '+(i+1)+' ('+z+') le '+d,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||'' };});
+                          ajouterPlusieursRx(rx);
+                        }} style={{padding:'5px 10px',borderRadius:6,background:'#f0fdfa',color:'#0d9488',fontSize:11,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer',alignSelf:'flex-start'}}>
+                          ✨ Ordonnance + RDV ablation fils
+                        </button>
+                      )}
+                    </>}
+                    {role==='ide'
+                      ? <div style={{...inp,overflow:'auto',background:'#f9fafb',whiteSpace:'pre-wrap',color:'#374151',minHeight:60}}>{ordonnance||'--'}</div>
+                      : <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} placeholder="Ordonnance de sortie..." style={{...inp,resize:'none',minHeight:80}}/>
+                    }
                   </div>
-                  <div>
-                    <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Diagnostic</label>
-                    <textarea value={diagnostic} onChange={e=>{setDiagnostic(e.target.value);dbSave({diagnostic:e.target.value});}} rows={3} style={inp} placeholder="Diagnostic retenu..."/>
-                  </div>
-                  <div>
-                    <label style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',display:'block',marginBottom:4}}>Ordonnance de sortie</label>
-                    {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
-                      <button onClick={()=>{
-                        const poids = parseFloat(p.poids)||0;
-                        const age = parseFloat(p.age)||99;
-                        // Doses Ventoline selon poids
-                        const bouffees = poids < 15 ? 2 : poids < 30 ? 4 : 6;
-                        // Dispositif selon âge
-                        const dispositif = age < 3
-                          ? 'Chambre d\'inhalation + masque nourrisson (ex : Babyhaler)'
-                          : age < 6
-                          ? 'Chambre d\'inhalation + masque enfant'
-                          : 'Chambre d\'inhalation + embout buccal (ou masque si difficultés)';
-                        const txt = [
-                          '=== TRAITEMENT ASTHME ===',
-                          '',
-                          `Salbutamol (Ventoline) 100µg/dose — ${dispositif}`,
-                          `${bouffees} bouffées (1 à la fois dans la chambre) × 3/jour pendant 3 jours`,
-                          '',
-                          '--- En cas de crise ---',
-                          '• 1 bouffée toutes les 30 secondes jusqu\'à 6 bouffées',
-                          '• Attendre 20 minutes — si pas d\'amélioration : recommencer',
-                          '• Position demi-assise, rester calme',
-                          '',
-                          '--- Signes d\'alerte → Reconsulter IMMÉDIATEMENT ---',
-                          '• Pas d\'amélioration après 12 bouffées',
-                          '• Difficulté à parler ou marcher',
-                          '• Lèvres ou ongles bleutés',
-                          '• Respiration très rapide ou très lente',
-                          '• Somnolence ou perte de connaissance → APPELER LE 15',
-                          '',
-                          '→ Prendre RDV en consultation chronique pour suivi et renouvellement traitement',
-                        ].join('\n');
-                        setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
-                        dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
-                      }} style={{marginBottom:6,padding:'6px 12px',borderRadius:7,background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:600,border:'1px solid #bfdbfe',cursor:'pointer'}}>
-                        💨 Générer ordonnance asthme
-                      </button>
-                    )}
-                    {p.symptome==='plaie'&&plaies.length>0&&(
-                      <button onClick={()=>{
-                        const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
-                        const LABELS = {tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
-                        const today = new Date();
-                        const soinsBase = 'Soins de la/des plaie(s) :\n• Laver tous les jours a l\'eau et au savon, bien secher\n• Compresse + Biseptine 1x/jour si besoin\n• Pansement simple\n\nPour l\'IDEL :\n';
-                        const suturesActives = safeJSON(p.sutures, []);
-                        const agrafes = suturesActives.includes('sut_agraf');
-                        const lignes = plaies.map((pl,i)=>{
-                          const j = JOURS[pl.zone]||10;
-                          const z = LABELS[pl.zone]||pl.zone;
-                          const dateRetrait = new Date(today.getTime()+j*24*3600*1000);
-                          const dateStr = dateRetrait.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-                          const typeRetrait = agrafes ? 'retirer agrafes' : 'retirer fils';
-                          return '• Plaie '+(i+1)+' ('+z+') : '+typeRetrait+' ('+pl.points+'pt) dans '+j+' jours (le '+dateStr+')';
-                        }).join('\n');
-                        const txt = soinsBase + lignes;
-                        setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
-                        dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
-                        // Ajouter prescription soins RDV ablation fils pour chaque plaie
-                        const nouvRx = plaies.map((pl,i)=>{
-                          const j = JOURS[pl.zone]||10;
-                          const z = LABELS[pl.zone]||pl.zone;
-                          const dateRetrait = new Date(today.getTime()+j*24*3600*1000);
-                          const dateStr = dateRetrait.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-                          return {texte:'Programmer RDV retrait '+(agrafes?'agrafes':'fils')+' — Plaie '+(i+1)+' ('+z+') le '+dateStr,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};
-                        });
-                        ajouterPlusieursRx(nouvRx);
-                      }} style={{marginBottom:6,padding:'6px 12px',borderRadius:7,background:'#f0fdfa',color:'#0d9488',fontSize:11,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
-                        ✨ Générer ordonnance + RDV ablation fils
-                      </button>
-                    )}
-                    <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} rows={4} style={inp} placeholder="Traitements de sortie, conseils, suivi..."/>
-                  </div>
-                  <DxCareButtons p={p} anamnese={anamnese} examen={examen} evolution={evolution} diagnostic={diagnostic} ordonnance={ordonnance} prescriptions={prescriptions} pamVal={pamVal} getVal={getVal}/>
-                </>}
+                </div>
+
+                {role!=='ide'&&<DxCareButtons p={p} anamnese={anamnese} examen={examen} evolution={evolution} diagnostic={diagnostic} ordonnance={ordonnance} prescriptions={prescriptions} pamVal={pamVal} getVal={getVal}/>}
+
               </div>
             )}
           </div>
@@ -1509,6 +1320,24 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
         <button onClick={()=>{setOpen(false);setPoids('');}}
           style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
       </div>
+    </div>
+  );
+}
+
+function DxCareField({label, value, onChange, placeholder, rows, readOnly}) {
+  const [local, setLocal] = useState(value||'');
+  useEffect(()=>setLocal(value||''),[value]);
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:4}}>
+      <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4,background:'#e8e8e8',padding:'4px 8px',borderRadius:4}}>{label}</label>
+      {readOnly
+        ? <div style={{border:'1.5px solid #c0c0c0',borderRadius:4,padding:'6px 8px',background:'#fff',minHeight:36,fontSize:12,color:'#374151',whiteSpace:'pre-wrap'}}>{local||<span style={{color:'#9ca3af'}}>--</span>}</div>
+        : <textarea value={local} rows={rows||2}
+            onChange={e=>setLocal(e.target.value)}
+            onBlur={()=>onChange(local)}
+            placeholder={placeholder||''}
+            style={{border:'1.5px solid #c0c0c0',borderRadius:4,padding:'6px 8px',fontSize:12,outline:'none',resize:'vertical',fontFamily:'system-ui',background:'#fff'}}/>
+      }
     </div>
   );
 }
