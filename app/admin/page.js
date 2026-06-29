@@ -108,7 +108,7 @@ export default function Admin() {
         <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'1.25rem'}}>
           <h2 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:16}}>Agents ({users.length})</h2>
           {users.length===0&&<div style={{color:'#9ca3af',fontSize:13}}>Aucun agent enregistré</div>}
-          {['medecin','ide','as'].map(r => {
+          {['medecin','ide','as','secretaire'].map(r => {
             const groupe = grouped[r];
             if (!groupe || groupe.length === 0) return null;
             return (
