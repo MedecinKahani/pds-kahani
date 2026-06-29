@@ -86,7 +86,7 @@ export default function NouveauPatient() {
     douleur_zones:[], ecg_fait:false,
     vomissement:null, tache_peau:null,
     bu_fait:false, bhcg_fait:false,
-    autre_motif:'', douleur_autre:'',
+    autre_motif:'', douleur_autre:'', soins_type:'',
   });
 
   const set = (k,v) => setF(prev=>({...prev,[k]:v}));
@@ -163,7 +163,8 @@ export default function NouveauPatient() {
     if (s==='fievre') {
       const ancienne = ['3j','>3j'].includes(f.fievre_depuis);
       if (ancienne) return {place:prefPlace(['lit1','lit2','fauteuil2'],occupees), label:'Lit 1 (ou Lit 2, Fauteuil 2)', urgence:false, msg:'Fievre > 3j — Installer en salle'};
-      return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
+      if (s==='soins_ide') return {place:'dehors', label:'Dehors', urgence:false, msg:'File attente soins IDE'};
+    return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
     }
     if (s==='vertige') return {place:prefPlace(['lit1','lit2','brancard2','brancard1'],occupees), label:'Lit 1 (ou Lit 2, Brancard 2)', urgence:false, msg:'Allonger le patient'};
     if (s==='douleur') {
@@ -182,7 +183,7 @@ export default function NouveauPatient() {
   const canSubmit = (()=>{
     const s = f.symptome;
     if (!f.sexe||!f.nom||!s) return false;
-    if (!f.fc||!f.sat||!f.temp) return false;
+    if (!f.fc||!f.sat||!f.temp) { if (s!=='soins_ide') return false; }
     if (s==='coma') { if (f.respire===null) return false; if (f.respire===true) return !!(f.dextro&&f.hemocue); return true; }
     if (s==='avc') { if (!f.avc_depuis) return false; if (f.avc_depuis==='>4h') return !!(f.dextro&&f.hemocue); return true; }
     if (s==='detresse_respi') { if (f.asthme_connu===null||f.parle_ok===null) return false; if (age!==null&&age<2&&!f.drp_fait) return false; return true; }
@@ -192,6 +193,7 @@ export default function NouveauPatient() {
       if (['3j','>3j'].includes(f.fievre_depuis)) return (f.crp_fait||f.crp_rupture)&&(f.tdr_palu_fait||f.tdr_palu_rupture)&&(f.tdr_dengue_fait||f.tdr_dengue_rupture);
       return true;
     }
+    if (s==='soins_ide') return !!f.soins_type;
     if (s==='vertige') return !!(f.dextro&&f.hemocue);
     if (s==='douleur') {
       if (!f.douleur_zones.length) return false;
@@ -236,7 +238,7 @@ export default function NouveauPatient() {
       douleur_zones:JSON.stringify(f.douleur_zones), ecg_fait:f.ecg_fait,
       vomissement:f.vomissement!==null?String(f.vomissement):'',
       tache_peau:f.tache_peau!==null?String(f.tache_peau):'',
-      drp_fait:f.drp_fait, autre_motif:f.autre_motif, douleur_autre:f.douleur_autre,
+      drp_fait:f.drp_fait, autre_motif:f.autre_motif, douleur_autre:f.douleur_autre, soins_type:f.soins_type,
       crp_resultat:f.crp_resultat, tdr_palu_resultat:f.tdr_palu_resultat, tdr_dengue_resultat:f.tdr_dengue_resultat,
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
@@ -358,7 +360,7 @@ export default function NouveauPatient() {
               {id:'fievre',l:'Fievre'},
               {id:'vertige',l:'Vertige / Malaise'},
               {id:'douleur',l:'Douleur'},
-              {id:'autre',l:'Autre'},
+              {id:'soins_ide',l:'Soins infirmiers'},
             ].map(function(s) {
               return (
                 <Btn key={s.id} onClick={()=>set('symptome',s.id)}
@@ -627,6 +629,20 @@ export default function NouveauPatient() {
           </div>
         )}
 
+        {f.symptome==='soins_ide' && (
+          <div style={card}>
+            <label style={lbl}>Type de soins *</label>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {[['bio','Biologie (prise de sang, ECBU...)'],['injection','Injection (IM, SC, IV...)'],['autre','Autre soin']].map(function(item) {
+                return (
+                  <Btn key={item[0]} onClick={()=>set('soins_type',item[0])} style={{...{flex:1,padding:'10px',borderRadius:8,fontWeight:600,fontSize:13,textAlign:'left'},background:f.soins_type===item[0]?'#3b82f6':'#f9fafb',color:f.soins_type===item[0]?'#fff':'#374151',border:'2px solid '+(f.soins_type===item[0]?'#3b82f6':'#e5e7eb')}}>
+                    {item[1]}
+                  </Btn>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {f.symptome==='autre' && (
           <div style={card}>
             <label style={lbl}>Preciser le motif</label>
@@ -657,8 +673,8 @@ export default function NouveauPatient() {
             <div style={{background:'#fff',borderRadius:12,border:'1.5px solid #e5e7eb',padding:'12px'}}>
               <div style={{fontSize:12,fontWeight:700,color:'#6b7280',marginBottom:8}}>Choisir un autre emplacement:</div>
               <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                {EMPLACEMENTS.filter(e=>e.id!=='dehors').map(function(e) {
-                  const libre = !occupees.includes(e.id);
+                {EMPLACEMENTS.map(function(e) {
+                  const libre = e.id==='dehors'||!occupees.includes(e.id);
                   return (
                     <Btn key={e.id} onClick={()=>libre&&enregistrer({place:e.id,label:e.l,urgence:false,msg:''})}
                       style={{padding:'8px 14px',borderRadius:8,fontSize:12,fontWeight:600,background:libre?e.c:'#e5e7eb',color:libre?'#fff':'#9ca3af',border:'none',opacity:libre?1:0.5}}>

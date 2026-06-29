@@ -185,7 +185,8 @@ export default function PageVueGlobale() {
   }
 
   if(!user)return null;
-  const preau=patients.filter(p=>p.statut==='dehors');
+  const preau=patients.filter(p=>p.statut==='dehors'&&p.symptome!=='soins_ide');
+  const soinsIDE=patients.filter(p=>p.statut==='dehors'&&p.symptome==='soins_ide');
   const enSalle=patients.filter(p=>p.statut!=='dehors');
 
   function labelSymptome(p) {
@@ -526,6 +527,38 @@ export default function PageVueGlobale() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* SOINS IDE */}
+      <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px',margin:'0 12px 12px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:soinsIDE.length>0?'#3b82f6':'#e5e7eb'}}/>
+          <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Soins infirmiers</span>
+          {soinsIDE.length>0&&<span style={{background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{soinsIDE.length}</span>}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:6}}>
+          {soinsIDE.length===0&&<div style={{fontSize:12,color:'#9ca3af',fontStyle:'italic'}}>Aucun patient</div>}
+          {soinsIDE.map(p=>{
+            const typeLabel = p.soins_type==='bio'?'Biologie':p.soins_type==='injection'?'Injection':'Autre soin';
+            return (
+              <div key={p.id} onClick={()=>setFicheOuverte(p)}
+                style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px 12px',cursor:'pointer'}}
+                onMouseEnter={e=>e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'}
+                onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                <div style={{color:'#3b82f6',fontSize:11,fontWeight:600,marginTop:2}}>{typeLabel}</div>
+                <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
+                <div style={{display:'flex',gap:5,marginTop:6}} onClick={e=>e.stopPropagation()}>
+                  <select onChange={async e=>{if(!e.target.value)return;await patch(p.id,{statut:'attente_medecin',emplacement:e.target.value});load();}} defaultValue="" style={{flex:1,padding:'4px 6px',borderRadius:6,border:'1px solid #bfdbfe',fontSize:10,background:'#fff',cursor:'pointer'}}>
+                    <option value="">Installer...</option>
+                    {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
+                  </select>
+                  <button onClick={()=>setFichesSortie(p)} style={{padding:'4px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:10,fontWeight:600,cursor:'pointer',border:'1px solid #e5e7eb',flexShrink:0}}>Sortie</button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

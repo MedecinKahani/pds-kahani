@@ -777,13 +777,16 @@ ${ordonnance||'--'}
                         const JOURS = {tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
                         const LABELS = {tete:'tête',cou:'cou',tronc:'tronc',abdomen:'abdomen',bras:'bras',avant_bras:'avant-bras',main:'main',cuisse:'cuisse',jambe:'jambe',cheville:'cheville',pied:'pied',genou:'genou',coude:'coude',dos:'dos'};
                         const today = new Date();
-                        const soinsBase = 'Soins de la/des plaie(s) :\n• Laver tous les jours à l\'eau et au savon, bien sécher\n• Compresse + Biseptine 1x/jour si besoin\n• Pansement simple\n\nPour l\'IDEL :\n';
+                        const soinsBase = 'Soins de la/des plaie(s) :\n• Laver tous les jours a l\'eau et au savon, bien secher\n• Compresse + Biseptine 1x/jour si besoin\n• Pansement simple\n\nPour l\'IDEL :\n';
+                        const suturesActives = safeJSON(p.sutures, []);
+                        const agrafes = suturesActives.includes('sut_agraf');
                         const lignes = plaies.map((pl,i)=>{
                           const j = JOURS[pl.zone]||10;
                           const z = LABELS[pl.zone]||pl.zone;
                           const dateRetrait = new Date(today.getTime()+j*24*3600*1000);
                           const dateStr = dateRetrait.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-                          return `• Plaie ${i+1} (${z}) : retirer ${pl.points||'?'} point${(pl.points||0)>1?'s':''} dans ${j} jours (le ${dateStr})`;
+                          const typeRetrait = agrafes ? 'retirer agrafes' : 'retirer fils';
+                          return '• Plaie '+(i+1)+' ('+z+') : '+typeRetrait+' ('+pl.points+'pt) dans '+j+' jours (le '+dateStr+')';
                         }).join('\n');
                         const txt = soinsBase + lignes;
                         setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
@@ -794,7 +797,7 @@ ${ordonnance||'--'}
                           const z = LABELS[pl.zone]||pl.zone;
                           const dateRetrait = new Date(today.getTime()+j*24*3600*1000);
                           const dateStr = dateRetrait.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-                          return {texte:`Programmer RDV ablation fils — Plaie ${i+1} (${z}) le ${dateStr}`,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};
+                          return {texte:'Programmer RDV retrait '+(agrafes?'agrafes':'fils')+' — Plaie '+(i+1)+' ('+z+') le '+dateStr,categorie:'soin',fait:false,nonRealise:false,ts:Date.now()+i,par:user?.matricule||'',parNom:user?.nom||''};
                         });
                         ajouterPlusieursRx(nouvRx);
                       }} style={{marginBottom:6,padding:'6px 12px',borderRadius:7,background:'#f0fdfa',color:'#0d9488',fontSize:11,fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>
@@ -1581,18 +1584,18 @@ function SchemaPlaie({plaies, setPlaies}) {
             {id:'cou',       label:'Cou',     cx:160, cy:61,  shape:'rect', x:152,y:52,w:16,h:18},
             {id:'tronc',     label:'Tronc',   cx:160, cy:120, shape:'rect', x:110,y:68,w:100,h:90},
             {id:'abdomen',   label:'Abdomen', cx:160, cy:165, shape:'rect', x:110,y:155,w:100,h:43},
-            {id:'bras',      label:'Bras G',  cx:88,  cy:127, shape:'rect', x:65,y:70,w:45,h:115},
-            {id:'bras',      label:'Bras D',  cx:232, cy:127, shape:'rect', x:210,y:70,w:45,h:115},
-            {id:'main',      label:'Main G',  cx:64,  cy:203, shape:'rect', x:48,y:185,w:32,h:36},
-            {id:'main',      label:'Main D',  cx:256, cy:203, shape:'rect', x:240,y:185,w:32,h:36},
-            {id:'cuisse',    label:'Cuisse G',cx:134, cy:233, shape:'rect', x:112,y:195,w:44,h:75},
-            {id:'cuisse',    label:'Cuisse D',cx:186, cy:233, shape:'rect', x:164,y:195,w:44,h:75},
-            {id:'genou',     label:'Genou G', cx:135, cy:283, shape:'rect', x:115,y:268,w:40,h:30},
-            {id:'genou',     label:'Genou D', cx:185, cy:283, shape:'rect', x:165,y:268,w:40,h:30},
-            {id:'jambe',     label:'Jambe G', cx:135, cy:330, shape:'rect', x:117,y:296,w:36,h:68},
-            {id:'jambe',     label:'Jambe D', cx:185, cy:330, shape:'rect', x:167,y:296,w:36,h:68},
-            {id:'pied',      label:'Pied G',  cx:132, cy:376, shape:'rect', x:108,y:362,w:48,h:28},
-            {id:'pied',      label:'Pied D',  cx:188, cy:376, shape:'rect', x:164,y:362,w:48,h:28},
+            {id:'bras',      label:'Bras D',  cx:88,  cy:127, shape:'rect', x:65,y:70,w:45,h:115},
+            {id:'bras',      label:'Bras G',  cx:232, cy:127, shape:'rect', x:210,y:70,w:45,h:115},
+            {id:'main',      label:'Main D',  cx:64,  cy:203, shape:'rect', x:48,y:185,w:32,h:36},
+            {id:'main',      label:'Main G',  cx:256, cy:203, shape:'rect', x:240,y:185,w:32,h:36},
+            {id:'cuisse',    label:'Cuisse D',cx:134, cy:233, shape:'rect', x:112,y:195,w:44,h:75},
+            {id:'cuisse',    label:'Cuisse G',cx:186, cy:233, shape:'rect', x:164,y:195,w:44,h:75},
+            {id:'genou',     label:'Genou D', cx:135, cy:283, shape:'rect', x:115,y:268,w:40,h:30},
+            {id:'genou',     label:'Genou G', cx:185, cy:283, shape:'rect', x:165,y:268,w:40,h:30},
+            {id:'jambe',     label:'Jambe D', cx:135, cy:330, shape:'rect', x:117,y:296,w:36,h:68},
+            {id:'jambe',     label:'Jambe G', cx:185, cy:330, shape:'rect', x:167,y:296,w:36,h:68},
+            {id:'pied',      label:'Pied D',  cx:132, cy:376, shape:'rect', x:108,y:362,w:48,h:28},
+            {id:'pied',      label:'Pied G',  cx:188, cy:376, shape:'rect', x:164,y:362,w:48,h:28},
           ].map((z,i)=>(
             <g key={i} onClick={()=>addPlaie(z.id, z.label)} style={{cursor:'pointer'}}>
               {z.shape==='ellipse'
@@ -1653,7 +1656,7 @@ function SutureSection({p, save}) {
 
 function DeplacerBtn({p, onUpdate, patients=[]}) {
   const [open,setOpen]=useState(false);
-  const EMPL=[{id:'brancard1',l:'B1 — Brancard 1',c:'#ef4444'},{id:'brancard2',l:'B2 — Brancard 2',c:'#ef4444'},{id:'fauteuil1',l:'F1 — Fauteuil 1',c:'#16a34a'},{id:'fauteuil2',l:'F2 — Fauteuil 2',c:'#16a34a'},{id:'obs1',l:'O1 — Observation 1',c:'#3b82f6'},{id:'obs2',l:'O2 — Observation 2',c:'#3b82f6'},{id:'lit1',l:'L1 — Lit 1',c:'#3b82f6'},{id:'lit2',l:'L2 — Lit 2',c:'#3b82f6'},{id:'pansement',l:'P1 — Pansement',c:'#f59e0b'}];
+  const EMPL=[{id:'brancard1',l:'B1 — Brancard 1',c:'#ef4444'},{id:'brancard2',l:'B2 — Brancard 2',c:'#ef4444'},{id:'fauteuil1',l:'F1 — Fauteuil 1',c:'#16a34a'},{id:'fauteuil2',l:'F2 — Fauteuil 2',c:'#16a34a'},{id:'obs1',l:'O1 — Observation 1',c:'#3b82f6'},{id:'obs2',l:'O2 — Observation 2',c:'#3b82f6'},{id:'lit1',l:'L1 — Lit 1',c:'#3b82f6'},{id:'lit2',l:'L2 — Lit 2',c:'#3b82f6'},{id:'pansement',l:'P1 — Pansement',c:'#f59e0b'},{id:'dehors',l:'Dehors',c:'#9ca3af'}];
   const cur=EMPL.find(e=>e.id===p.emplacement);
   return(
     <div style={{position:'relative'}}>
@@ -1669,7 +1672,7 @@ function DeplacerBtn({p, onUpdate, patients=[]}) {
           return(
             <div key={em.id} onClick={async()=>{
               if(occ||cur2)return;
-              await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{emplacement:em.id}})});
+              await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:em.id==='dehors'?{emplacement:null,statut:'dehors'}:{emplacement:em.id,statut:'attente_medecin'}})});
               setOpen(false);onUpdate?.();
             }}
               style={{padding:'6px 10px',borderRadius:6,cursor:occ||cur2?'default':'pointer',fontSize:11,fontWeight:600,color:occ?'#d1d5db':cur2?'#16a34a':em.c,background:cur2?'#f0fdf4':'#fff',textDecoration:occ?'line-through':'none',display:'flex',alignItems:'center',gap:6}}
