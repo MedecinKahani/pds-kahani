@@ -300,7 +300,7 @@ export default function PageVueGlobale() {
             {/* GAUCHE : identité + constantes */}
             <div style={{display:'flex',flexDirection:'column',gap:4,width:'55%',flexShrink:0}}>
               <div style={{display:'flex',gap:5,alignItems:'flex-start'}}>
-                <div style={{fontWeight:800,fontSize:15,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
+                <div style={{fontWeight:800,fontSize:30,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                     {p.prenom} {p.nom} <span style={{color:c,fontSize:11}}>{sexeSymbol}</span>
@@ -372,7 +372,7 @@ export default function PageVueGlobale() {
           </div>
         ):(
           <div style={{margin:5,borderRadius:8,border:'1.5px dashed '+c,background:cbg,flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:100,gap:4}}>
-            <span style={{fontSize:12,fontWeight:700,color:c}}>{label}</span>
+            <span style={{fontSize:24,fontWeight:800,color:c}}>{label}</span>
             <span style={{fontSize:10,color:c+'99'}}>{LEGENDES[id]}</span>
           </div>
         )}
