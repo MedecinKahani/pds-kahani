@@ -812,10 +812,7 @@ ${ordonnance||'--'}
                     )}
                     <textarea value={ordonnance} onChange={e=>{setOrdonnance(e.target.value);dbSave({ordonnance:e.target.value});}} rows={4} style={inp} placeholder="Traitements de sortie, conseils, suivi..."/>
                   </div>
-                  <button onClick={()=>{navigator.clipboard.writeText(resume());setCopied(true);}}
-                    style={{padding:'12px',borderRadius:8,background:copied?'#16a34a':'#111827',color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',width:'100%',transition:'background 0.2s'}}>
-                    {copied?<span>✓ Copié ! <span style={{fontSize:12,fontWeight:400}}>— Faire Ctrl+V dans le dossier DxCare pour coller</span></span>:'📋 Résumé — Copier pour DxCare'}
-                  </button>
+                  <DxCareButtons p={p} anamnese={anamnese} examen={examen} evolution={evolution} diagnostic={diagnostic} ordonnance={ordonnance} prescriptions={prescriptions} pamVal={pamVal} getVal={getVal}/>
                 </>}
               </div>
             )}
@@ -1511,6 +1508,87 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
         </button>
         <button onClick={()=>{setOpen(false);setPoids('');}}
           style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, prescriptions, pamVal, getVal}) {
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  function copy(key, text) {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(()=>setCopiedKey(null), 3000);
+  }
+
+  const fc = getVal('fc',p.fc)||'--';
+  const sat = getVal('sat',p.sat)||'--';
+  const temp = getVal('temp',p.temp)||'--';
+  const tas = getVal('tas',p.tas)||'--';
+  const tad = getVal('tad',p.tad)||'--';
+  const dextro = getVal('dextro',p.dextro)||'--';
+  const hb = getVal('hemocue',p.hemocue)||'--';
+
+  const SECTIONS = [
+    {
+      key:'motif',
+      label:'Motif',
+      icon:'📋',
+      text: (p.symptome?.replace(/_/g,' ')||'--')+(p.autre_motif?' — '+p.autre_motif:''),
+    },
+    {
+      key:'constantes',
+      label:'Paramètres entrée',
+      icon:'📊',
+      text: 'FC : '+fc+' bpm | SpO2 : '+sat+'% | T° : '+temp+'°C\nPAS : '+tas+' mmHg | PAD : '+tad+' mmHg | PAM : '+(pamVal||'--')+' mmHg\nDextro : '+dextro+' g/L | Hb : '+hb+' g/dL\nPoids : '+(p.poids||'--')+' kg | Taille : '+(p.taille||'--')+' cm',
+    },
+    {
+      key:'atcd',
+      label:'Antécédents',
+      icon:'📁',
+      text: anamnese||'--',
+    },
+    {
+      key:'examen',
+      label:'Compte rendu',
+      icon:'🩺',
+      text: examen||'--',
+    },
+    {
+      key:'evolution',
+      label:'Évolution',
+      icon:'📈',
+      text: evolution||'--',
+    },
+    {
+      key:'diagnostic',
+      label:'Diagnostic',
+      icon:'🏷️',
+      text: diagnostic||'--',
+    },
+    {
+      key:'ordonnance',
+      label:'Prescription',
+      icon:'💊',
+      text: ordonnance||'--',
+    },
+  ];
+
+  return (
+    <div style={{marginTop:8}}>
+      <div style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:6}}>Copier pour DxCare</div>
+      <div style={{display:'flex',flexDirection:'column',gap:4}}>
+        {SECTIONS.map(s=>(
+          <button key={s.key} onClick={()=>copy(s.key,s.text)}
+            style={{padding:'8px 12px',borderRadius:7,fontSize:12,fontWeight:600,cursor:'pointer',textAlign:'left',display:'flex',alignItems:'center',gap:8,
+              background:copiedKey===s.key?'#16a34a':'#111827',
+              color:'#fff',border:'none',transition:'background 0.2s'}}>
+            <span>{s.icon}</span>
+            <span style={{flex:1}}>{s.label}</span>
+            {copiedKey===s.key && <span style={{fontSize:11,fontWeight:400,color:'#bbf7d0'}}>✓ Copié — Ctrl+V dans DxCare</span>}
+          </button>
+        ))}
       </div>
     </div>
   );
