@@ -562,9 +562,15 @@ ${ordonnance||'--'}
                             </button>
                           ))}
                         </div>
-                        {p.symptome==='plaie'&&<SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>}
-                        <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
-                          placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
+                        {p.symptome==='plaie'
+                          ? <div style={{display:'flex',gap:8,flex:1,minHeight:0}}>
+                              <SchemaPlaie plaies={plaies} setPlaies={pl=>{setPlaies(pl);dbSave({plaies_data:JSON.stringify(pl)});}} save={dbSave} notesInit={p.notes_plaie||''}/>
+                              <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
+                                placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
+                            </div>
+                          : <textarea value={examen} onChange={e=>{setExamen(e.target.value);dbSave({examen_clinique:e.target.value});}}
+                              placeholder="Examen clinique..." style={{...inp,flex:1,resize:'none'}}/>
+                        }
                       </>
                   }
                 </div>
@@ -1639,12 +1645,6 @@ function SchemaPlaie({plaies, setPlaies, save, notesInit}) {
               </div>
             </div>
           ))}
-        </div>
-        {/* Colonne textarea notes */}
-        <div style={{flex:1,minWidth:120}}>
-          <textarea value={notesPlaieLoc||''} onChange={e=>setNotesPlaieLoc(e.target.value)} onBlur={()=>save({notes_plaie:notesPlaieLoc})}
-            rows={6} placeholder="Description plaie(s), aspect, profondeur..."
-            style={{width:'100%',height:'100%',minHeight:140,padding:'6px 8px',borderRadius:6,border:'1px solid #fde68a',fontSize:11,outline:'none',resize:'none',background:'#fffbeb',boxSizing:'border-box'}}/>
         </div>
       </div>
     </div>
