@@ -85,7 +85,7 @@ export default function NouveauPatient() {
     tdr_dengue_fait:false, tdr_dengue_rupture:false, tdr_dengue_resultat:'',
     douleur_zones:[], ecg_fait:false,
     vomissement:null, tache_peau:null,
-    bu_fait:false, bhcg_fait:false,
+    bu_fait:false, bhcg_fait:false, bhcg_pas_regles:false,
     autre_motif:'', douleur_autre:'', soins_type:'',
   });
 
@@ -199,7 +199,7 @@ export default function NouveauPatient() {
       if (!f.douleur_zones.length) return false;
       if (f.douleur_zones.includes('thorax')&&!f.ecg_fait) return false;
       if (f.douleur_zones.includes('tete')&&(f.vomissement===null||f.tache_peau===null)) return false;
-      if (f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(!f.bu_fait||!f.bhcg_fait)) return false;
+      if (f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(!f.bu_fait||(!f.bhcg_fait&&!f.bhcg_pas_regles))) return false;
       return true;
     }
     return true;
@@ -593,7 +593,7 @@ export default function NouveauPatient() {
             {f.sexe==='F' && f.douleur_zones.includes('abdomen') && (
               <div style={{background:'#fdf4ff',borderRadius:8,padding:'10px 12px',border:'1px solid #e9d5ff',marginBottom:8}}>
                 <div style={{color:'#7c3aed',fontWeight:700,fontSize:12,marginBottom:8}}>Femme + douleur abdominale — BU et bHCG obligatoires</div>
-                <div style={{display:'flex',gap:6}}>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                   {[{k:'bu_fait',l:'BU'},{k:'bhcg_fait',l:'bHCG urinaire'}].map(function(item) {
                     return (
                       <Btn key={item.k} onClick={()=>set(item.k,!f[item.k])} style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,background:f[item.k]?'#7c3aed':'#fff',color:f[item.k]?'#fff':'#7c3aed',border:'1px solid '+(f[item.k]?'#7c3aed':'#e9d5ff')}}>
@@ -601,6 +601,14 @@ export default function NouveauPatient() {
                       </Btn>
                     );
                   })}
+                  {age!==null && age<16 && (
+                    <Btn onClick={()=>set('bhcg_pas_regles',!f.bhcg_pas_regles)}
+                      style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                        background:f.bhcg_pas_regles?'#6b7280':'#fff',color:f.bhcg_pas_regles?'#fff':'#6b7280',
+                        border:'1px solid '+(f.bhcg_pas_regles?'#6b7280':'#e9d5ff')}}>
+                      {f.bhcg_pas_regles?'✓ bHCG non fait — pas encore de règles':'bHCG non fait — pas encore de règles'}
+                    </Btn>
+                  )}
                 </div>
               </div>
             )}
