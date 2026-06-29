@@ -562,11 +562,11 @@ ${ordonnance||'--'}
 
                   {/* CR CONSULTATION */}
                   <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-                      <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Compte rendu de consultation</label>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#ecfdf5',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
+                      <label style={{fontSize:10,fontWeight:700,color:'#047857',textTransform:'uppercase',letterSpacing:0.4}}>Compte rendu de consultation</label>
                       <CopyBtn text={(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')} label="Copier"/>
                     </div>
-                    <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
+                    <div style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff'}}>
                       {role!=='ide'&&(
                         <div style={{display:'flex',gap:4,padding:'3px 4px',borderBottom:'1px solid #e5e7eb',flexShrink:0,background:'#fafafa'}}>
                           {[{l:'Examen normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Examen normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
@@ -597,11 +597,11 @@ ${ordonnance||'--'}
 
                   {/* PRESCRIPTION */}
                   <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-                      <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>Prescription médicale</label>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#ecfdf5',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
+                      <label style={{fontSize:10,fontWeight:700,color:'#047857',textTransform:'uppercase',letterSpacing:0.4}}>Prescription médicale</label>
                       <CopyBtn text={ordonnance} label="Copier"/>
                     </div>
-                    <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
+                    <div style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
                       {role!=='ide'&&<div style={{display:'flex',gap:4,flexWrap:'wrap',flexShrink:0}}>
                         {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
                         {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
@@ -1458,7 +1458,7 @@ function CopyBtn({text, label, fullWidth}) {
   return (
     <button onClick={()=>{navigator.clipboard.writeText(text||'');setCopied(true);setTimeout(()=>setCopied(false),3000);}}
       style={{padding:fullWidth?'12px':'2px 7px',borderRadius:fullWidth?8:4,fontSize:fullWidth?14:9,fontWeight:700,cursor:'pointer',border:'none',
-        background:copied?'#16a34a':'#111827',color:'#fff',transition:'background 0.2s',
+        background:copied?'#059669':'#10b981',color:'#fff',transition:'background 0.2s',
         width:fullWidth?'100%':'auto',flexShrink:fullWidth?0:1}}>
       {copied?(fullWidth?'✓ Copié ! — Faire Ctrl+V dans le champ CR de DxCare':'✓ Copié'):(label||'Copier')}
     </button>
@@ -1470,14 +1470,14 @@ function DxCareCell({label, value, copyText, onChange, readOnly}) {
   useEffect(()=>setLocal(value||''),[value]);
   return (
     <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#e8e8e8',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
-        <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4}}>{label}</label>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#ecfdf5',padding:'3px 6px',borderRadius:'4px 4px 0 0',flexShrink:0}}>
+        <label style={{fontSize:10,fontWeight:700,color:'#047857',textTransform:'uppercase',letterSpacing:0.4}}>{label}</label>
         <CopyBtn text={copyText||local} label="Copier"/>
       </div>
       {readOnly
-        ? <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',background:'#fff',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',overflow:'hidden'}}>{local||''}</div>
+        ? <div style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',background:'#fff',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',overflow:'hidden'}}>{local||''}</div>
         : <textarea value={local} onChange={e=>setLocal(e.target.value)} onBlur={()=>onChange(local)}
-            style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',fontSize:11,outline:'none',resize:'none',fontFamily:'system-ui',background:'#fff',overflow:'hidden'}}/>
+            style={{flex:1,border:'1.5px solid #a7f3d0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',fontSize:11,outline:'none',resize:'none',fontFamily:'system-ui',background:'#fff',overflow:'hidden'}}/>
       }
     </div>
   );
@@ -1490,12 +1490,12 @@ function DxCareField({label, value, onChange, placeholder, rows, readOnly}) {
     <div style={{display:'flex',flexDirection:'column',gap:4}}>
       <label style={{fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.4,background:'#e8e8e8',padding:'4px 8px',borderRadius:4}}>{label}</label>
       {readOnly
-        ? <div style={{border:'1.5px solid #c0c0c0',borderRadius:4,padding:'6px 8px',background:'#fff',minHeight:36,fontSize:12,color:'#374151',whiteSpace:'pre-wrap'}}>{local||<span style={{color:'#9ca3af'}}>--</span>}</div>
+        ? <div style={{border:'1.5px solid #a7f3d0',borderRadius:4,padding:'6px 8px',background:'#fff',minHeight:36,fontSize:12,color:'#374151',whiteSpace:'pre-wrap'}}>{local||<span style={{color:'#9ca3af'}}>--</span>}</div>
         : <textarea value={local} rows={rows||2}
             onChange={e=>setLocal(e.target.value)}
             onBlur={()=>onChange(local)}
             placeholder={placeholder||''}
-            style={{border:'1.5px solid #c0c0c0',borderRadius:4,padding:'6px 8px',fontSize:12,outline:'none',resize:'vertical',fontFamily:'system-ui',background:'#fff'}}/>
+            style={{border:'1.5px solid #a7f3d0',borderRadius:4,padding:'6px 8px',fontSize:12,outline:'none',resize:'vertical',fontFamily:'system-ui',background:'#fff'}}/>
       }
     </div>
   );
