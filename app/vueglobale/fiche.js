@@ -1470,9 +1470,9 @@ function DxCareCell({label, value, copyText, onChange, readOnly}) {
         <CopyBtn text={copyText||local} label="Copier"/>
       </div>
       {readOnly
-        ? <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',background:'#fff',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',overflow:'auto'}}>{local||''}</div>
+        ? <div style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',background:'#fff',fontSize:11,color:'#374151',whiteSpace:'pre-wrap',overflow:'hidden'}}>{local||''}</div>
         : <textarea value={local} onChange={e=>setLocal(e.target.value)} onBlur={()=>onChange(local)}
-            style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',fontSize:11,outline:'none',resize:'none',fontFamily:'system-ui',background:'#fff'}}/>
+            style={{flex:1,border:'1.5px solid #c0c0c0',borderTop:'none',borderRadius:'0 0 4px 4px',padding:'4px 6px',fontSize:11,outline:'none',resize:'none',fontFamily:'system-ui',background:'#fff',overflow:'hidden'}}/>
       }
     </div>
   );
