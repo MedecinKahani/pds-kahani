@@ -807,14 +807,33 @@ ${ordonnance||'--'}
                       {enAttente.map((r,i)=>{
                         const gi=prescriptions.indexOf(r);
                         const bc=r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
+                        // Détecter si PO avec ×N
+                        const poMatch = r.texte.match(/^(.+?) ×(\d+)$/);
+                        const isPO = !!poMatch;
+                        const nbComp = isPO ? parseInt(poMatch[2]) : null;
+                        function changerNb(delta) {
+                          const nouveau = Math.max(1, nbComp + delta);
+                          const rx=[...prescriptions];
+                          rx[gi]={...rx[gi], texte: poMatch[1]+' ×'+nouveau};
+                          setPrescriptions(rx);
+                          fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                            body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+                        }
                         return (
                           <div key={i} style={{background:'#fff',border:'1px solid '+bc+'44',borderRadius:7,padding:'6px 8px',marginBottom:4}}>
                             <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
                               <span style={{fontSize:10,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
                               <div style={{flex:1,minWidth:0}}>
-                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{r.texte}</div>
+                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{isPO?poMatch[1]:r.texte}</div>
                                 <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
                               </div>
+                              {isPO&&(
+                                <div style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+                                  <button onClick={()=>changerNb(-1)} style={{width:18,height:18,borderRadius:4,border:'1px solid #d1d5db',background:'#f3f4f6',color:'#374151',cursor:'pointer',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>−</button>
+                                  <span style={{fontSize:12,fontWeight:700,color:'#0d9488',minWidth:20,textAlign:'center'}}>×{nbComp}</span>
+                                  <button onClick={()=>changerNb(+1)} style={{width:18,height:18,borderRadius:4,border:'1px solid #d1d5db',background:'#f3f4f6',color:'#374151',cursor:'pointer',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>+</button>
+                                </div>
+                              )}
                               <button onClick={()=>supprimerRx(gi)} title="Supprimer"
                                 style={{flexShrink:0,width:16,height:16,borderRadius:3,border:'1px solid #fecaca',background:'#fef2f2',color:'#ef4444',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
                             </div>
