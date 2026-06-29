@@ -807,11 +807,11 @@ ${ordonnance||'--'}
 
 function CatSection({titre, color, collapsed, onToggle, children}) {
   return (
-    <div style={{border:'1.5px solid '+color+'33',borderRadius:10,overflow:'visible'}}>
-      <div style={{background:color+'18',padding:'7px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',borderRadius:collapsed?8:'8px 8px 0 0'}}
+    <div style={{border:'1px solid #a7f3d0',borderRadius:6,overflow:'visible'}}>
+      <div style={{background:'#ecfdf5',padding:'4px 8px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',borderRadius:collapsed?'4px':'4px 4px 0 0'}}
         onClick={onToggle}>
-        <span style={{fontWeight:700,color,fontSize:12}}>{titre}</span>
-        <span style={{color,fontSize:12}}>{collapsed?'▶':'▼'}</span>
+        <span style={{fontWeight:700,color:'#047857',fontSize:10,textTransform:'uppercase',letterSpacing:0.4}}>{titre}</span>
+        <span style={{color:'#047857',fontSize:11}}>{collapsed?'▶':'▼'}</span>
       </div>
       {!collapsed&&children}
     </div>
