@@ -1607,8 +1607,18 @@ function SchemaPlaie({plaies, setPlaies}) {
 
           {/* Points rouges pour chaque plaie */}
           {plaies.map((pl,i)=>{
-            const zone = {tete:{x:160,y:32},cou:{x:160,y:61},tronc:{x:160,y:120},abdomen:{x:160,y:165},bras:{x:i%2===0?88:232,y:127},main:{x:i%2===0?64:256,y:203},cuisse:{x:i%2===0?134:186,y:233},genou:{x:i%2===0?135:185,y:283},jambe:{x:i%2===0?135:185,y:330},pied:{x:i%2===0?132:188,y:376}}[pl.zone]||{x:160,y:200};
-            return <circle key={i} cx={zone.x} cy={zone.y} r={6} fill="#ef4444" opacity={0.85} stroke="#fff" strokeWidth="1.5"/>;
+            const estDroit = pl.label&&pl.label.includes('D') && !pl.label.includes('G');
+            const coords = {
+              tete:{x:160,y:32}, cou:{x:160,y:61}, tronc:{x:160,y:120}, abdomen:{x:160,y:165},
+              bras:{x:estDroit?88:232, y:127},
+              main:{x:estDroit?64:256, y:203},
+              cuisse:{x:estDroit?134:186, y:233},
+              genou:{x:estDroit?135:185, y:283},
+              jambe:{x:estDroit?135:185, y:330},
+              pied:{x:estDroit?132:188, y:376},
+            };
+            const pos = coords[pl.zone]||{x:160,y:200};
+            return <circle key={i} cx={pos.x} cy={pos.y} r={6} fill="#ef4444" opacity={0.85} stroke="#fff" strokeWidth="1.5"/>;
           })}
         </svg>
 
