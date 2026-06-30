@@ -71,6 +71,8 @@ const SOINS = [
   {id:'reprise_const', label:'Reprise constantes après thérapeutique', color:'#6b7280'},
   {id:'pst_simple', label:'Pansement simple', color:'#f59e0b'},
   {id:'pst_complexe', label:'Pansement complexe', color:'#f59e0b'},
+  {id:'desinfection', label:'Désinfection plaie', color:'#f59e0b'},
+  {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
   {id:'retrait_spu', label:'Retrait sonde urinaire', color:'#6b7280'},
   {id:'pose_spu', label:'Pose sonde urinaire', color:'#6b7280'},
   {id:'couv_survie', label:'Couverture de survie', color:'#6b7280'},
