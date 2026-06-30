@@ -25,9 +25,6 @@ const STANDS_DEFAUT = {
   dentiste: { label: 'Dentiste', icon: '🦷', couleur: '#0ea5e9', dureeMin: 30, strict: false,
     jours: [], // à définir
     horaires: { debut: '08:00', fin: '12:00' } },
-  echo: { label: 'Échographie', icon: '🔊', couleur: '#14b8a6', dureeMin: 30, strict: false,
-    jours: [], // à définir
-    horaires: { debut: '08:00', fin: '12:00' } },
 };
 
 export async function GET(req) {
