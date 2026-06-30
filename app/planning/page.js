@@ -71,6 +71,7 @@ export default function PlanningPage() {
   const [patientTrouve, setPatientTrouve] = useState(null);
   const [nomManuel, setNomManuel] = useState('');
   const [prenomManuel, setPrenomManuel] = useState('');
+  const [ddnManuel, setDdnManuel] = useState('');
   const [motifManuel, setMotifManuel] = useState('');
   const [showModulation, setShowModulation] = useState(false);
   const [joursBarres, setJoursBarres] = useState({});
@@ -164,13 +165,13 @@ export default function PlanningPage() {
       body: JSON.stringify({
         action: 'reserver',
         date: modaleSlot.date, stand: standActif, heure: modaleSlot.heure,
-        nom, prenom, ddn: patientTrouve?.ddn || '', ipp: patientTrouve?.ipp || matricule,
+        nom, prenom, ddn: patientTrouve?.ddn || ddnManuel || '', ipp: patientTrouve?.ipp || matricule,
         motif: motifManuel,
         creePar: user?.matricule, creeParNom: user?.nom,
       }),
     });
     setModaleSlot(null);
-    setMatricule(''); setPatientTrouve(null); setNomManuel(''); setPrenomManuel(''); setMotifManuel('');
+    setMatricule(''); setPatientTrouve(null); setNomManuel(''); setPrenomManuel(''); setDdnManuel(''); setMotifManuel('');
     chargerSemaine();
   }
 
@@ -320,6 +321,16 @@ export default function PlanningPage() {
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4 }}>Prénom</label>
                 <input value={prenomManuel} onChange={e => setPrenomManuel(e.target.value)} placeholder="Prénom"
                   style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, outline: 'none', marginBottom: 10, boxSizing: 'border-box' }} />
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4 }}>Date de naissance</label>
+                <input value={ddnManuel} onChange={e => {
+                  const raw = e.target.value.replace(/[^0-9]/g,'');
+                  let v = raw;
+                  if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+                  if(v.length>5) v = v.slice(0,5)+'/'+v.slice(5);
+                  if(v.length>10) v = v.slice(0,10);
+                  setDdnManuel(v);
+                }} placeholder="JJ/MM/AAAA" maxLength={10} inputMode="numeric"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, outline: 'none', marginBottom: 10, boxSizing: 'border-box' }} />
               </>
             )}
 
@@ -328,7 +339,7 @@ export default function PlanningPage() {
               style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, outline: 'none', marginBottom: 20, boxSizing: 'border-box' }} />
 
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setModaleSlot(null); setMatricule(''); setPatientTrouve(null); setNomManuel(''); setPrenomManuel(''); setMotifManuel(''); }}
+              <button onClick={() => { setModaleSlot(null); setMatricule(''); setPatientTrouve(null); setNomManuel(''); setPrenomManuel(''); setDdnManuel(''); setMotifManuel(''); }}
                 style={{ flex: 1, padding: '10px', borderRadius: 8, background: '#f3f4f6', color: '#6b7280', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' }}>Annuler</button>
               <button onClick={confirmerReservation} disabled={!patientTrouve && !nomManuel}
                 style={{ flex: 2, padding: '10px', borderRadius: 8, background: (!patientTrouve && !nomManuel) ? '#e5e7eb' : stand.couleur, color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer' }}>

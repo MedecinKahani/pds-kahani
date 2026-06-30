@@ -540,6 +540,7 @@ ${ordonnance||'--'}
             <span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
               {p.symptome==='autre'&&p.autre_motif ? p.autre_motif : p.symptome?.replace(/_/g,' ')}
             </span>
+            <RecapRdvBtn p={p}/>
           </div>
           <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
             <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
@@ -1586,6 +1587,23 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
           style={{padding:'6px 12px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
       </div>
     </div>
+  );
+}
+
+function RecapRdvBtn({p}) {
+  const [copied, setCopied] = useState(false);
+  function copier() {
+    const txt = [p.ipp||'--', p.ddn||'--', p.nom||'--', p.prenom||'--'].join('\t');
+    navigator.clipboard.writeText(txt);
+    setCopied(true);
+    setTimeout(()=>setCopied(false), 2500);
+  }
+  return (
+    <button onClick={copier} title="Copier IPP, DDN, Nom, Prénom pour la prise de RDV"
+      style={{fontSize:10,fontWeight:700,padding:'3px 9px',borderRadius:6,border:'none',cursor:'pointer',
+        background:copied?'#16a34a':'#374151',color:'#fff',transition:'background 0.2s'}}>
+      {copied?'✓ Copié':'📅 Récap RDV'}
+    </button>
   );
 }
 
