@@ -85,7 +85,7 @@ export default function NouveauPatient() {
     tdr_dengue_fait:false, tdr_dengue_rupture:false, tdr_dengue_resultat:'',
     douleur_zones:[], ecg_fait:false,
     vomissement:null, tache_peau:null,
-    bu_fait:false, bhcg_fait:false, bhcg_pas_regles:false,
+    bu_fait:false, bhcg_fait:false, bhcg_pas_regles:false, bhcg_menopausee:false,
     autre_motif:'', douleur_autre:'', soins_type:'',
   });
 
@@ -203,7 +203,7 @@ export default function NouveauPatient() {
       if (!f.douleur_zones.length) return false;
       if (f.douleur_zones.includes('thorax')&&!f.ecg_fait) return false;
       if (f.douleur_zones.includes('tete')&&(f.vomissement===null||f.tache_peau===null)) return false;
-      if (f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(!f.bu_fait||(!f.bhcg_fait&&!f.bhcg_pas_regles))) return false;
+      if (f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(!f.bu_fait||(!f.bhcg_fait&&!f.bhcg_pas_regles&&!f.bhcg_menopausee))) return false;
       return true;
     }
     return true;
@@ -625,6 +625,12 @@ export default function NouveauPatient() {
                       {f.bhcg_pas_regles?'✓ bHCG non fait — pas encore de règles':'bHCG non fait — pas encore de règles'}
                     </Btn>
                   )}
+                  <Btn onClick={()=>set('bhcg_menopausee',!f.bhcg_menopausee)}
+                    style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                      background:f.bhcg_menopausee?'#6b7280':'#fff',color:f.bhcg_menopausee?'#fff':'#6b7280',
+                      border:'1px solid '+(f.bhcg_menopausee?'#6b7280':'#e9d5ff')}}>
+                    {f.bhcg_menopausee?'✓ bHCG non fait — ménopausée':'bHCG non fait — ménopausée'}
+                  </Btn>
                 </div>
               </div>
             )}
