@@ -30,6 +30,30 @@ function calcStatsPerm(patients, hDebut, hFin) {
   }).length;
 }
 
+const LISTE_ACTES = [
+  'Dextro','Hémocue','Test optimal','BU','T grossesse U','Tétanotop','Actim CRP','Bilan sanguin',
+  'ECBU','Coprocultures','Sonde urinaire','VVP','IV','IM','Autres vaccins','Vaccins COVID-19','SC',
+  'DRP','Oxygène','Tensiomètre','ECG','MEOPA','Lavage CAE','Pansements simple','Pansements complexe',
+  'Surveillance','Éducation','Aérosol','Gaz de sang','Décès sur site',
+  '§Sutures et actes annexes',
+  'Suture ≥5 pts','Suture <5 pts','Suture colle','Suture agrafes','Steri-strip','Ablation abcès',
+  'Pose implant','Retrait implant','Hémoculture','Prélèvement Mamoudzou',
+  '§Sorties',
+  'Transfert Urgence','Transfert SMUR','Urgence moyen propre','Maternité','Retour à domicile','Parti sans attendre','GAV — Réquisition',
+];
+
+const ACTES_KEYS = [
+  'nbDextro','nbHemocue','nbTestOptimal','nbBU','nbTGrossesse','nbTetanotop','nbActimCRP','nbBilanSanguin',
+  'nbECBU','nbCoprocultures','nbSondeUrinaire','nbVVP','nbIV','nbIM','nbAutresVaccins','nbVaccinsCovid','nbSC',
+  'nbDRP','nbOxygene','nbTensiometre','nbECG','nbMEOPA','nbLavageCAE','nbPansementSimple','nbPansementComplexe',
+  'nbSurveillance','nbEducation','nbAerosol','nbGazSang','nbDecesSurSite',
+  null,
+  'nbSutSup5','nbSutInf5','nbSutColle','nbSutAgraf','nbSutSteri','nbAbces',
+  'nbPoseImpl','nbRetrImpl','nbHemocult','nbPrelevMam',
+  null,
+  'nbTransfertUrgence','nbTransfertSMUR','nbUrgenceMoyenPropre','nbMaternite','nbRetourDomicile','nbPartiSansAttendre','nbGAV',
+];
+
 function calcStats(patients) {
   const toutesRx = patients.flatMap(p => safeJSON(p.prescriptions, []).filter(r => r.fait));
   function countRx(needle) {
@@ -38,69 +62,70 @@ function calcStats(patients) {
   function countSuture(id) {
     return patients.filter(p => safeJSON(p.sutures, []).includes(id)).length;
   }
-  // Sorties
   const sortis = patients.filter(p => p.statut === 'sorti');
   function countSortie(modalite) {
     return sortis.filter(p => p.modalite_sortie === modalite).length;
   }
   return {
     nbPatients: patients.length,
-    // Bio
+    // ── Ordre exact liste secrétaire (photo 1) ──
     nbDextro: patients.filter(p=>p.dextro).length + countRx('dextro'),
     nbHemocue: patients.filter(p=>p.hemocue).length + countRx('hémocue'),
-    nbCetonem: countRx('cétonémie'),
-    nbCRP: patients.filter(p=>p.crp_test).length + countRx('crp'),
-    nbTdrPalu: patients.filter(p=>p.tdr_palu).length + countRx('paludisme'),
-    nbTdrDengue: patients.filter(p=>p.tdr_dengue).length + countRx('dengue'),
-    nbTetanos: patients.filter(p=>p.quicktest).length + countRx('tétanotop'),
-    nbBU: patients.filter(p=>p.bu_fait).length + countRx('bu'),
-    nbBhcg: patients.filter(p=>p.bhcg_fait).length + countRx('bhcg'),
+    nbTestOptimal: countRx('test optimal'),
+    nbBU: patients.filter(p=>p.bu_fait).length + countRx(' bu'),
+    nbTGrossesse: patients.filter(p=>p.bhcg_fait).length + countRx('grossesse'),
+    nbTetanotop: patients.filter(p=>p.quicktest).length + countRx('tétanotop'),
+    nbActimCRP: patients.filter(p=>p.crp_test).length + countRx('crp'),
+    nbBilanSanguin: countRx('bilan sanguin') + countRx('bio délocalisée'),
     nbECBU: countRx('ecbu'),
-    nbHemocult: countRx('hémoculture'),
-    nbCoprocult: countRx('coproculture'),
-    nbBioDeloc: toutesRx.filter(r=>r.texte?.includes('Bio délocalisée')).length,
-    nbGazSang: countRx('gaz du sang'),
-    nbPrelevMam: toutesRx.filter(r=>r.texte?.includes('Mamoudzou')).length,
-    // Actes infirmiers
-    nbECG: patients.filter(p=>p.ecg_fait).length + countRx('ecg'),
+    nbCoprocultures: countRx('coproculture'),
+    nbSondeUrinaire: countRx('sonde urinaire'),
     nbVVP: countRx('vvp'),
     nbIV: toutesRx.filter(r=>r.categorie==='therapeutique'&&r.texte?.includes(' IV')).length,
     nbIM: toutesRx.filter(r=>r.categorie==='therapeutique'&&r.texte?.includes(' IM')).length,
+    nbAutresVaccins: countRx('vaccin')-countRx('covid'),
+    nbVaccinsCovid: countRx('covid'),
     nbSC: toutesRx.filter(r=>r.categorie==='therapeutique'&&r.texte?.includes(' SC')).length,
-    nbO2: countRx('o2'),
-    nbAerosol: countRx('érosol'),
-    nbMeopa: countRx('meopa'),
     nbDRP: patients.filter(p=>p.drp).length + countRx('drp'),
-    nbSondeUPose: countRx('pose sonde'),
-    nbSondeURetrait: countRx('retrait sonde'),
+    nbOxygene: countRx('o2 '),
+    nbTensiometre: countRx('tensiomètre'),
+    nbECG: patients.filter(p=>p.ecg_fait).length + countRx('ecg'),
+    nbMEOPA: countRx('meopa'),
+    nbLavageCAE: countRx('lavage cae'),
+    nbPansementSimple: countRx('pansement simple'),
+    nbPansementComplexe: countRx('pansement complexe'),
     nbSurveillance: countRx('reprise constantes'),
-    nbEducAsthme: countRx('ducation asthme'),
-    // Sutures / Pansements
+    nbEducation: countRx('ducation'),
+    nbAerosol: countRx('érosol'),
+    nbGazSang: countRx('gaz du sang'),
+    nbDecesSurSite: countSortie('deces'),
+    // ── Sutures / actes annexes ──
     nbSutSup5: countSuture('sut_sup5'),
     nbSutInf5: countSuture('sut_inf5'),
     nbSutColle: countSuture('sut_colle'),
     nbSutAgraf: countSuture('sut_agraf'),
     nbSutSteri: countSuture('sut_steri'),
-    nbAbces: countSuture('abces'),
     nbAbces: countRx('ablation abcès'),
-    nbPSTSimple: countRx('pansement simple'),
-    nbPSTCompl: countRx('pansement complexe'),
-    nbLavCAE: countRx('lavage cae'),
-    // Autres
-    nbVaccin: countRx('vaccin'),
     nbPoseImpl: countRx('pose implant'),
     nbRetrImpl: countRx('retrait implant'),
-    // Sorties
-    nbDomicile: countSortie('domicile'),
-    nbTransfMDZ: countSortie('transfert') + toutesRx.filter(r=>r.texte?.toLowerCase().includes('mamoudzou')).length,
-    nbTransfHellico: toutesRx.filter(r=>r.texte?.toLowerCase().includes('hellico')).length,
+    nbHemocult: countRx('hémoculture'),
+    nbPrelevMam: toutesRx.filter(r=>r.texte?.includes('Mamoudzou')).length,
+    // ── Sorties (photo 2) ──
+    nbTransfertUrgence: countSortie('transfert'),
+    nbTransfertSMUR: toutesRx.filter(r=>r.texte?.toLowerCase().includes('hellico')||r.texte?.toLowerCase().includes('smur')).length,
+    nbUrgenceMoyenPropre: sortis.filter(p=>p.modalite_sortie==='transfert'&&p.moyen_transport==='propre').length,
+    nbMaternite: countRx('maternité'),
+    nbRetourDomicile: countSortie('domicile'),
+    nbPartiSansAttendre: countSortie('pse'),
     nbGAV: countSortie('gav'),
-    nbDeces: countSortie('deces'),
     // Ordonnances sécurisées
     ordoSecurisees: toutesRx.filter(r=>{const t=r.texte||'';return t.includes('Tramadol')||t.includes('Morphine')||t.includes('MEOPA')||t.includes('Kétoprofène');}),
     // Par motif
     parMotif: ['coma','avc','detresse_respi','plaie','fievre','vertige','douleur','soins_ide','autre'].reduce((acc,m)=>{
-      acc[m]=patients.filter(p=>p.symptome===m).length;return acc;},{})
+      acc[m]=patients.filter(p=>p.symptome===m).length;return acc;},{}),
+    // Enregistrement / consultation (onglet 3)
+    nbEnregistresParAS: patients.filter(p=>p.creePar).length,
+    nbPartiSansAttendreT3: countSortie('pse'),
   };
 }
 
@@ -158,6 +183,7 @@ export default function StatsMensuelles() {
   const jourLabel = jourCible.toLocaleDateString('fr-FR', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const debutJour = new Date(jourCible.getFullYear(), jourCible.getMonth(), jourCible.getDate()).getTime();
   const finJour   = debutJour + 86400000 - 1;
+  const jourSemaine = jourCible.getDay(); // 0=dimanche, 6=samedi
 
   const patientsJour = allPatients.filter(p => {
     const t = parseInt(p.arrivee);
@@ -168,13 +194,32 @@ export default function StatsMensuelles() {
     return patientsJour.filter(p => {
       const d = new Date(parseInt(p.arrivee));
       const h = d.getHours();
-      return h >= hDebut && h < hFin;
+      if (hDebut <= hFin) return h >= hDebut && h < hFin;
+      return h >= hDebut || h < hFin; // créneau qui traverse minuit
     }).length;
   }
 
-  const c00_07 = countCreneau(0, 7);
-  const c07_19 = countCreneau(7, 19);
-  const c19_24 = countCreneau(19, 24);
+  // Créneaux selon jour : semaine = 4 créneaux, samedi = 2, dimanche = 1
+  let creneaux;
+  if (jourSemaine === 6) { // samedi
+    creneaux = [
+      ['00h — 13h', countCreneau(0,13), '#7c3aed'],
+      ['13h — 07h (dim.)', countCreneau(13,7), '#ea580c'],
+    ];
+  } else if (jourSemaine === 0) { // dimanche
+    creneaux = [
+      ['07h — 07h (lun.)', countCreneau(7,7), '#0d9488'],
+    ];
+  } else { // semaine
+    creneaux = [
+      ['00h — 07h', countCreneau(0,7), '#7c3aed'],
+      ['07h — 17h', countCreneau(7,17), '#0d9488'],
+      ['17h — 00h', countCreneau(17,24), '#ea580c'],
+      ['22h — 07h', countCreneau(22,7), '#dc2626'],
+    ];
+  }
+
+  const nbTransfertsJour = patientsJour.filter(p => p.statut==='sorti' && p.modalite_sortie==='transfert').length;
 
   // ── ONGLET ACTES ──
   const mois = moisOptions[moisIdx];
@@ -242,11 +287,11 @@ export default function StatsMensuelles() {
 
             {/* Tableau créneaux */}
             <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',overflow:'hidden',marginBottom:16}}>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',textAlign:'center'}}>
-                {[['00h — 07h',c00_07,'#7c3aed'],['07h — 19h',c07_19,'#0d9488'],['19h — 00h',c19_24,'#ea580c']].map(([label,count,color])=>(
-                  <div key={label} style={{padding:'20px 16px',borderRight:'1px solid #e5e7eb'}}>
+              <div style={{display:'grid',gridTemplateColumns:`repeat(${creneaux.length},1fr)`,textAlign:'center'}}>
+                {creneaux.map(([label,count,color])=>(
+                  <div key={label} style={{padding:'20px 12px',borderRight:'1px solid #e5e7eb'}}>
                     <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:8}}>{label}</div>
-                    <div style={{fontSize:48,fontWeight:800,color:count>0?color:'#e5e7eb',lineHeight:1}}>{count}</div>
+                    <div style={{fontSize:42,fontWeight:800,color:count>0?color:'#e5e7eb',lineHeight:1}}>{count}</div>
                     <div style={{fontSize:11,color:'#9ca3af',marginTop:4}}>passage{count>1?'s':''}</div>
                   </div>
                 ))}
@@ -254,6 +299,12 @@ export default function StatsMensuelles() {
               <div style={{background:'#f9fafb',padding:'10px 20px',borderTop:'1px solid #e5e7eb',display:'flex',justifyContent:'center'}}>
                 <div style={{fontSize:13,color:'#374151',fontWeight:600}}>Total : <span style={{fontSize:18,fontWeight:800,color:'#111827'}}>{patientsJour.length}</span></div>
               </div>
+            </div>
+
+            {/* Transferts Mamoudzou du jour */}
+            <div style={{background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:12,padding:'14px 20px',marginBottom:16,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{fontSize:13,fontWeight:600,color:'#9a3412'}}>🚑 Transferts vers Mamoudzou</div>
+              <div style={{fontSize:28,fontWeight:800,color:'#ea580c'}}>{nbTransfertsJour}</div>
             </div>
 
             {/* Détail par motif */}
@@ -302,6 +353,16 @@ export default function StatsMensuelles() {
                 ? <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 14px',fontSize:12,color:'#16a34a',fontWeight:600,flex:1}}>✅ Imprimé par {imprime.par} le {imprime.le}</div>
                 : <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 14px',fontSize:12,color:'#dc2626',fontWeight:600,flex:1}}>⏳ Pas encore imprimé</div>
               }
+              <button onClick={()=>{
+                const lignes = LISTE_ACTES.map((l,i)=>{
+                  if (l.startsWith('§')) return '';
+                  const k = ACTES_KEYS[i];
+                  return String(s[k] ?? 0);
+                });
+                navigator.clipboard.writeText(lignes.join('\n'));
+              }} style={{padding:'9px 14px',borderRadius:8,background:'#374151',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+                📋 Copier colonne
+              </button>
               <button onClick={marquerImprime} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
                 🖨️ Imprimer
               </button>
@@ -318,33 +379,13 @@ export default function StatsMensuelles() {
               </div>
               <table style={{width:'100%',borderCollapse:'collapse',background:'#fff',border:'1px solid #e5e7eb',borderTop:'none',marginBottom:12}}>
                 <tbody>
-                  <Sec titre="🔬 Biologie / Point of care" color="#f59e0b">
-                    <L l="Dextro" v={s.nbDextro}/><L l="Hémocue" v={s.nbHemocue}/><L l="Cétonémie" v={s.nbCetonem}/>
-                    <L l="CRP rapide" v={s.nbCRP}/><L l="TDR Paludisme" v={s.nbTdrPalu}/><L l="TDR Dengue" v={s.nbTdrDengue}/>
-                    <L l="Tétanotop" v={s.nbTetanos}/><L l="BU" v={s.nbBU}/><L l="bHCG urinaire" v={s.nbBhcg}/>
-                    <L l="ECBU" v={s.nbECBU}/><L l="Hémoculture" v={s.nbHemocult}/><L l="Coproculture" v={s.nbCoprocult}/>
-                    <L l="Bio délocalisée" v={s.nbBioDeloc}/><L l="Gaz du sang" v={s.nbGazSang}/><L l="Prélèvement Mamoudzou" v={s.nbPrelevMam}/>
-                  </Sec>
-                  <Sec titre="🩺 Actes infirmiers" color="#3b82f6">
-                    <L l="ECG" v={s.nbECG}/><L l="VVP" v={s.nbVVP}/><L l="IV" v={s.nbIV}/><L l="IM" v={s.nbIM}/>
-                    <L l="SC" v={s.nbSC}/><L l="O2" v={s.nbO2}/><L l="Aérosol" v={s.nbAerosol}/><L l="MEOPA" v={s.nbMeopa}/>
-                    <L l="DRP" v={s.nbDRP}/><L l="Pose sonde urinaire" v={s.nbSondeUPose}/><L l="Retrait sonde urinaire" v={s.nbSondeURetrait}/>
-                    <L l="Reprise constantes" v={s.nbSurveillance}/><L l="Éducation asthme" v={s.nbEducAsthme}/>
-                  </Sec>
-                  <Sec titre="✂️ Sutures / Pansements / Actes" color="#dc2626">
-                    <L l="Suture ≥ 5 pts" v={s.nbSutSup5}/><L l="Suture < 5 pts" v={s.nbSutInf5}/>
-                    <L l="Suture colle" v={s.nbSutColle}/><L l="Suture agrafes" v={s.nbSutAgraf}/><L l="Steri-strip" v={s.nbSutSteri}/>
-                    <L l="Ablation abcès" v={s.nbAbces}/>
-                    <L l="Pansement simple" v={s.nbPSTSimple}/><L l="Pansement complexe" v={s.nbPSTCompl}/><L l="Lavage CAE" v={s.nbLavCAE}/>
-                  </Sec>
-                  <Sec titre="💉 Autres actes" color="#7c3aed">
-                    <L l="Vaccin" v={s.nbVaccin}/><L l="Pose implant" v={s.nbPoseImpl}/><L l="Retrait implant" v={s.nbRetrImpl}/>
-                  </Sec>
-                  <Sec titre="🚪 Sorties" color="#6b7280">
-                    <L l="Retour à domicile" v={s.nbDomicile}/><L l="Transfert Mamoudzou" v={s.nbTransfMDZ}/>
-                    <L l="Transfert hélicoptère" v={s.nbTransfHellico}/><L l="GAV — Réquisition" v={s.nbGAV}/>
-                    <L l="Décès" v={s.nbDeces}/>
-                  </Sec>
+                  {LISTE_ACTES.map((label,i)=>{
+                    if (label.startsWith('§')) return (
+                      <tr key={i}><td colSpan={2} style={{padding:'5px 12px',background:'#37415118',fontSize:10,fontWeight:700,color:'#374151',textTransform:'uppercase',letterSpacing:0.5}}>{label.slice(1)}</td></tr>
+                    );
+                    const v = s[ACTES_KEYS[i]] ?? 0;
+                    return <L key={i} l={label} v={v}/>;
+                  })}
                   {s.ordoSecurisees.length > 0 && (
                     <Sec titre={`🔴 Ordonnances sécurisées (${s.ordoSecurisees.length})`} color="#dc2626">
                       {s.ordoSecurisees.map((r,i)=>(
@@ -391,6 +432,59 @@ export default function StatsMensuelles() {
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
                 <tbody>
 
+                  {/* ── ENREGISTREMENT vs CONSULTATION ── */}
+                  <tr style={{background:'#f3f4f6'}}>
+                    <td colSpan={3} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>Passages PDS</td>
+                  </tr>
+                  <tr style={{background:'#fff'}}>
+                    <td colSpan={2} style={{padding:'6px 12px',border:'1px solid #e5e7eb',color:'#374151'}}>Nombre de patients enregistrés (AS)</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center'}}>{s.nbEnregistresParAS}</td>
+                  </tr>
+                  <tr style={{background:'#fef2f2'}}>
+                    <td colSpan={2} style={{padding:'6px 12px',border:'1px solid #e5e7eb',color:'#374151'}}>Partis sans attendre</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:'#dc2626'}}>{s.nbPartiSansAttendreT3}</td>
+                  </tr>
+                  <tr style={{background:'#f0fdf4'}}>
+                    <td colSpan={2} style={{padding:'6px 12px',border:'1px solid #e5e7eb',color:'#374151',fontWeight:600}}>Patients réellement consultés (IDE/Médecin)</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #e5e7eb',fontWeight:800,textAlign:'center',color:'#16a34a'}}>{s.nbEnregistresParAS - s.nbPartiSansAttendreT3}</td>
+                  </tr>
+
+                  {/* ── ACTES (duplication) ── */}
+                  <tr style={{background:'#f3f4f6'}}>
+                    <td colSpan={3} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>Actes réalisés</td>
+                  </tr>
+                  {[
+                    ['Sutures (toutes confondues)', s.nbSutSup5+s.nbSutInf5+s.nbSutColle+s.nbSutAgraf+s.nbSutSteri],
+                    ['Implants posés', s.nbPoseImpl],
+                    ['Implants retirés', s.nbRetrImpl],
+                    ['Vaccins (tous confondus)', s.nbAutresVaccins+s.nbVaccinsCovid],
+                    ['Sondes urinaires posées/retirées', s.nbSondeUrinaire],
+                  ].map(([l,v],i)=>(
+                    <tr key={i} style={{background:i%2===0?'#fff':'#f9fafb'}}>
+                      <td colSpan={2} style={{padding:'5px 12px',border:'1px solid #e5e7eb',color:'#374151'}}>{l}</td>
+                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:v>0?'#111827':'#d1d5db'}}>{v}</td>
+                    </tr>
+                  ))}
+
+                  {/* ── TYPES DE SORTIE ── */}
+                  <tr style={{background:'#f3f4f6'}}>
+                    <td colSpan={3} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>Types de sortie</td>
+                  </tr>
+                  {[
+                    ['Retour à domicile (RAD)', s.nbRetourDomicile],
+                    ['GAV — Réquisition', s.nbGAV],
+                    ['Transfert Urgence', s.nbTransfertUrgence],
+                    ['Transfert SMUR', s.nbTransfertSMUR],
+                    ['Urgence moyen propre', s.nbUrgenceMoyenPropre],
+                    ['Parti sans attendre', s.nbPartiSansAttendre],
+                    ['Décès', s.nbDecesSurSite],
+                  ].map(([l,v],i)=>(
+                    <tr key={i} style={{background:i%2===0?'#fff':'#f9fafb'}}>
+                      <td colSpan={2} style={{padding:'5px 12px',border:'1px solid #e5e7eb',color:'#374151'}}>{l}</td>
+                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:v>0?'#111827':'#d1d5db'}}>{v}</td>
+                    </tr>
+                  ))}
+
                   {/* ── SECTION IDE / AS ── */}
                   <tr style={{background:'#dbeafe'}}>
                     <td rowSpan={3} style={{padding:'6px 10px',fontWeight:700,color:'#1e40af',fontSize:11,textTransform:'uppercase',textAlign:'center',border:'1px solid #bfdbfe',width:60,writingMode:'vertical-rl',transform:'rotate(180deg)'}}>IDE / AS</td>
@@ -424,49 +518,6 @@ export default function StatsMensuelles() {
                     <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb total passages perm</td>
                     <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:800,textAlign:'center',color:'#92400e'}}>{s.nbPatients}</td>
                   </tr>
-
-                  {/* ── SECTION MÉDECINS ── */}
-                  <tr style={{background:'#f3f4f6'}}>
-                    <td colSpan={2} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>MÉDECINS</td>
-                  </tr>
-                  {[
-                    ['Nombre de consultations', s.nbPatients],
-                    ['', ''],
-                    ['Sutures', s.nbSutSup5+s.nbSutInf5+s.nbSutColle+s.nbSutAgraf+s.nbSutSteri],
-                    ['  — Suture ≥ 5 pts', s.nbSutSup5],
-                    ['  — Suture < 5 pts', s.nbSutInf5],
-                    ['  — Suture colle', s.nbSutColle],
-                    ['  — Agrafes', s.nbSutAgraf],
-                    ['  — Steri-strip', s.nbSutSteri],
-                    ['Ablation abcès', s.nbAbces],
-                    ['Implants — Pose', s.nbPoseImpl],
-                    ['Implants — Retrait', s.nbRetrImpl],
-                    ['Vaccins', s.nbVaccin],
-                    ['Sonde urinaire — Pose', s.nbSondeUPose],
-                    ['Sonde urinaire — Retrait', s.nbSondeURetrait],
-                  ].map(([l,v],i)=>(
-                    <tr key={i} style={{background:i%2===0?'#fff':'#f9fafb'}}>
-                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',color:'#374151',paddingLeft:l.startsWith('  ')?24:12}}>{l||' '}</td>
-                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:v>0?'#111827':'#d1d5db'}}>{v===''?' ':v}</td>
-                    </tr>
-                  ))}
-
-                  {/* Sorties */}
-                  <tr style={{background:'#f3f4f6'}}>
-                    <td colSpan={2} style={{padding:'5px 12px',fontWeight:700,color:'#374151',fontSize:10,textTransform:'uppercase',letterSpacing:0.5,border:'1px solid #e5e7eb'}}>SORTIES</td>
-                  </tr>
-                  {[
-                    ['Retour à domicile', s.nbDomicile],
-                    ['Transfert Mamoudzou', s.nbTransfMDZ],
-                    ['Transfert hélicoptère (SAMU)', s.nbTransfHellico],
-                    ['GAV — Réquisition', s.nbGAV],
-                    ['Constat (décès)', s.nbDeces],
-                  ].map(([l,v],i)=>(
-                    <tr key={i} style={{background:i%2===0?'#fff':'#f9fafb'}}>
-                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',color:'#374151'}}>{l}</td>
-                      <td style={{padding:'5px 12px',border:'1px solid #e5e7eb',fontWeight:700,textAlign:'center',color:v>0?'#111827':'#d1d5db'}}>{v}</td>
-                    </tr>
-                  ))}
 
                 </tbody>
               </table>

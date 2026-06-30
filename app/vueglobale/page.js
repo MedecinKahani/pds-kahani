@@ -86,15 +86,16 @@ function OverlaySortie({ patient, onClose, onConfirm }) {
         <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:20}}>
           {[
             {id:'domicile',  label:'🏠 Retour à domicile'},
+            {id:'pse',       label:'🚶 Parti sans attendre'},
             {id:'transfert', label:'🚑 Transfert Mamoudzou'},
             {id:'gav',       label:'🔒 GAV — Réquisition'},
             {id:'deces',     label:'🕊️ Décès'},
           ].map(opt=>(
             <button key={opt.id} onClick={()=>{setModalite(opt.id);if(opt.id!=='transfert')setMoyen('');}}
               style={{padding:'12px 16px',borderRadius:10,textAlign:'left',fontSize:13,fontWeight:600,cursor:'pointer',
-                background:modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':'#f0fdf4'):'#f9fafb',
-                color:modalite===opt.id?(opt.id==='deces'||opt.id==='transfert'||opt.id==='gav'?'#fff':'#15803d'):'#374151',
-                border:'2px solid '+(modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':'#16a34a'):'#e5e7eb')}}>
+                background:modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':opt.id==='pse'?'#c2410c':'#f0fdf4'):'#f9fafb',
+                color:modalite===opt.id?(opt.id==='deces'||opt.id==='transfert'||opt.id==='gav'||opt.id==='pse'?'#fff':'#15803d'):'#374151',
+                border:'2px solid '+(modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':opt.id==='pse'?'#c2410c':'#16a34a'):'#e5e7eb')}}>
               {opt.label}
             </button>
           ))}
