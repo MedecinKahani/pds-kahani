@@ -3,20 +3,25 @@ const redis = Redis.fromEnv();
 
 const STANDS_DEFAUT = {
   pansement: { label: 'Pansement', icon: '🩹', couleur: '#f59e0b', dureeMin: 20, strict: false,
-    jours: [0,1,2,3,4,5,6], // tous les jours
+    jours: [0,1,2,3,4,5,6],
     horaires: { debut: '08:00', fin: '18:00' } },
-  bio: { label: 'Prélèvement bio', icon: '🧪', couleur: '#3b82f6', dureeMin: 12, strict: false,
-    jours: [1,2,3,4,5], // lun-ven
-    horaires: { debut: '09:00', fin: '12:00' } },
-  vaccin: { label: 'Vaccin', icon: '💉', couleur: '#16a34a', dureeMin: 12, strict: false,
-    jours: [3,4,5], // mer jeu ven
-    horaires: { debut: '12:00', fin: '13:00' }, nbCreneaux: 5 },
-  k2: { label: 'K2 — Consultation aiguë', icon: '🩺', couleur: '#dc2626', dureeMin: 16, strict: true,
+  bio: { label: 'Prélèvement bio', icon: '🧪', couleur: '#3b82f6', dureeMin: 0, strict: false,
     jours: [1,2,3,4,5],
-    horaires: { debut: '13:00', fin: '17:00' }, nbCreneaux: 15 },
-  chronique: { label: 'Consultation chronique', icon: '📋', couleur: '#7c3aed', dureeMin: 0, strict: false,
+    horaires: { debut: '09:00', fin: '09:00' }, // créneau unique groupé
+    nbCreneaux: 1, capacitePlace: 20 },
+  vaccin: { label: 'Vaccin', icon: '💉', couleur: '#16a34a', dureeMin: 0, strict: false,
+    jours: [3,4,5],
+    horaires: { debut: '12:00', fin: '12:00' }, // créneau unique groupé
+    nbCreneaux: 1, capacitePlace: 5 },
+  k2: { label: 'K2 — Consultation aiguë', icon: '🩺', couleur: '#dc2626', dureeMin: 15, strict: true,
     jours: [1,2,3,4,5],
-    horaires: { debut: '07:00', fin: '13:00' }, modulable: true, nbCreneauxParDefaut: 12 },
+    horaires: { debut: '13:00', fin: '17:00' } },
+  chronique_ipa: { label: 'Chronique — IPA', icon: '📋', couleur: '#7c3aed', dureeMin: 0, strict: false,
+    jours: [1,2,3,4,5],
+    horaires: { debut: '07:00', fin: '13:00' }, modulable: true, nbCreneauxParDefaut: 10 },
+  chronique_med: { label: 'Chronique — Médecin', icon: '👨‍⚕️', couleur: '#0d9488', dureeMin: 0, strict: false,
+    jours: [1,2,3,4,5],
+    horaires: { debut: '07:00', fin: '13:00' }, modulable: true, nbCreneauxParDefaut: 10, barrable: true },
 };
 
 export async function GET(req) {
@@ -42,6 +47,12 @@ export async function GET(req) {
     const stored = await redis.get('planning:modulation');
     const modulation = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : {};
     return Response.json({ modulation });
+  }
+
+  if (action === 'jours_barres') {
+    const stored = await redis.get('planning:jours_barres');
+    const barres = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : {};
+    return Response.json({ barres });
   }
 
   return Response.json({ error: 'action inconnue' }, { status: 400 });
@@ -80,6 +91,17 @@ export async function POST(req) {
     modulation[key] = data.nbCreneaux;
     await redis.set('planning:modulation', JSON.stringify(modulation));
     return Response.json({ ok: true, modulation });
+  }
+
+  if (data.action === 'toggle_jour_barre') {
+    // { date: 'YYYY-MM-DD', stand: 'chronique_med' }
+    const stored = await redis.get('planning:jours_barres');
+    const barres = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : {};
+    const key = data.stand + ':' + data.date;
+    if (barres[key]) delete barres[key];
+    else barres[key] = true;
+    await redis.set('planning:jours_barres', JSON.stringify(barres));
+    return Response.json({ ok: true, barres });
   }
 
   return Response.json({ error: 'action inconnue' }, { status: 400 });

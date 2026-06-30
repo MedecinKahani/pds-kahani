@@ -16,7 +16,7 @@ function dateStr(d) {
   return d.toISOString().slice(0, 10);
 }
 
-function genererCreneaux(stand, dateObj, modulation) {
+function genererCreneaux(standId, stand, dateObj, modulation) {
   const jourSemaine = dateObj.getDay();
   if (!stand.jours.includes(jourSemaine)) return [];
 
@@ -25,10 +25,15 @@ function genererCreneaux(stand, dateObj, modulation) {
   const debutMin = hDeb * 60 + mDeb;
   const finMin = hFin * 60 + mFin;
 
+  // Créneau unique groupé (bio, vaccin) : un seul horaire, capacité multiple
+  if (stand.capacitePlace) {
+    return [`${String(hDeb).padStart(2,'0')}:${String(mDeb).padStart(2,'0')}`];
+  }
+
   let nbCreneaux;
   if (stand.modulable) {
-    const moisKey = dateStr(dateObj).slice(0, 7) + ':chronique';
-    nbCreneaux = modulation[moisKey] || stand.nbCreneauxParDefaut || 12;
+    const moisKey = dateStr(dateObj).slice(0, 7) + ':' + standId;
+    nbCreneaux = modulation[moisKey] || stand.nbCreneauxParDefaut || 10;
   } else if (stand.nbCreneaux) {
     nbCreneaux = stand.nbCreneaux;
   } else {
@@ -67,6 +72,7 @@ export default function PlanningPage() {
   const [prenomManuel, setPrenomManuel] = useState('');
   const [motifManuel, setMotifManuel] = useState('');
   const [showModulation, setShowModulation] = useState(false);
+  const [joursBarres, setJoursBarres] = useState({});
 
   useEffect(() => {
     const s = sessionStorage.getItem('pds_user');
@@ -89,13 +95,24 @@ export default function PlanningPage() {
 
   async function charger() {
     setLoading(true);
-    const [cfgRes, modRes] = await Promise.all([
+    const [cfgRes, modRes, barRes] = await Promise.all([
       fetch('/api/planning?action=config').then(r => r.json()),
       fetch('/api/planning?action=modulation').then(r => r.json()),
+      fetch('/api/planning?action=jours_barres').then(r => r.json()),
     ]);
     setConfig(cfgRes.config);
     setModulation(modRes.modulation || {});
+    setJoursBarres(barRes.barres || {});
     setLoading(false);
+  }
+
+  async function toggleJourBarre(dStr) {
+    await fetch('/api/planning', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'toggle_jour_barre', date: dStr, stand: standActif }),
+    });
+    const r = await fetch('/api/planning?action=jours_barres').then(r => r.json());
+    setJoursBarres(r.barres || {});
   }
 
   async function chargerSemaine() {
@@ -165,17 +182,17 @@ export default function PlanningPage() {
     chargerSemaine();
   }
 
-  async function changerModulation(mois, nb) {
+  async function changerModulation(mois, standId, nb) {
     await fetch('/api/planning', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'set_modulation', mois, stand: 'chronique', nbCreneaux: nb }),
+      body: JSON.stringify({ action: 'set_modulation', mois, stand: standId, nbCreneaux: nb }),
     });
     const r = await fetch('/api/planning?action=modulation').then(r => r.json());
     setModulation(r.modulation || {});
   }
 
-  const moisActuelKey = dateStr(lundi).slice(0, 7) + ':chronique';
-  const nbCreneauxChroniqueActuel = modulation[moisActuelKey] || config.chronique?.nbCreneauxParDefaut || 12;
+  const moisActuelKey = dateStr(lundi).slice(0, 7) + ':' + standActif;
+  const nbCreneauxActuel = modulation[moisActuelKey] || stand?.nbCreneauxParDefaut || 10;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: 'system-ui' }}>
@@ -214,7 +231,7 @@ export default function PlanningPage() {
 
         {stand?.modulable && (
           <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: '8px 14px', marginBottom: 12, fontSize: 12, color: '#6b21a8' }}>
-            Capacité ce mois : <strong>{nbCreneauxChroniqueActuel} créneaux/jour</strong> — réglable par l'IPA (bouton en haut à droite)
+            Capacité ce mois : <strong>{nbCreneauxActuel} créneaux/jour</strong> — réglable par l'IPA (bouton en haut à droite)
           </div>
         )}
 
@@ -225,19 +242,29 @@ export default function PlanningPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', minWidth: 700 }}>
               {jours.map((d, i) => {
                 const dStr = dateStr(d);
-                const creneaux = genererCreneaux(stand, d, modulation);
+                const creneaux = genererCreneaux(standActif, stand, d, modulation);
                 const estAujourdhui = dStr === dateStr(new Date());
+                const jourBarreKey = standActif + ':' + dStr;
+                const estBarre = stand.barrable && joursBarres[jourBarreKey];
                 return (
                   <div key={i} style={{ borderRight: i < 6 ? '1px solid #e5e7eb' : 'none' }}>
                     <div style={{ padding: '10px 8px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', background: estAujourdhui ? stand.couleur + '18' : '#f9fafb' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: estAujourdhui ? stand.couleur : '#6b7280' }}>{JOURS_LABEL[d.getDay()]}</div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: '#111827' }}>{d.getDate()}</div>
+                      {stand.barrable && (
+                        <button onClick={() => toggleJourBarre(dStr)}
+                          style={{ marginTop: 4, fontSize: 8, padding: '2px 6px', borderRadius: 4, border: '1px solid ' + (estBarre ? '#fecaca' : '#e5e7eb'), background: estBarre ? '#fef2f2' : '#fff', color: estBarre ? '#dc2626' : '#9ca3af', cursor: 'pointer' }}>
+                          {estBarre ? '✕ Indispo' : 'Barrer'}
+                        </button>
+                      )}
                     </div>
                     <div style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 200 }}>
-                      {creneaux.length === 0 && <div style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', padding: '8px 0' }}>Fermé</div>}
-                      {creneaux.map(heure => {
+                      {estBarre && <div style={{ fontSize: 10, color: '#dc2626', textAlign: 'center', padding: '8px 4px', background: '#fef2f2', borderRadius: 6, fontWeight: 600 }}>Médecin chro indisponible</div>}
+                      {!estBarre && creneaux.length === 0 && <div style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', padding: '8px 0' }}>Fermé</div>}
+                      {!estBarre && creneaux.map(heure => {
                         const occupants = rdvPourSlot(dStr, heure);
-                        const plein = occupants.length > 0;
+                        const capacite = stand.capacitePlace || 1;
+                        const plein = occupants.length >= capacite;
                         return (
                           <div key={heure}>
                             <button onClick={() => !plein && setModaleSlot({ date: dStr, heure })}
@@ -245,7 +272,7 @@ export default function PlanningPage() {
                               style={{ width: '100%', padding: '5px 6px', borderRadius: 6, fontSize: 10, fontWeight: 600, textAlign: 'left', cursor: plein ? 'default' : 'pointer',
                                 background: plein ? stand.couleur + '22' : '#fff', color: plein ? stand.couleur : '#9ca3af',
                                 border: '1px solid ' + (plein ? stand.couleur + '55' : '#e5e7eb') }}>
-                              {heure}
+                              {heure}{stand.capacitePlace ? ` · ${occupants.length}/${capacite}` : ''}
                             </button>
                             {occupants.map(o => (
                               <div key={o.id} onClick={() => setModaleAnnuler(o)}
@@ -330,31 +357,36 @@ export default function PlanningPage() {
 
       {showModulation && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 24, width: 380, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 24, width: 420, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: '#7c3aed', marginBottom: 4 }}>⚙️ Modulation consultation chronique</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>Réglage mensuel du nombre de créneaux par jour (IPA + médecin chronique)</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>Réglage mensuel du nombre de créneaux par jour</div>
 
-            {[0, 1, 2].map(offset => {
-              const d = new Date();
-              d.setMonth(d.getMonth() + offset);
-              const moisKey = d.toISOString().slice(0, 7) + ':chronique';
-              const label = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-              const valeur = modulation[moisKey] || config.chronique?.nbCreneauxParDefaut || 12;
-              return (
-                <div key={offset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: offset < 2 ? '1px solid #f3f4f6' : 'none' }}>
-                  <span style={{ fontSize: 13, color: '#374151', textTransform: 'capitalize' }}>{label}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button onClick={() => changerModulation(d.toISOString().slice(0, 7), Math.max(1, valeur - 1))}
-                      style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>−</button>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#7c3aed', minWidth: 24, textAlign: 'center' }}>{valeur}</span>
-                    <button onClick={() => changerModulation(d.toISOString().slice(0, 7), valeur + 1)}
-                      style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>+</button>
-                  </div>
-                </div>
-              );
-            })}
+            {['chronique_ipa', 'chronique_med'].map(standId => (
+              <div key={standId} style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: config[standId]?.couleur, marginBottom: 6 }}>{config[standId]?.icon} {config[standId]?.label}</div>
+                {[0, 1, 2].map(offset => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() + offset);
+                  const moisKey = d.toISOString().slice(0, 7) + ':' + standId;
+                  const label = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                  const valeur = modulation[moisKey] || config[standId]?.nbCreneauxParDefaut || 10;
+                  return (
+                    <div key={offset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: offset < 2 ? '1px solid #f3f4f6' : 'none' }}>
+                      <span style={{ fontSize: 12, color: '#374151', textTransform: 'capitalize' }}>{label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => changerModulation(d.toISOString().slice(0, 7), standId, Math.max(1, valeur - 1))}
+                          style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>−</button>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: config[standId]?.couleur, minWidth: 22, textAlign: 'center' }}>{valeur}</span>
+                        <button onClick={() => changerModulation(d.toISOString().slice(0, 7), standId, valeur + 1)}
+                          style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>+</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
 
-            <button onClick={() => setShowModulation(false)} style={{ width: '100%', marginTop: 20, padding: '10px', borderRadius: 8, background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => setShowModulation(false)} style={{ width: '100%', marginTop: 8, padding: '10px', borderRadius: 8, background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
               Fermer
             </button>
           </div>
