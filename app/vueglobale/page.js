@@ -93,16 +93,23 @@ function OverlaySortie({ patient, onClose, onConfirm }) {
             {id:'transfert', label:'🚑 Transfert Mamoudzou'},
             {id:'gav',       label:'🔒 GAV — Réquisition'},
             {id:'deces',     label:'🕊️ Décès'},
+            {id:'erreur',    label:'⚠️ Annuler le dossier (erreur)'},
           ].map(opt=>(
             <button key={opt.id} onClick={()=>{setModalite(opt.id);if(opt.id!=='transfert')setMoyen('');}}
               style={{padding:'12px 16px',borderRadius:10,textAlign:'left',fontSize:13,fontWeight:600,cursor:'pointer',
-                background:modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':opt.id==='pse'?'#c2410c':'#f0fdf4'):'#f9fafb',
-                color:modalite===opt.id?(opt.id==='deces'||opt.id==='transfert'||opt.id==='gav'||opt.id==='pse'?'#fff':'#15803d'):'#374151',
-                border:'2px solid '+(modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':opt.id==='pse'?'#c2410c':'#16a34a'):'#e5e7eb')}}>
+                background:modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':opt.id==='pse'?'#c2410c':opt.id==='erreur'?'#4b5563':'#f0fdf4'):'#f9fafb',
+                color:modalite===opt.id?(opt.id==='deces'||opt.id==='transfert'||opt.id==='gav'||opt.id==='pse'||opt.id==='erreur'?'#fff':'#15803d'):'#374151',
+                border:'2px solid '+(modalite===opt.id?(opt.id==='deces'?'#7f1d1d':opt.id==='transfert'?'#1e3a5f':opt.id==='gav'?'#312e81':opt.id==='pse'?'#c2410c':opt.id==='erreur'?'#4b5563':'#16a34a'):'#e5e7eb')}}>
               {opt.label}
             </button>
           ))}
         </div>
+
+        {modalite==='erreur'&&(
+          <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:10,padding:'10px 14px',marginBottom:16,fontSize:12,color:'#991b1b'}}>
+            ⚠️ Le dossier sera <strong>définitivement supprimé</strong> (aucun PDF, aucune trace dans les statistiques). À utiliser uniquement en cas d'erreur de création.
+          </div>
+        )}
 
         {modalite==='transfert'&&(
           <div style={{marginBottom:20}}>
@@ -600,6 +607,14 @@ export default function PageVueGlobale() {
           onClose={()=>setFichesSortie(null)}
           onConfirm={async(modalite,moyen)=>{
             const p=fichesSortie;
+            if (modalite === 'erreur') {
+              // Annulation : suppression complète du dossier, pas de PDF, pas de stat
+              await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({action:'delete',id:p.id})});
+              setFichesSortie(null);
+              load();
+              return;
+            }
             // Imprimer PDF
             imprimerSortie({...p, modalite_sortie:modalite, moyen_sortie:moyen});
             // Discharge
