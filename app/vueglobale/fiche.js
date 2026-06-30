@@ -413,6 +413,14 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
   }
 
+  async function annulerRealisation(idx) {
+    const rx=[...prescriptions];
+    rx[idx]={...rx[idx],fait:false,nonRealise:false,motifNonRealise:null,resultat:null,faitPar:null,faitNom:null,faitA:null};
+    setPrescriptions(rx);
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+  }
+
   async function supprimerRx(idx) {
     const rx=prescriptions.filter((_,i)=>i!==idx);
     setPrescriptions(rx);
@@ -758,7 +766,7 @@ ${ordonnance||'--'}
                             {items.length===0&&<div style={{color:'#9ca3af',fontSize:12,textAlign:'center',marginTop:8}}>Aucune prescription</div>}
                             {items.map((r,i)=>{
                               const gi=prescriptions.indexOf(r);
-                              return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} user={user}
+                              return <IDERxItem key={i} r={r} color={color} onCocher={()=>cocherRx(gi)} onNonRealise={(m)=>nonRealiserRx(gi,m)} onAnnuler={()=>annulerRealisation(gi)} user={user}
                                 onCocherAvecResultat={(val,fk,label)=>{
                                   const rx=[...prescriptions];
                                   rx[gi]={...rx[gi],fait:true,resultat:val,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
@@ -1050,7 +1058,7 @@ const CONST_RX_MAP = {
   'bHCG urinaire': {fk:'bhcg_resultat', label:'bHCG urinaire', type:'choix',  options:['Négatif','Positif']},
 };
 
-function IDERxItem({r, color, onCocher, onNonRealise, onCocherAvecResultat, user}) {
+function IDERxItem({r, color, onCocher, onNonRealise, onCocherAvecResultat, onAnnuler, user}) {
   const [showMotif, setShowMotif] = useState(false);
   const [motif, setMotif] = useState('');
   const [showResultat, setShowResultat] = useState(false);
@@ -1061,24 +1069,36 @@ function IDERxItem({r, color, onCocher, onNonRealise, onCocherAvecResultat, user
   const constInfo = Object.entries(CONST_RX_MAP).find(([k])=>r.texte?.startsWith(k))?.[1];
 
   if (r.fait) return (
-    <div style={{padding:'10px 12px',borderRadius:8,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.6}}>
+    <div style={{padding:'10px 12px',borderRadius:8,border:'1px solid #e5e7eb',background:'#f9fafb',opacity:0.7}}>
       <div style={{display:'flex',alignItems:'center',gap:8}}>
         <div style={{width:22,height:22,borderRadius:5,background:color,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
           <span style={{color:'#fff',fontSize:12}}>✓</span>
         </div>
-        <div>
+        <div style={{flex:1}}>
           <div style={{fontSize:13,color:'#9ca3af',textDecoration:'line-through'}}>{r.texte}</div>
           {r.faitA&&<div style={{fontSize:10,color:'#16a34a',marginTop:2}}>Réalisé par {r.faitNom||r.faitPar} à {new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>}
           {r.resultat&&<div style={{fontSize:11,color:'#374151',marginTop:2}}>{r.resultat}</div>}
         </div>
+        {onAnnuler&&<button onClick={onAnnuler} title="Annuler — erreur de clic"
+          style={{flexShrink:0,padding:'3px 8px',borderRadius:5,background:'#fff',color:'#9ca3af',fontSize:9,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>
+          ↺ Annuler
+        </button>}
       </div>
     </div>
   );
 
   if (r.nonRealise) return (
-    <div style={{padding:'10px 12px',borderRadius:8,border:'1px solid #fecaca',background:'#fef2f2',opacity:0.7}}>
-      <div style={{fontSize:13,color:'#ef4444',textDecoration:'line-through'}}>{r.texte}</div>
-      <div style={{fontSize:10,color:'#dc2626',marginTop:3}}>✕ {r.motifNonRealise||'Non réalisé'}</div>
+    <div style={{padding:'10px 12px',borderRadius:8,border:'1px solid #fecaca',background:'#fef2f2',opacity:0.8}}>
+      <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:13,color:'#ef4444',textDecoration:'line-through'}}>{r.texte}</div>
+          <div style={{fontSize:10,color:'#dc2626',marginTop:3}}>✕ {r.motifNonRealise||'Non réalisé'}</div>
+        </div>
+        {onAnnuler&&<button onClick={onAnnuler} title="Annuler — erreur de clic"
+          style={{flexShrink:0,padding:'3px 8px',borderRadius:5,background:'#fff',color:'#9ca3af',fontSize:9,fontWeight:600,border:'1px solid #fecaca',cursor:'pointer'}}>
+          ↺ Annuler
+        </button>}
+      </div>
     </div>
   );
 
