@@ -1404,15 +1404,29 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
                 if(deja) return null;
                 const rouge=ROUGE.some(s=>item.includes(s));
                 const isPO = v.voie==='PO';
+
+                // Calcul dose réelle pour les items "Xmg/kg" si poids connu
+                const pds = parseFloat(patient?.poids)||0;
+                const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+                let itemAffiche = item;
+                let texteEnregistre = item;
+                if (matchMgKg && pds>0) {
+                  const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
+                  const doseCalculee = Math.round(pds*parseFloat(mgParKg));
+                  const label = parJour ? mgParKg+'mg/kg/j' : mgParKg+'mg/kg';
+                  itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+label+', '+pds+'kg)';
+                  texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
+                }
+
                 return (
-                  <button key={item} onClick={()=>onAjouter(isPO?item+' ×1':item,'therapeutique')}
+                  <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
                     onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
                     onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
                     style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
                       background:rouge?'#fef2f2':v.color+'12',
                       color:rouge?'#dc2626':v.color,
                       border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
-                    {item}
+                    {itemAffiche}
                   </button>
                 );
               })}
