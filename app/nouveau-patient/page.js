@@ -133,8 +133,8 @@ export default function NouveauPatient() {
       return null;
     }
     if (s==='avc') {
-      if (f.avc_depuis==='<4h') return {place:B, label:Blabel, urgence:true, msg:'AVC < 4h — Alerter médecin EN URGENCE — Dextro + Hémocue dès que possible'};
-      if (f.avc_depuis==='>4h') return {place:prefPlace(['lit1','lit2','brancard2'],occupees), label:'Lit 1 (ou Lit 2, Brancard 2)', urgence:false, msg:'Prevenir médecin — Dextro + Hémocue obligatoires'};
+      if (f.avc_depuis==='<4h') return {place:B, label:Blabel, urgence:true, msg:'AVC < 4h — Alerter médecin EN URGENCE — Brancard 1 — ECG + Dextro obligatoires'};
+      if (f.avc_depuis==='>4h') return {place:prefPlace(['lit1','lit2','brancard2'],occupees), label:'Lit 1 (ou Lit 2, Brancard 2)', urgence:false, msg:'Avertir médecin — Lit 1 ou 2 — ECG + Dextro obligatoires'};
       return null;
     }
     if (s==='detresse_respi') {
@@ -185,7 +185,7 @@ export default function NouveauPatient() {
     if (!f.sexe||!f.nom||!s) return false;
     if (!f.fc||!f.sat||!f.temp) { if (s!=='soins_ide') return false; }
     if (s==='coma') { if (f.respire===null) return false; if (f.respire===true) return !!(f.dextro&&f.hemocue); return true; }
-    if (s==='avc') { if (!f.avc_depuis) return false; if (f.avc_depuis==='>4h') return !!(f.dextro&&f.hemocue); return true; }
+    if (s==='avc') { if (!f.avc_depuis) return false; return !!(f.dextro && f.ecg_fait); }
     if (s==='detresse_respi') { if (f.asthme_connu===null||f.parle_ok===null) return false; if (age!==null&&age<2&&!f.drp_fait) return false; return true; }
     if (s==='plaie') { if (!f.plaie_depuis||!f.carnet) return false; if ((f.carnet==='absent'||f.carnet==='illisible')&&!f.quicktest) return false; return true; }
     if (s==='fievre') {
@@ -400,22 +400,43 @@ export default function NouveauPatient() {
               <Btn onClick={()=>set('avc_depuis','<4h')} style={pSt(f.avc_depuis==='<4h','#ef4444')}>Moins de 4h</Btn>
               <Btn onClick={()=>set('avc_depuis','>4h')} style={pSt(f.avc_depuis==='>4h','#f59e0b')}>Plus de 4h</Btn>
             </div>
-            {f.avc_depuis==='<4h' && <AlerteBox couleur="rouge" texte="AVC recent — Alerter médecin EN URGENCE — Dextro + Hemocue des que possible"/>}
+            {f.avc_depuis==='<4h' && (
+              <div>
+                <AlerteBox couleur="rouge" texte="AVC recent — Alerter médecin EN URGENCE — Brancard 1 — ECG + Dextro obligatoires"/>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
+                  <div>
+                    <label style={lbl}>Dextro *</label>
+                    <div style={{position:'relative'}}>
+                      <input value={f.dextro} onChange={e=>set('dextro',e.target.value)} inputMode="decimal" style={{...inp,paddingRight:36}} placeholder="--"/>
+                      <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#9ca3af'}}>g/L</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={lbl}>ECG réalisé *</label>
+                    <Btn onClick={()=>set('ecg_fait',!f.ecg_fait)} style={{...pSt(f.ecg_fait,'#ef4444'),width:'100%'}}>
+                      {f.ecg_fait?'✓ ECG réalisé':'ECG réalisé ?'}
+                    </Btn>
+                  </div>
+                </div>
+              </div>
+            )}
             {f.avc_depuis==='>4h' && (
               <div>
-                <AlerteBox couleur="orange" texte="Prevenir médecin — Dextro + Hemocue obligatoires"/>
+                <AlerteBox couleur="orange" texte="Avertir médecin — Lit 1 ou 2 — ECG + Dextro obligatoires"/>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
-                  {[{k:'dextro',l:'Dextro *',u:'g/L'},{k:'hemocue',l:'Hemocue *',u:'g/dL'}].map(function(item) {
-                    return (
-                      <div key={item.k}>
-                        <label style={lbl}>{item.l}</label>
-                        <div style={{position:'relative'}}>
-                          <input value={f[item.k]} onChange={e=>set(item.k,e.target.value)} inputMode="decimal" style={{...inp,paddingRight:36}} placeholder="--"/>
-                          <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#9ca3af'}}>{item.u}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div>
+                    <label style={lbl}>Dextro *</label>
+                    <div style={{position:'relative'}}>
+                      <input value={f.dextro} onChange={e=>set('dextro',e.target.value)} inputMode="decimal" style={{...inp,paddingRight:36}} placeholder="--"/>
+                      <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#9ca3af'}}>g/L</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={lbl}>ECG réalisé *</label>
+                    <Btn onClick={()=>set('ecg_fait',!f.ecg_fait)} style={{...pSt(f.ecg_fait,'#f59e0b'),width:'100%'}}>
+                      {f.ecg_fait?'✓ ECG réalisé':'ECG réalisé ?'}
+                    </Btn>
+                  </div>
                 </div>
               </div>
             )}
