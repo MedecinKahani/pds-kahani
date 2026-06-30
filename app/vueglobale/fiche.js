@@ -538,7 +538,7 @@ ${ordonnance||'--'}
             <button onMouseDown={e=>{e.preventDefault();openEditIdentite();}} title="Modifier l'identité"
               style={{fontSize:13,background:'none',border:'none',cursor:'pointer',color:'#9ca3af',padding:'0 2px'}}>✎</button>
             <span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
-              {p.symptome?.replace(/_/g,' ')}
+              {p.symptome==='autre'&&p.autre_motif ? p.autre_motif : p.symptome?.replace(/_/g,' ')}
             </span>
           </div>
           <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
