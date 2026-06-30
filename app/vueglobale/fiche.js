@@ -673,37 +673,7 @@ ${ordonnance||'--'}
                             💨 Asthme
                           </button>
                         )}
-                        {(()=>{
-                          const pds=parseFloat(p.poids)||0;
-                          const ag=parseFloat(p.age)||99;
-                          // Dose paracétamol selon poids
-                          let doseParacetamol, posologieParacetamol;
-                          if(pds>0&&pds<=33) {
-                            const mg=Math.round(pds*15/100)*100;
-                            doseParacetamol=mg+'mg';
-                            posologieParacetamol='1 dose-poids ('+mg+'mg = '+Math.round(pds*15)+'mg) toutes les 6h (max 4 prises/j)\n→ Sirop ou sachet selon disponibilité\n→ Ne pas dépasser 60mg/kg/j';
-                          } else if(pds>33&&pds<=50) {
-                            doseParacetamol='500mg';
-                            posologieParacetamol='1 comprimé 500mg toutes les 6h (max 4 prises/j)\n→ Espacer les prises d\'au moins 4h';
-                          } else {
-                            doseParacetamol='1g';
-                            posologieParacetamol='1 comprimé 1g toutes les 6h (max 4 prises/j)\n→ Espacer les prises d\'au moins 4h';
-                          }
-                          return <>
-                            <button onClick={()=>{
-                              const txt='ANTALGIQUE\n\nParacétamol '+doseParacetamol+' PO\n→ '+posologieParacetamol+'\n→ À avaler avec un grand verre d\'eau';
-                              setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
-                            }} style={{padding:'3px 8px',borderRadius:5,background:'#f0fdf4',color:'#16a34a',fontSize:10,fontWeight:600,border:'1px solid #bbf7d0',cursor:'pointer'}}>
-                              🩹 Paracétamol {doseParacetamol}
-                            </button>
-                            {p.symptome==='douleur'&&<button onClick={()=>{
-                              const txt='Ibuprofène 400mg PO\n→ 1 comprimé matin, midi et soir au cours du repas\n→ Prendre avec un grand verre d\'eau\n→ Ne pas prendre à jeun\n→ Durée max : 5 jours\n→ CONTRE-INDIQUÉ si grossesse, allergie AINS, insuffisance rénale, ulcère gastrique';
-                              setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
-                            }} style={{padding:'3px 8px',borderRadius:5,background:'#fff7ed',color:'#ea580c',fontSize:10,fontWeight:600,border:'1px solid #fed7aa',cursor:'pointer'}}>
-                              🔥 Ibuprofène
-                            </button>}
-                          </>;
-                        })()}
+                        <OrdonnancesRapides p={p} ordonnance={ordonnance} setOrdonnance={setOrdonnance} dbSave={dbSave}/>
                         {p.symptome==='plaie'&&plaies.length>0&&(
                           <button onClick={()=>{
                             const JOURS={tete:5,cou:7,tronc:10,abdomen:10,bras:10,avant_bras:10,main:10,cuisse:12,jambe:12,cheville:14,pied:14,genou:14,coude:14,dos:10};
@@ -1725,6 +1695,122 @@ function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, 
         ))}
       </div>
     </div>
+  );
+}
+
+function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
+  const pds = parseFloat(p.poids)||0;
+  const ag = parseFloat(p.age)||99;
+  const adulte = ag>=15;
+
+  function ajouter(txt) {
+    setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
+    dbSave({ordonnance:ordonnance?ordonnance+'\n\n'+txt:txt});
+  }
+
+  const Btn = ({onClick,bg,color,border,children}) => (
+    <button onClick={onClick} style={{padding:'3px 8px',borderRadius:5,background:bg,color,fontSize:10,fontWeight:600,border:'1px solid '+border,cursor:'pointer'}}>
+      {children}
+    </button>
+  );
+
+  // 1. Paracétamol
+  let doseP, posoP;
+  if (pds>0&&pds<=33) {
+    const mg=Math.round(pds*15/100)*100;
+    doseP=mg+'mg';
+    posoP='1 dose-poids ('+mg+'mg) toutes les 6h (max 4 prises/j)\n→ Sirop ou sachet selon disponibilité\n→ Ne pas dépasser 60mg/kg/j';
+  } else if (pds>33&&pds<=50) {
+    doseP='500mg'; posoP='1 comprimé 500mg toutes les 6h (max 4 prises/j)\n→ Espacer les prises d\'au moins 4h';
+  } else {
+    doseP='1g'; posoP='1 comprimé 1g toutes les 6h (max 4 prises/j)\n→ Espacer les prises d\'au moins 4h';
+  }
+
+  // 2. Ibuprofène
+  let doseIbu, posoIbu;
+  if (pds>0&&!adulte) {
+    const mg=Math.round(pds*10);
+    doseIbu=mg+'mg'; posoIbu=mg+'mg ('+(pds>0?'10mg/kg':'')+') ×3/jour au cours du repas\n→ Avec un grand verre d\'eau, ne pas prendre à jeun\n→ Durée max 5 jours';
+  } else {
+    doseIbu='400mg'; posoIbu='1 comprimé 400mg matin, midi et soir au cours du repas\n→ Avec un grand verre d\'eau, ne pas prendre à jeun\n→ Durée max 5 jours\n→ CONTRE-INDIQUÉ si grossesse, allergie AINS, insuffisance rénale, ulcère gastrique';
+  }
+
+  // 3. Amoxicilline
+  let doseAmx, posoAmx;
+  if (pds>0&&!adulte) {
+    const mgj=Math.round(pds*80);
+    doseAmx=mgj+'mg/j'; posoAmx=mgj+'mg/jour (80mg/kg/j) en 2-3 prises — 6 à 7 jours';
+  } else {
+    doseAmx='1g'; posoAmx='1g ×2-3/jour — 6 à 7 jours';
+  }
+
+  // 4. Augmentin
+  let doseAug, posoAug;
+  if (pds>0&&!adulte) {
+    const mgj=Math.round(pds*80);
+    doseAug=mgj+'mg/j'; posoAug=mgj+'mg/jour d\'amoxicilline (80mg/kg/j) en 3 prises — 7 jours';
+  } else {
+    doseAug='1g'; posoAug='1g ×2-3/jour — 7 jours';
+  }
+
+  // 5. Tiorfan
+  let posoTio;
+  if (pds>0&&!adulte) {
+    const mg=Math.round(pds*1.5);
+    posoTio=mg+'mg ('+'1,5mg/kg) ×3/jour avant les repas, jusqu\'à amélioration (max 7 jours)';
+  } else {
+    posoTio='1 gélule (100mg) ×3/jour avant les repas, jusqu\'à amélioration (max 7 jours)';
+  }
+
+  // 8. Vogalène
+  let posoVog;
+  if (pds>0&&!adulte) {
+    const mgj=(pds*0.4).toFixed(1);
+    posoVog=mgj+'mg/jour (0,4mg/kg/j) en 2-3 prises, en suppositoire ou sirop selon âge';
+  } else {
+    posoVog='1 comprimé ×3/jour avant les repas';
+  }
+
+  // 9. Aerius
+  let posoAer;
+  if (ag<6) posoAer='Non recommandé avant 6 ans — avis médical';
+  else if (ag<12) posoAer='2,5mg/jour (sirop) en 1 prise';
+  else posoAer='5mg/jour (1 comprimé) en 1 prise';
+
+  return (
+    <>
+      <Btn onClick={()=>ajouter('ANTALGIQUE\n\nParacétamol '+doseP+' PO\n→ '+posoP+'\n→ À avaler avec un grand verre d\'eau')}
+        bg="#f0fdf4" color="#16a34a" border="#bbf7d0">🩹 Paracétamol {doseP}</Btn>
+
+      <Btn onClick={()=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+doseIbu+' PO\n→ '+posoIbu)}
+        bg="#fff7ed" color="#ea580c" border="#fed7aa">🔥 Ibuprofène</Btn>
+
+      <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+doseAmx+' PO\n→ '+posoAmx)}
+        bg="#eff6ff" color="#2563eb" border="#bfdbfe">💊 Amoxicilline</Btn>
+
+      <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+doseAug+' PO\n→ '+posoAug)}
+        bg="#eef2ff" color="#4f46e5" border="#c7d2fe">💊 Augmentin</Btn>
+
+      <Btn onClick={()=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan PO\n→ '+posoTio)}
+        bg="#fefce8" color="#a16207" border="#fde68a">💧 Tiorfan</Btn>
+
+      <Btn onClick={()=>ajouter('LAVAGE NASAL\n\nSérum salé physiologique\n→ Lavage nasal selon âge, unidoses ×4-6/jour si nourrisson\n→ DRP avant chaque tétée/repas si encombrement')}
+        bg="#eff6ff" color="#0891b2" border="#a5f3fc">💦 Sérum salé (DRP)</Btn>
+
+      <Btn onClick={()=>ajouter('SOINS LOCAUX\n\nBiseptine\n→ Application locale 1x/jour sur la plaie après lavage\n→ Pansement simple')}
+        bg="#fdf2f8" color="#be185d" border="#fbcfe8">🩹 Biseptine</Btn>
+
+      <Btn onClick={()=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) PO\n→ '+posoVog)}
+        bg="#f5f3ff" color="#7c3aed" border="#ddd6fe">🤢 Vogalène</Btn>
+
+      <Btn onClick={()=>ajouter('ANTIHISTAMINIQUE\n\nAerius (desloratadine)\n→ '+posoAer)}
+        bg="#ecfeff" color="#0e7490" border="#a5f3fc">🤧 Aerius</Btn>
+
+      {adulte&&pds>50&&(
+        <Btn onClick={()=>ajouter('ANTALGIQUE PALIER 2\n\nAcupan 30mg PO\n→ 1 comprimé matin, midi et soir\n→ Réservé adulte > 50kg')}
+          bg="#fef2f2" color="#dc2626" border="#fecaca">💉 Acupan 30mg</Btn>
+      )}
+    </>
   );
 }
 
