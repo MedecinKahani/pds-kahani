@@ -1413,8 +1413,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
                 if (matchMgKg && pds>0) {
                   const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
                   const doseCalculee = Math.round(pds*parseFloat(mgParKg));
-                  const label = parJour ? mgParKg+'mg/kg/j' : mgParKg+'mg/kg';
-                  itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+label+', '+pds+'kg)';
+                  itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
                   texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
                 }
 
