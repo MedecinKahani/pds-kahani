@@ -106,7 +106,13 @@ export default function Admin() {
 
         {/* Liste triée par métier */}
         <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'1.25rem'}}>
-          <h2 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:16}}>Agents ({users.length})</h2>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+            <h2 style={{fontSize:14,fontWeight:600,color:'#374151',margin:0}}>Agents ({users.length})</h2>
+            <a href="/docs/Note_cadrage_PDS_Kahani.docx" download
+              style={{display:'flex',alignItems:'center',gap:6,padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:600,textDecoration:'none',border:'1px solid #e5e7eb'}}>
+              📄 Note de cadrage (statut PDS Kahani)
+            </a>
+          </div>
           {users.length===0&&<div style={{color:'#9ca3af',fontSize:13}}>Aucun agent enregistré</div>}
           {['medecin','ide','as','secretaire'].map(r => {
             const groupe = grouped[r];
