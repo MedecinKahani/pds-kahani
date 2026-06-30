@@ -35,11 +35,8 @@ const LISTE_ACTES = [
   'ECBU','Coprocultures','Sonde urinaire','VVP','IV','IM','Autres vaccins','Vaccins COVID-19','SC',
   'DRP','Oxygène','Tensiomètre','ECG','MEOPA','Lavage CAE','Pansements simple','Pansements complexe',
   'Surveillance','Éducation','Aérosol','Gaz de sang','Décès sur site',
-  '§Sutures et actes annexes',
-  'Suture ≥5 pts','Suture <5 pts','Suture colle','Suture agrafes','Steri-strip','Ablation abcès',
-  'Pose implant','Retrait implant','Hémoculture','Prélèvement Mamoudzou',
   '§Sorties',
-  'Transfert Urgence','Transfert SMUR','Urgence moyen propre','Maternité','Retour à domicile','Parti sans attendre','GAV — Réquisition',
+  'Transfert Urgence','Transfert SMUR','Urgence moyen propre','Maternité','Retour à domicile',
 ];
 
 const ACTES_KEYS = [
@@ -48,10 +45,7 @@ const ACTES_KEYS = [
   'nbDRP','nbOxygene','nbTensiometre','nbECG','nbMEOPA','nbLavageCAE','nbPansementSimple','nbPansementComplexe',
   'nbSurveillance','nbEducation','nbAerosol','nbGazSang','nbDecesSurSite',
   null,
-  'nbSutSup5','nbSutInf5','nbSutColle','nbSutAgraf','nbSutSteri','nbAbces',
-  'nbPoseImpl','nbRetrImpl','nbHemocult','nbPrelevMam',
-  null,
-  'nbTransfertUrgence','nbTransfertSMUR','nbUrgenceMoyenPropre','nbMaternite','nbRetourDomicile','nbPartiSansAttendre','nbGAV',
+  'nbTransfertUrgence','nbTransfertSMUR','nbUrgenceMoyenPropre','nbMaternite','nbRetourDomicile',
 ];
 
 function calcStats(patients) {
@@ -386,13 +380,6 @@ export default function StatsMensuelles() {
                     const v = s[ACTES_KEYS[i]] ?? 0;
                     return <L key={i} l={label} v={v}/>;
                   })}
-                  {s.ordoSecurisees.length > 0 && (
-                    <Sec titre={`🔴 Ordonnances sécurisées (${s.ordoSecurisees.length})`} color="#dc2626">
-                      {s.ordoSecurisees.map((r,i)=>(
-                        <tr key={i}><td colSpan={2} style={{padding:'4px 12px',fontSize:11,color:'#374151',borderBottom:'1px solid #fef2f2'}}>{r.texte} <span style={{color:'#9ca3af'}}>— {r.faitPar||''}</span></td></tr>
-                      ))}
-                    </Sec>
-                  )}
                 </tbody>
               </table>
               <div style={{fontSize:11,color:'#9ca3af',textAlign:'center',padding:'4px'}}>
