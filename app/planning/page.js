@@ -72,6 +72,7 @@ export default function PlanningPage() {
   const [nomManuel, setNomManuel] = useState('');
   const [prenomManuel, setPrenomManuel] = useState('');
   const [ddnManuel, setDdnManuel] = useState('');
+  const [collerFait, setCollerFait] = useState(false);
   const [motifManuel, setMotifManuel] = useState('');
   const [showModulation, setShowModulation] = useState(false);
   const [joursBarres, setJoursBarres] = useState({});
@@ -297,9 +298,28 @@ export default function PlanningPage() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 14, padding: 24, width: 380, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: stand.couleur, marginBottom: 4 }}>{stand.icon} {stand.label}</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
               {new Date(modaleSlot.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' })} à {modaleSlot.heure}
             </div>
+
+            <button onClick={async () => {
+              try {
+                const txt = await navigator.clipboard.readText();
+                const parts = txt.split('\t');
+                if (parts.length >= 4) {
+                  const [ipp, ddn, nom, prenom] = parts;
+                  if (ipp && ipp !== '--') setMatricule(ipp);
+                  if (ddn && ddn !== '--') setDdnManuel(ddn);
+                  if (nom && nom !== '--') setNomManuel(nom);
+                  if (prenom && prenom !== '--') setPrenomManuel(prenom);
+                  setPatientTrouve(null);
+                  setCollerFait(true);
+                  setTimeout(() => setCollerFait(false), 2000);
+                }
+              } catch (e) {}
+            }} style={{ width: '100%', padding: '8px', borderRadius: 8, background: collerFait ? '#16a34a' : '#eff6ff', color: collerFait ? '#fff' : '#2563eb', fontSize: 12, fontWeight: 700, border: '1px solid ' + (collerFait ? '#16a34a' : '#bfdbfe'), cursor: 'pointer', marginBottom: 12 }}>
+              {collerFait ? '✓ Champs remplis' : '📋 Coller infos patient (depuis PDS)'}
+            </button>
 
             <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 4 }}>IPP ou matricule (optionnel)</label>
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
