@@ -617,9 +617,20 @@ ${ordonnance||'--'}
                       {role!=='ide'&&(
                         <div style={{display:'flex',gap:4,padding:'3px 4px',borderBottom:'1px solid #e5e7eb',flexShrink:0,background:'#fafafa'}}>
                           {[{l:'Examen normal adulte',v:EXAMEN_NORMAL_ADULTE,c:'#16a34a'},{l:'Examen normal enfant',v:EXAMEN_NORMAL_ENFANT,c:'#3b82f6'}].map(o=>(
-                            <button key={o.l} onClick={()=>{const nv=examen===o.v?'':o.v;setExamen(nv);dbSave({examen_clinique:nv});}}
-                              style={{padding:'2px 8px',borderRadius:4,fontSize:9,fontWeight:600,cursor:'pointer',background:examen===o.v?o.c:'#fff',color:examen===o.v?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
-                              {examen===o.v?'✓ ':''}{o.l}
+                            <button key={o.l} onClick={()=>{
+                              const dejaPresent = examen.includes(o.v);
+                              let nv;
+                              if (dejaPresent) {
+                                // Retirer le bloc normal du texte existant
+                                nv = examen.replace(o.v,'').replace(/\n{3,}/g,'\n\n').trim();
+                              } else {
+                                // Ajouter sans écraser le texte déjà saisi
+                                nv = examen ? examen.trim()+'\n\n'+o.v : o.v;
+                              }
+                              setExamen(nv);dbSave({examen_clinique:nv});
+                            }}
+                              style={{padding:'2px 8px',borderRadius:4,fontSize:9,fontWeight:600,cursor:'pointer',background:examen.includes(o.v)?o.c:'#fff',color:examen.includes(o.v)?'#fff':o.c,border:'1px solid '+o.c+'44'}}>
+                              {examen.includes(o.v)?'✓ ':''}{o.l}
                             </button>
                           ))}
                         </div>
