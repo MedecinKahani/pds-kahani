@@ -15,7 +15,7 @@ const STANDS_DEFAUT = {
     nbCreneaux: 1, capacitePlace: 5 },
   k2: { label: 'K2 — Consultation aiguë', icon: '🩺', couleur: '#dc2626', dureeMin: 15, strict: true,
     jours: [1,2,3,4,5],
-    horaires: { debut: '13:00', fin: '17:00' } },
+    horaires: { debut: '13:00', fin: '17:00' }, barrableK2: true },
   chronique: { label: 'Consultation chronique', icon: '📋', couleur: '#7c3aed', dureeMin: 60, strict: false,
     jours: [1,2,3,4,5],
     horaires: { debut: '07:00', fin: '13:00' }, capacitePlace: 4, barrableIPA: true, barrableMed: true },

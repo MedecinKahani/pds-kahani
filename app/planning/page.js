@@ -279,15 +279,18 @@ export default function PlanningPage() {
                 const estAujourdhui = dStr === dateStr(new Date());
                 const keyIPA = standActif + ':ipa:' + dStr;
                 const keyMed = standActif + ':med:' + dStr;
+                const keyK2 = standActif + ':k2:' + dStr;
                 const ipaBarre = stand.barrableIPA && joursBarres[keyIPA];
                 const medBarre = stand.barrableMed && joursBarres[keyMed];
+                const k2Barre = stand.barrableK2 && joursBarres[keyK2];
                 const capaciteJour = (stand.capacitePlace || 1) - (ipaBarre?2:0) - (medBarre?2:0);
+                const peutBarrer = user?.role === 'ide' || user?.role === 'secretaire';
                 return (
                   <div key={i} style={{ borderRight: i < 6 ? '1px solid #e5e7eb' : 'none' }}>
                     <div style={{ padding: '10px 8px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', background: estAujourdhui ? stand.couleur + '18' : '#f9fafb' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: estAujourdhui ? stand.couleur : '#6b7280' }}>{JOURS_LABEL[d.getDay()]}</div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: '#111827' }}>{d.getDate()}</div>
-                      {(stand.barrableIPA||stand.barrableMed) && (
+                      {peutBarrer && (stand.barrableIPA||stand.barrableMed) && (
                         <div style={{ display:'flex', gap:3, marginTop:4, justifyContent:'center' }}>
                           {stand.barrableIPA && <button onClick={() => toggleJourBarre(dStr,'ipa')}
                             style={{ fontSize: 8, padding: '2px 5px', borderRadius: 4, border: '1px solid ' + (ipaBarre ? '#fecaca' : '#e5e7eb'), background: ipaBarre ? '#fef2f2' : '#fff', color: ipaBarre ? '#dc2626' : '#9ca3af', cursor: 'pointer' }}>
@@ -299,11 +302,19 @@ export default function PlanningPage() {
                           </button>}
                         </div>
                       )}
+                      {peutBarrer && stand.barrableK2 && (
+                        <div style={{ marginTop:4 }}>
+                          <button onClick={() => toggleJourBarre(dStr,'k2')}
+                            style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, border: '1px solid ' + (k2Barre ? '#fecaca' : '#e5e7eb'), background: k2Barre ? '#fef2f2' : '#fff', color: k2Barre ? '#dc2626' : '#9ca3af', cursor: 'pointer' }}>
+                            {k2Barre ? '✕ Fermé' : 'Barrer'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 200 }}>
-                      {(ipaBarre&&medBarre) && <div style={{ fontSize: 10, color: '#dc2626', textAlign: 'center', padding: '8px 4px', background: '#fef2f2', borderRadius: 6, fontWeight: 600 }}>IPA et médecin indisponibles</div>}
-                      {!(ipaBarre&&medBarre) && creneaux.length === 0 && <div style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', padding: '8px 0' }}>Fermé</div>}
-                      {!(ipaBarre&&medBarre) && creneaux.map(heure => {
+                      {(ipaBarre&&medBarre)||k2Barre ? <div style={{ fontSize: 10, color: '#dc2626', textAlign: 'center', padding: '8px 4px', background: '#fef2f2', borderRadius: 6, fontWeight: 600 }}>{k2Barre?'K2 fermé ce jour':'IPA et médecin indisponibles'}</div> : null}
+                      {!((ipaBarre&&medBarre)||k2Barre) && creneaux.length === 0 && <div style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', padding: '8px 0' }}>Fermé</div>}
+                      {!((ipaBarre&&medBarre)||k2Barre) && creneaux.map(heure => {
                         const occupants = rdvPourSlot(dStr, heure);
                         const capacite = capaciteJour > 0 ? capaciteJour : (stand.capacitePlace || 1);
                         const plein = occupants.length >= capacite;
