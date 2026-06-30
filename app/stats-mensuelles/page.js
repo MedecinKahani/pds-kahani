@@ -147,6 +147,7 @@ export default function StatsMensuelles() {
   const [moisIdx, setMoisIdx] = useState(0);
   const [impressions, setImpressions] = useState({});
   const [onglet, setOnglet] = useState('passages');
+  const [copieFait, setCopieFait] = useState(false);
   // Onglet passages
   const [jourOffset, setJourOffset] = useState(0); // 0 = aujourd'hui, -1 = hier...
   const moisOptions = getMoisOptions();
@@ -342,11 +343,7 @@ export default function StatsMensuelles() {
                 style={{width:36,height:36,borderRadius:'50%',border:'1px solid #e5e7eb',background:moisIdx<=0?'#f9fafb':'#fff',cursor:moisIdx<=0?'not-allowed':'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',color:moisIdx<=0?'#d1d5db':'#374151'}}>→</button>
             </div>
 
-            <div className="no-print" style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,gap:10}}>
-              {imprime
-                ? <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'8px 14px',fontSize:12,color:'#16a34a',fontWeight:600,flex:1}}>✅ Imprimé par {imprime.par} le {imprime.le}</div>
-                : <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 14px',fontSize:12,color:'#dc2626',fontWeight:600,flex:1}}>⏳ Pas encore imprimé</div>
-              }
+            <div className="no-print" style={{display:'flex',alignItems:'center',justifyContent:'flex-end',marginBottom:12,gap:10}}>
               <button onClick={()=>{
                 const lignes = LISTE_ACTES.map((l,i)=>{
                   if (l.startsWith('§')) return '';
@@ -354,10 +351,12 @@ export default function StatsMensuelles() {
                   return String(s[k] ?? 0);
                 });
                 navigator.clipboard.writeText(lignes.join('\n'));
-              }} style={{padding:'9px 14px',borderRadius:8,background:'#374151',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
-                📋 Copier colonne
+                setCopieFait(true);
+                setTimeout(()=>setCopieFait(false), 3000);
+              }} style={{padding:'9px 14px',borderRadius:8,background:copieFait?'#16a34a':'#374151',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0,transition:'background 0.2s'}}>
+                {copieFait ? '✓ Copié — Coller dans Excel' : '📋 Copier colonne'}
               </button>
-              <button onClick={marquerImprime} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+              <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
                 🖨️ Imprimer
               </button>
             </div>
