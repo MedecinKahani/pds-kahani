@@ -786,9 +786,9 @@ ${ordonnance||'--'}
                       collapsed={collapsed.examens} onToggle={()=>setCollapsed(c=>({...c,examens:!c.examens}))}>
                       <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
                         {EXAMENS_COMPL.map(e=>{
+                          if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
                           const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
                           if(deja) return null;
-                          if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
                           return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
                         })}
                         <AutreLibre categorie="examen" onAjouter={ajouterRx}/>
