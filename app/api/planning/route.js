@@ -19,6 +19,15 @@ const STANDS_DEFAUT = {
   chronique: { label: 'Consultation chronique', icon: '📋', couleur: '#7c3aed', dureeMin: 60, strict: false,
     jours: [1,2,3,4,5],
     horaires: { debut: '07:00', fin: '13:00' }, capacitePlace: 4, barrableIPA: true, barrableMed: true },
+  cmp: { label: 'CMP', icon: '🧠', couleur: '#6366f1', dureeMin: 30, strict: false,
+    jours: [1,3], // lundi et mercredi
+    horaires: { debut: '07:00', fin: '12:00' } },
+  dentiste: { label: 'Dentiste', icon: '🦷', couleur: '#0ea5e9', dureeMin: 30, strict: false,
+    jours: [], // à définir
+    horaires: { debut: '08:00', fin: '12:00' } },
+  echo: { label: 'Échographie', icon: '🔊', couleur: '#14b8a6', dureeMin: 30, strict: false,
+    jours: [], // à définir
+    horaires: { debut: '08:00', fin: '12:00' } },
 };
 
 export async function GET(req) {

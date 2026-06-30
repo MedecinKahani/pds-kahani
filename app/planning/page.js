@@ -73,6 +73,7 @@ export default function PlanningPage() {
   const [prenomManuel, setPrenomManuel] = useState('');
   const [ddnManuel, setDdnManuel] = useState('');
   const [collerFait, setCollerFait] = useState(false);
+  const [copieIdentiteFait, setCopieIdentiteFait] = useState(false);
   const [motifManuel, setMotifManuel] = useState('');
   const [showModulation, setShowModulation] = useState(false);
   const [joursBarres, setJoursBarres] = useState({});
@@ -424,14 +425,34 @@ export default function PlanningPage() {
 
       {modaleAnnuler && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 24, width: 340, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 24, width: 360, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', marginBottom: 4 }}>{modaleAnnuler.nom} {modaleAnnuler.prenom}</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>{modaleAnnuler.date} à {modaleAnnuler.heure}</div>
             {modaleAnnuler.motif && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}>Motif : {modaleAnnuler.motif}</div>}
-            <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 20 }}>Pris par {modaleAnnuler.creeParNom}</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setModaleAnnuler(null)} style={{ flex: 1, padding: '10px', borderRadius: 8, background: '#f3f4f6', color: '#6b7280', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' }}>Fermer</button>
-              <button onClick={() => annulerRdv(modaleAnnuler.id)} style={{ flex: 1, padding: '10px', borderRadius: 8, background: '#fef2f2', color: '#dc2626', fontSize: 13, fontWeight: 700, border: '1px solid #fecaca', cursor: 'pointer' }}>✕ Annuler le RDV</button>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 16 }}>Pris par {modaleAnnuler.creeParNom}</div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <button onClick={() => annulerRdv(modaleAnnuler.id)}
+                style={{ padding: '12px 10px', borderRadius: 10, background: '#fef2f2', color: '#dc2626', fontSize: 12, fontWeight: 700, border: '1px solid #fecaca', cursor: 'pointer' }}>
+                ✕ Annuler RDV
+              </button>
+              <button onClick={() => imprimerTicket({ ...modaleAnnuler, standLabel: stand.label })}
+                style={{ padding: '12px 10px', borderRadius: 10, background: '#eff6ff', color: '#2563eb', fontSize: 12, fontWeight: 700, border: '1px solid #bfdbfe', cursor: 'pointer' }}>
+                🖨️ Convocation
+              </button>
+              <button onClick={() => {
+                const txt = [modaleAnnuler.ipp||'--', modaleAnnuler.ddn||'--', modaleAnnuler.nom||'--', modaleAnnuler.prenom||'--'].join('\t');
+                navigator.clipboard.writeText(txt);
+                setCopieIdentiteFait(true);
+                setTimeout(() => setCopieIdentiteFait(false), 2000);
+              }}
+                style={{ padding: '12px 10px', borderRadius: 10, background: copieIdentiteFait ? '#16a34a' : '#f0fdf4', color: copieIdentiteFait ? '#fff' : '#16a34a', fontSize: 12, fontWeight: 700, border: '1px solid #bbf7d0', cursor: 'pointer', transition:'background 0.2s' }}>
+                {copieIdentiteFait ? '✓ Copié' : '📋 Copier identité'}
+              </button>
+              <button onClick={() => setModaleAnnuler(null)}
+                style={{ padding: '12px 10px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280', fontSize: 12, fontWeight: 700, border: '1px solid #e5e7eb', cursor: 'pointer' }}>
+                Fermer
+              </button>
             </div>
           </div>
         </div>
