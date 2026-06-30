@@ -2,9 +2,9 @@ import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 
 const STANDS_DEFAUT = {
-  pansement: { label: 'Pansement', icon: '🩹', couleur: '#f59e0b', dureeMin: 20, strict: false,
+  pansement: { label: 'Pansement', icon: '🩹', couleur: '#f59e0b', dureeMin: 30, strict: false,
     jours: [0,1,2,3,4,5,6],
-    horaires: { debut: '08:00', fin: '18:00' } },
+    horaires: { debut: '08:00', fin: '18:00' }, nbCreneaux: 20 },
   bio: { label: 'Prélèvement bio', icon: '🧪', couleur: '#3b82f6', dureeMin: 60, strict: false,
     jours: [1,2,3,4,5],
     horaires: { debut: '09:00', fin: '12:00' },
