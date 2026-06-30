@@ -155,22 +155,63 @@ export default function PlanningPage() {
     }
   }
 
+  function imprimerTicket(rdv) {
+    const dateLabel = new Date(rdv.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Convocation</title>
+      <style>
+        @page { size: 58mm auto; margin: 0; }
+        body { width: 54mm; margin: 0 auto; padding: 2mm; font-family: monospace; font-size: 11px; color: #000; }
+        .center { text-align: center; }
+        .titre { font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+        .ligne { border-top: 1px dashed #000; margin: 4px 0; }
+        .label { font-size: 9px; color: #444; text-transform: uppercase; }
+        .val { font-weight: bold; font-size: 13px; margin-bottom: 3px; }
+        .gros { font-weight: bold; font-size: 18px; text-align: center; margin: 6px 0; }
+      </style></head><body>
+        <div class="center titre">CMR KAHANI</div>
+        <div class="center" style="font-size:10px">Convocation rendez-vous</div>
+        <div class="ligne"></div>
+        <div class="label">Patient</div>
+        <div class="val">${rdv.nom} ${rdv.prenom}</div>
+        ${rdv.ddn ? `<div class="label">Date de naissance</div><div class="val">${rdv.ddn}</div>` : ''}
+        ${rdv.ipp ? `<div class="label">IPP</div><div class="val">${rdv.ipp}</div>` : ''}
+        <div class="ligne"></div>
+        <div class="label">Motif</div>
+        <div class="val">${rdv.standLabel}</div>
+        <div class="ligne"></div>
+        <div class="center" style="font-size:10px;text-transform:capitalize">${dateLabel}</div>
+        <div class="gros">${rdv.heure}</div>
+        <div class="ligne"></div>
+        ${rdv.motif ? `<div class="label">Précision</div><div style="font-size:10px">${rdv.motif}</div>` : ''}
+        <div class="center" style="font-size:8px;margin-top:6px;color:#666">Se présenter 5 min avant</div>
+      </body></html>`;
+    const w = window.open('', '_blank', 'width=300,height=500');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { w.print(); }, 250);
+  }
+
   async function confirmerReservation() {
     if (!modaleSlot) return;
     const nom = patientTrouve ? patientTrouve.nom : nomManuel;
     const prenom = patientTrouve ? patientTrouve.prenom : prenomManuel;
     if (!nom) return;
 
+    const standLabel = stand.label;
+    const rdvData = {
+      date: modaleSlot.date, stand: standActif, heure: modaleSlot.heure,
+      nom, prenom, ddn: patientTrouve?.ddn || ddnManuel || '', ipp: patientTrouve?.ipp || matricule,
+      motif: motifManuel,
+      creePar: user?.matricule, creeParNom: user?.nom,
+    };
+
     await fetch('/api/planning', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'reserver',
-        date: modaleSlot.date, stand: standActif, heure: modaleSlot.heure,
-        nom, prenom, ddn: patientTrouve?.ddn || ddnManuel || '', ipp: patientTrouve?.ipp || matricule,
-        motif: motifManuel,
-        creePar: user?.matricule, creeParNom: user?.nom,
-      }),
+      body: JSON.stringify({ action: 'reserver', ...rdvData }),
     });
+
+    imprimerTicket({ ...rdvData, standLabel });
+
     setModaleSlot(null);
     setMatricule(''); setPatientTrouve(null); setNomManuel(''); setPrenomManuel(''); setDdnManuel(''); setMotifManuel('');
     chargerSemaine();
