@@ -25,32 +25,33 @@ function genererCreneaux(standId, stand, dateObj, modulation) {
   const debutMin = hDeb * 60 + mDeb;
   const finMin = hFin * 60 + mFin;
 
-  // Créneau unique groupé (bio, vaccin) : un seul horaire, capacité multiple
-  if (stand.capacitePlace) {
+  // Créneau unique groupé (vaccin) : un seul horaire, capacité multiple
+  if (stand.nbCreneaux === 1) {
     return [`${String(hDeb).padStart(2,'0')}:${String(mDeb).padStart(2,'0')}`];
   }
 
-  let nbCreneaux;
-  if (stand.modulable) {
-    const moisKey = dateStr(dateObj).slice(0, 7) + ':' + standId;
-    nbCreneaux = modulation[moisKey] || stand.nbCreneauxParDefaut || 10;
-  } else if (stand.nbCreneaux) {
-    nbCreneaux = stand.nbCreneaux;
-  } else {
-    nbCreneaux = Math.floor((finMin - debutMin) / stand.dureeMin);
+  // Créneaux horaires réguliers avec capacité par créneau (bio, chronique)
+  if (stand.capacitePlace && stand.dureeMin) {
+    const creneaux = [];
+    let t = debutMin;
+    while (t < finMin) {
+      const h = Math.floor(t / 60);
+      const m = t % 60;
+      creneaux.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      t += stand.dureeMin;
+    }
+    return creneaux;
   }
 
-  const dureeReelle = stand.modulable
-    ? Math.floor((finMin - debutMin) / nbCreneaux)
-    : stand.dureeMin;
-
+  // Créneaux standards (K2, pansement)
+  const nbCreneaux = Math.floor((finMin - debutMin) / stand.dureeMin);
   const creneaux = [];
   let t = debutMin;
   for (let i = 0; i < nbCreneaux && t < finMin; i++) {
     const h = Math.floor(t / 60);
     const m = t % 60;
     creneaux.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-    t += dureeReelle;
+    t += stand.dureeMin;
   }
   return creneaux;
 }
@@ -106,10 +107,10 @@ export default function PlanningPage() {
     setLoading(false);
   }
 
-  async function toggleJourBarre(dStr) {
+  async function toggleJourBarre(dStr, type) {
     await fetch('/api/planning', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'toggle_jour_barre', date: dStr, stand: standActif }),
+      body: JSON.stringify({ action: 'toggle_jour_barre', date: dStr, stand: standActif + ':' + type }),
     });
     const r = await fetch('/api/planning?action=jours_barres').then(r => r.json());
     setJoursBarres(r.barres || {});
@@ -201,11 +202,6 @@ export default function PlanningPage() {
           <button onClick={() => router.push('/vueglobale')} style={{ padding: '7px 14px', borderRadius: 8, background: '#f3f4f6', color: '#6b7280', fontSize: 12, border: '1px solid #e5e7eb', cursor: 'pointer' }}>← Retour</button>
           <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>📅 Planning RDV — Bêta</span>
         </div>
-        {user?.role === 'ide' && (
-          <button onClick={() => setShowModulation(true)} style={{ padding: '7px 14px', borderRadius: 8, background: '#f5f3ff', color: '#7c3aed', fontSize: 12, fontWeight: 600, border: '1px solid #ddd6fe', cursor: 'pointer' }}>
-            ⚙️ Moduler chronique
-          </button>
-        )}
       </nav>
 
       <div style={{ maxWidth: 1100, margin: '1.5rem auto', padding: '0 1rem' }}>
@@ -229,12 +225,6 @@ export default function PlanningPage() {
           <button onClick={() => setSemaineOffset(o => o + 1)} style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 18 }}>→</button>
         </div>
 
-        {stand?.modulable && (
-          <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: '8px 14px', marginBottom: 12, fontSize: 12, color: '#6b21a8' }}>
-            Capacité ce mois : <strong>{nbCreneauxActuel} créneaux/jour</strong> — réglable par l'IPA (bouton en haut à droite)
-          </div>
-        )}
-
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af' }}>Chargement...</div>
         ) : (
@@ -244,26 +234,35 @@ export default function PlanningPage() {
                 const dStr = dateStr(d);
                 const creneaux = genererCreneaux(standActif, stand, d, modulation);
                 const estAujourdhui = dStr === dateStr(new Date());
-                const jourBarreKey = standActif + ':' + dStr;
-                const estBarre = stand.barrable && joursBarres[jourBarreKey];
+                const keyIPA = standActif + ':ipa:' + dStr;
+                const keyMed = standActif + ':med:' + dStr;
+                const ipaBarre = stand.barrableIPA && joursBarres[keyIPA];
+                const medBarre = stand.barrableMed && joursBarres[keyMed];
+                const capaciteJour = (stand.capacitePlace || 1) - (ipaBarre?2:0) - (medBarre?2:0);
                 return (
                   <div key={i} style={{ borderRight: i < 6 ? '1px solid #e5e7eb' : 'none' }}>
                     <div style={{ padding: '10px 8px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', background: estAujourdhui ? stand.couleur + '18' : '#f9fafb' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: estAujourdhui ? stand.couleur : '#6b7280' }}>{JOURS_LABEL[d.getDay()]}</div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: '#111827' }}>{d.getDate()}</div>
-                      {stand.barrable && (
-                        <button onClick={() => toggleJourBarre(dStr)}
-                          style={{ marginTop: 4, fontSize: 8, padding: '2px 6px', borderRadius: 4, border: '1px solid ' + (estBarre ? '#fecaca' : '#e5e7eb'), background: estBarre ? '#fef2f2' : '#fff', color: estBarre ? '#dc2626' : '#9ca3af', cursor: 'pointer' }}>
-                          {estBarre ? '✕ Indispo' : 'Barrer'}
-                        </button>
+                      {(stand.barrableIPA||stand.barrableMed) && (
+                        <div style={{ display:'flex', gap:3, marginTop:4, justifyContent:'center' }}>
+                          {stand.barrableIPA && <button onClick={() => toggleJourBarre(dStr,'ipa')}
+                            style={{ fontSize: 8, padding: '2px 5px', borderRadius: 4, border: '1px solid ' + (ipaBarre ? '#fecaca' : '#e5e7eb'), background: ipaBarre ? '#fef2f2' : '#fff', color: ipaBarre ? '#dc2626' : '#9ca3af', cursor: 'pointer' }}>
+                            IPA{ipaBarre?' ✕':''}
+                          </button>}
+                          {stand.barrableMed && <button onClick={() => toggleJourBarre(dStr,'med')}
+                            style={{ fontSize: 8, padding: '2px 5px', borderRadius: 4, border: '1px solid ' + (medBarre ? '#fecaca' : '#e5e7eb'), background: medBarre ? '#fef2f2' : '#fff', color: medBarre ? '#dc2626' : '#9ca3af', cursor: 'pointer' }}>
+                            Méd{medBarre?' ✕':''}
+                          </button>}
+                        </div>
                       )}
                     </div>
                     <div style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 200 }}>
-                      {estBarre && <div style={{ fontSize: 10, color: '#dc2626', textAlign: 'center', padding: '8px 4px', background: '#fef2f2', borderRadius: 6, fontWeight: 600 }}>Médecin chro indisponible</div>}
-                      {!estBarre && creneaux.length === 0 && <div style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', padding: '8px 0' }}>Fermé</div>}
-                      {!estBarre && creneaux.map(heure => {
+                      {(ipaBarre&&medBarre) && <div style={{ fontSize: 10, color: '#dc2626', textAlign: 'center', padding: '8px 4px', background: '#fef2f2', borderRadius: 6, fontWeight: 600 }}>IPA et médecin indisponibles</div>}
+                      {!(ipaBarre&&medBarre) && creneaux.length === 0 && <div style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', padding: '8px 0' }}>Fermé</div>}
+                      {!(ipaBarre&&medBarre) && creneaux.map(heure => {
                         const occupants = rdvPourSlot(dStr, heure);
-                        const capacite = stand.capacitePlace || 1;
+                        const capacite = capaciteJour > 0 ? capaciteJour : (stand.capacitePlace || 1);
                         const plein = occupants.length >= capacite;
                         return (
                           <div key={heure}>
@@ -351,44 +350,6 @@ export default function PlanningPage() {
               <button onClick={() => setModaleAnnuler(null)} style={{ flex: 1, padding: '10px', borderRadius: 8, background: '#f3f4f6', color: '#6b7280', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' }}>Fermer</button>
               <button onClick={() => annulerRdv(modaleAnnuler.id)} style={{ flex: 1, padding: '10px', borderRadius: 8, background: '#fef2f2', color: '#dc2626', fontSize: 13, fontWeight: 700, border: '1px solid #fecaca', cursor: 'pointer' }}>✕ Annuler le RDV</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showModulation && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 24, width: 420, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: '#7c3aed', marginBottom: 4 }}>⚙️ Modulation consultation chronique</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>Réglage mensuel du nombre de créneaux par jour</div>
-
-            {['chronique_ipa', 'chronique_med'].map(standId => (
-              <div key={standId} style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: config[standId]?.couleur, marginBottom: 6 }}>{config[standId]?.icon} {config[standId]?.label}</div>
-                {[0, 1, 2].map(offset => {
-                  const d = new Date();
-                  d.setMonth(d.getMonth() + offset);
-                  const moisKey = d.toISOString().slice(0, 7) + ':' + standId;
-                  const label = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                  const valeur = modulation[moisKey] || config[standId]?.nbCreneauxParDefaut || 10;
-                  return (
-                    <div key={offset} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: offset < 2 ? '1px solid #f3f4f6' : 'none' }}>
-                      <span style={{ fontSize: 12, color: '#374151', textTransform: 'capitalize' }}>{label}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button onClick={() => changerModulation(d.toISOString().slice(0, 7), standId, Math.max(1, valeur - 1))}
-                          style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>−</button>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: config[standId]?.couleur, minWidth: 22, textAlign: 'center' }}>{valeur}</span>
-                        <button onClick={() => changerModulation(d.toISOString().slice(0, 7), standId, valeur + 1)}
-                          style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>+</button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-
-            <button onClick={() => setShowModulation(false)} style={{ width: '100%', marginTop: 8, padding: '10px', borderRadius: 8, background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-              Fermer
-            </button>
           </div>
         </div>
       )}

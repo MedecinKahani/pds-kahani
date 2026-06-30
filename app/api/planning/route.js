@@ -5,10 +5,10 @@ const STANDS_DEFAUT = {
   pansement: { label: 'Pansement', icon: '🩹', couleur: '#f59e0b', dureeMin: 20, strict: false,
     jours: [0,1,2,3,4,5,6],
     horaires: { debut: '08:00', fin: '18:00' } },
-  bio: { label: 'Prélèvement bio', icon: '🧪', couleur: '#3b82f6', dureeMin: 0, strict: false,
+  bio: { label: 'Prélèvement bio', icon: '🧪', couleur: '#3b82f6', dureeMin: 60, strict: false,
     jours: [1,2,3,4,5],
-    horaires: { debut: '09:00', fin: '09:00' }, // créneau unique groupé
-    nbCreneaux: 1, capacitePlace: 20 },
+    horaires: { debut: '09:00', fin: '12:00' },
+    capacitePlace: 5 }, // 5 places par heure, 9h/10h/11h
   vaccin: { label: 'Vaccin', icon: '💉', couleur: '#16a34a', dureeMin: 0, strict: false,
     jours: [3,4,5],
     horaires: { debut: '12:00', fin: '12:00' }, // créneau unique groupé
@@ -16,12 +16,9 @@ const STANDS_DEFAUT = {
   k2: { label: 'K2 — Consultation aiguë', icon: '🩺', couleur: '#dc2626', dureeMin: 15, strict: true,
     jours: [1,2,3,4,5],
     horaires: { debut: '13:00', fin: '17:00' } },
-  chronique_ipa: { label: 'Chronique — IPA', icon: '📋', couleur: '#7c3aed', dureeMin: 0, strict: false,
+  chronique: { label: 'Consultation chronique', icon: '📋', couleur: '#7c3aed', dureeMin: 60, strict: false,
     jours: [1,2,3,4,5],
-    horaires: { debut: '07:00', fin: '13:00' }, modulable: true, nbCreneauxParDefaut: 10 },
-  chronique_med: { label: 'Chronique — Médecin', icon: '👨‍⚕️', couleur: '#0d9488', dureeMin: 0, strict: false,
-    jours: [1,2,3,4,5],
-    horaires: { debut: '07:00', fin: '13:00' }, modulable: true, nbCreneauxParDefaut: 10, barrable: true },
+    horaires: { debut: '07:00', fin: '13:00' }, capacitePlace: 4, barrableIPA: true, barrableMed: true },
 };
 
 export async function GET(req) {
