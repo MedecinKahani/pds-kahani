@@ -661,7 +661,7 @@ ${ordonnance||'--'}
                     </div>
                     <div style={{flex:1,border:'1.5px solid #37415133',borderTop:'none',borderRadius:'0 0 8px 8px',overflow:'hidden',display:'flex',flexDirection:'column',background:'#fff',gap:4,padding:4}}>
                       {role!=='ide'&&<div style={{display:'flex',gap:4,flexWrap:'wrap',flexShrink:0}}>
-                        <SutureSection p={p} save={saveNow}/>
+                        {p.symptome==='plaie'&&<SutureSection p={p} save={saveNow}/>}
                         {(p.symptome==='asthme'||p.symptome==='detresse_respi')&&(
                           <button onClick={()=>{
                             const pds=parseFloat(p.poids)||0;const ag=parseFloat(p.age)||99;
