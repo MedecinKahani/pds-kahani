@@ -79,6 +79,14 @@ export default function PlanningPage() {
     if (user) chargerSemaine();
   }, [semaineOffset, user]);
 
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => {
+      chargerSemaine();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [user, semaineOffset]);
+
   async function charger() {
     setLoading(true);
     const [cfgRes, modRes] = await Promise.all([
