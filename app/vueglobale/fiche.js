@@ -1253,7 +1253,10 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
 }
 
 function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
-  const [tab, setTab] = useState('adulte');
+  const age = parseFloat(patient?.age);
+  const estEnfant = !isNaN(age) && age < 16;
+  const [tab, setTab] = useState(estEnfant ? 'pediatrie' : 'adulte');
+  useEffect(()=>{ if(estEnfant) setTab('pediatrie'); }, [estEnfant]);
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
@@ -1370,7 +1373,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   return (
     <div style={{padding:'8px 10px'}}>
       <div style={{display:'flex',gap:5,marginBottom:8}}>
-        {['adulte','pediatrie'].map(t=>(
+        {(estEnfant ? ['pediatrie'] : ['adulte','pediatrie']).map(t=>(
           <button key={t} onClick={()=>setTab(t)}
             style={{padding:'3px 10px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
               border:'1.5px solid '+(tab===t?'#ea580c':'#e5e7eb'),
@@ -1378,6 +1381,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             {t==='adulte'?'Adulte':'Pédiatrie'}
           </button>
         ))}
+        {estEnfant && <span style={{fontSize:10,color:'#9ca3af',alignSelf:'center',marginLeft:4}}>Patient &lt; 16 ans — doses adulte masquées</span>}
       </div>
       <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:8}}>
         {VOIES[tab].map(v=>{
@@ -1732,7 +1736,7 @@ function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, 
 function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
   const pds = parseFloat(p.poids)||0;
   const ag = parseFloat(p.age)||99;
-  const adulte = ag>=15;
+  const adulte = ag>=16;
 
   function ajouter(txt) {
     setOrdonnance(prev=>prev?prev+'\n\n'+txt:txt);
