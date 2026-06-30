@@ -213,18 +213,9 @@ export default function NouveauPatient() {
     if (f.symptome==='plaie'&&(f.carnet==='absent'||f.carnet==='illisible')&&f.quicktest==='neg') {
       rxAuto.push({texte:'Rappel vaccin antiTetanique SC',categorie:'therapeutique',fait:false,nonRealise:false,ts:Date.now(),par:'',parNom:'Auto'});
     }
-    // Asthme modéré — asthme connu + parle correctement → nébulisation + ETP
-    if (f.symptome==='detresse_respi'&&f.asthme_connu===true&&f.parle_ok===true) {
-      const pds = parseFloat(f.poids)||0;
-      const ventoline = pds<16?'2.5mg':'5mg';
-      const atrovent  = pds<16?'0.25mg':'0.5mg';
-      const now = Date.now();
-      rxAuto.push({texte:'Salbutamol '+ventoline+' nebulisation (Ventoline) — Seance 1/3',categorie:'therapeutique',fait:false,nonRealise:false,ts:now,par:'',parNom:'Auto'});
-      rxAuto.push({texte:'Salbutamol '+ventoline+' nebulisation (Ventoline) — Seance 2/3',categorie:'therapeutique',fait:false,nonRealise:false,ts:now+1,par:'',parNom:'Auto'});
-      rxAuto.push({texte:'Salbutamol '+ventoline+' nebulisation (Ventoline) — Seance 3/3',categorie:'therapeutique',fait:false,nonRealise:false,ts:now+2,par:'',parNom:'Auto'});
-      rxAuto.push({texte:'Ipratropium '+atrovent+' nebulisation (Atrovent) — Seance 1/1',categorie:'therapeutique',fait:false,nonRealise:false,ts:now+3,par:'',parNom:'Auto'});
-      rxAuto.push({texte:'ETP asthme — Video TV + demonstration soignant (francais et shimaore)',categorie:'soin',fait:false,nonRealise:false,ts:now+4,par:'',parNom:'Auto'});
-    }
+    // Asthme modéré — prescription nébulisation retirée de l'automatisation
+    // (risque de confusion si consultation pour OAP chez un patient au terrain asthmatique)
+    // À prescrire manuellement par le médecin après examen clinique.
     const patient = {
       sexe:f.sexe, nom:f.nom, prenom:f.prenom, ddn:ddnToISO(f.ddn), age:String(calcAge(f.ddn)??f.age??''), ipp:f.ipp,
       fc:f.fc, sat:f.sat, temp:f.temp, tas:f.tas, tad:f.tad, pam:pam?String(pam):'',
