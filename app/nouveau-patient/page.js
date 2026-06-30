@@ -178,12 +178,16 @@ export default function NouveauPatient() {
     return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
   }
 
-  const placement = (f.symptome&&f.fc&&f.sat&&f.temp) ? getPlacement() : null;
+  const placement = f.symptome && f.temp && (f.symptome==='plaie' || (f.fc&&f.sat)) ? getPlacement() : null;
 
   const canSubmit = (()=>{
     const s = f.symptome;
     if (!f.sexe||!f.nom||!s) return false;
-    if (!f.fc||!f.sat||!f.temp) { if (s!=='soins_ide') return false; }
+    if (s==='plaie') {
+      if (!f.temp) return false;
+    } else if (!f.fc||!f.sat||!f.temp) {
+      if (s!=='soins_ide') return false;
+    }
     if (s==='coma') { if (f.respire===null) return false; if (f.respire===true) return !!(f.dextro&&f.hemocue); return true; }
     if (s==='avc') { if (!f.avc_depuis) return false; return !!(f.dextro && f.ecg_fait); }
     if (s==='detresse_respi') { if (f.asthme_connu===null||f.parle_ok===null) return false; if (age!==null&&age<2&&!f.drp_fait) return false; return true; }
