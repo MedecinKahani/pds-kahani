@@ -4,12 +4,14 @@ const redis = Redis.fromEnv();
 const TTL = 7 * 24 * 3600; // 7 jours — durée totale de conservation avant suppression complète
 const DELAI_MINIMISATION = 24 * 3600; // 24h — au-delà, on ne garde que le strict nécessaire pour recontacter le patient
 
-// Champs conservés après minimisation (les seuls utiles pour rappeler le patient).
-// Tout le reste (nom, prénom, motif, diagnostic, anamnèse, notes...) est détruit.
+// Champs conservés après minimisation (nom, prénom, ville, téléphone).
+// Tout le reste (motif, diagnostic, anamnèse, notes...) est détruit.
 function minimiser(data) {
   return {
     id: data.id,
     ts: data.ts,
+    nom: data.nom || null,
+    prenom: data.prenom || null,
     tel: data.tel || null,
     ville: data.ville || null,
     minimise: true,
