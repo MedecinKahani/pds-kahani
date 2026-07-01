@@ -36,6 +36,23 @@ const GROUPES_VOIE = [
   {id:'NEBUL', label:'Nébulisation', color:'#0891b2', voies:['RESPI']},
 ];
 
+// Ordre d'affichage des sous-catégories thérapeutiques. Par défaut, l'ordre
+// ci-dessous s'applique à tous les groupes. Pour IV, un ordre spécifique a
+// été demandé (Hydratation et Titration morphine intercalées entre les
+// catégories médicamenteuses, plutôt que systématiquement en tête).
+const ORDRE_CATEGORIES_DEFAUT = [
+  'Antalgique', 'Anti-infectieux', 'Cardio-vasculaire', 'Respiratoire',
+  'Neuro-sédation', 'Digestif', 'Allergologie / Corticoïdes',
+  'Réanimation / Antidotes', 'Métabolique / Solutés', 'Anesthésie locale', 'Autres',
+];
+const ORDRE_CATEGORIES_PAR_GROUPE = {
+  IV: [
+    '__HYDRATATION__', 'Antalgique', '__MORPHINE__', 'Anti-infectieux',
+    'Cardio-vasculaire', 'Réanimation / Antidotes', 'Métabolique / Solutés',
+    'Allergologie / Corticoïdes', 'Neuro-sédation', 'Autres',
+  ],
+};
+
 const EXAMENS_ROWS = [
   [
     {id:'ecg', label:'ECG', color:'#dc2626'},
@@ -1384,39 +1401,40 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   // chaque catégorie ; "Liste entière" révèle tout le reste.
   const FREQUENTS_ADULTE = [
     // Per os
-    {label:'Acétylleucine 500mg PO (Tanganil)', voie:'PO', color:'#16a34a'},
-    {label:'Amlodipine 5mg PO (Amlor)', voie:'PO', color:'#16a34a'},
-    {label:'Amoxicilline 1g PO', voie:'PO', color:'#16a34a'},
-    {label:'Augmentin 1g PO', voie:'PO', color:'#16a34a'},
-    {label:'Azithromycine 250mg PO (Zithromax)', voie:'PO', color:'#16a34a'},
-    {label:'Cétirizine 10mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Furosémide 20mg PO (Lasilix)', voie:'PO', color:'#16a34a'},
-    {label:'Gaviscon 1 sachet PO', voie:'PO', color:'#16a34a'},
-    {label:'Hydroxyzine 25mg PO (Atarax)', voie:'PO', color:'#16a34a'},
-    {label:'Ibuprofène 200mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Lansoprazole 15mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Métoclopramide 10mg PO (Primpéran)', voie:'PO', color:'#16a34a'},
-    {label:'Nicardipine 10mg PO (Loxen)', voie:'PO', color:'#16a34a'},
-    {label:'Nifédipine 50mg PO (Loxen LP)', voie:'PO', color:'#16a34a'},
-    {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a'},
-    {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Acétylleucine 500mg PO (Tanganil)', voie:'PO', color:'#16a34a', cat:'Neuro-sédation'},
+    {label:'Amlodipine 5mg PO (Amlor)', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
+    {label:'Amoxicilline 1g PO', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Augmentin 1g PO', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Azithromycine 250mg PO (Zithromax)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Cétirizine 10mg PO', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
+    {label:'Furosémide 20mg PO (Lasilix)', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
+    {label:'Gaviscon 1 sachet PO', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Hydroxyzine 25mg PO (Atarax)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
+    {label:'Ibuprofène 200mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Lansoprazole 15mg PO', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Métoclopramide 10mg PO (Primpéran)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Nicardipine 10mg PO (Loxen)', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
+    {label:'Nifédipine 50mg PO (Loxen LP)', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
+    {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a', cat:'Neuro-sédation'},
+    {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
+    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     // Nébulisation
-    {label:'MEOPA', voie:'RESPI', color:'#0891b2'},
+    {label:'MEOPA', voie:'RESPI', color:'#0891b2', cat:'Respiratoire'},
     // Auriculaire
-    {label:'Ofloxacine solution auriculaire (Oflocet)', voie:'AURICULAIRE', color:'#a855f7'},
+    {label:'Ofloxacine solution auriculaire (Oflocet)', voie:'AURICULAIRE', color:'#a855f7', cat:'Anti-infectieux'},
     // IV
-    {label:'Acétylleucine 500mg IV (Tanganil)', voie:'IV', color:'#2563eb'},
-    {label:'Acide tranexamique 500mg IV (Exacyl)', voie:'IV', color:'#2563eb'},
-    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb'},
-    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb'},
-    {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb'},
-    {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb'},
+    {label:'Acétylleucine 500mg IV (Tanganil)', voie:'IV', color:'#2563eb', cat:'Neuro-sédation'},
+    {label:'Acide tranexamique 500mg IV (Exacyl)', voie:'IV', color:'#2563eb', cat:'Réanimation / Antidotes'},
+    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
+    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     // IM
-    {label:'Ceftriaxone 1g IM', voie:'IM', color:'#6b7280'},
-    {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280'},
+    {label:'Ceftriaxone 1g IM', voie:'IM', color:'#6b7280', cat:'Anti-infectieux'},
+    {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280', cat:'Antalgique'},
+    {label:'Vaccin Repevax IM', voie:'IM', color:'#6b7280', cat:'Autres'},
   ];
   const VOIES = {
     adulte: [
@@ -1496,6 +1514,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Adrénaline 1mg IM', 'Vitamine K1 10mg IM',
         '__CAT__Métabolique / Solutés',
         'Vitamine B1 100mg IM',
+        '__CAT__Autres',
+        'Vaccin Repevax IM',
       ]},
       {voie:'SC', label:'Voie SC', color:'#7c3aed', items:[
         '__CAT__Cardio-vasculaire',
@@ -1510,10 +1530,13 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Vaccin antitétanique SC', 'Vaccin Hépatite B SC (Engerix B10)', 'Vaccin ROR SC (Priorix)',
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
-        '__AEROSOL__', 'Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
+        '__AEROSOL__',
+        '__CAT__Respiratoire',
+        'Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
         'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)', 'MEOPA',
       ]},
       {voie:'AURICULAIRE', label:'Auriculaire', color:'#a855f7', items:[
+        '__CAT__Anti-infectieux',
         'Ofloxacine solution auriculaire (Oflocet)',
       ]},
     ],
@@ -1568,7 +1591,9 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Vaccin antitétanique SC', 'Vaccin Hépatite B SC (Engerix B10)', 'Vaccin ROR SC (Priorix)',
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
-        '__AEROSOL__', 'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
+        '__AEROSOL__',
+        '__CAT__Respiratoire',
+        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
         'MEOPA',
       ]},
     ],
@@ -1609,112 +1634,152 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         const sousVoies = VOIES[tab].filter(v=>groupe.voies.includes(v.voie));
         if(!sousVoies.length) return null;
 
-        const speciaux = sousVoies.filter(v=>v.special);
+        const voiesSpeciales = sousVoies.filter(v=>v.special); // ex: HYDRATATION, MORPHINE
         const voiesAvecItems = sousVoies.filter(v=>v.items);
         const favoris = tab==='adulte' ? FREQUENTS_ADULTE.filter(f=>groupe.voies.includes(f.voie)) : [];
 
-        function renderItemsVoie(v) {
-          return (
-            <div key={v.voie}>
-              {voiesAvecItems.length>1 && (
-                <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
-              )}
-              <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                {v.items.map(item=>{
-                  if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
-                  if(item.startsWith('__CAT__')) return (
-                    <div key={item} style={{width:'100%',fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginTop:6,paddingBottom:2,borderBottom:'1px solid #e5e7eb'}}>
-                      {item.replace('__CAT__','')}
-                    </div>
-                  );
-                  const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
-                  if(deja) return null;
-                  const rouge=ROUGE.some(s=>item.includes(s));
-                  const isPO = v.voie==='PO';
+        // Ordre des catégories : personnalisé pour IV (widgets intercalés), défaut ailleurs
+        const ordre = ORDRE_CATEGORIES_PAR_GROUPE[voieOuverte] || ORDRE_CATEGORIES_DEFAUT;
 
-                  // Calcul dose réelle pour les items "Xmg/kg" si poids connu
-                  const pds = parseFloat(patient?.poids)||0;
-                  const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
-                  let itemAffiche = item;
-                  let texteEnregistre = item;
-                  if (matchMgKg && pds>0) {
-                    const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
-                    const doseCalculee = Math.round(pds*parseFloat(mgParKg));
-                    itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
-                    texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
-                  }
+        // Regroupe les items du catalogue complet par catégorie (les tableaux items[]
+        // contiennent déjà des marqueurs __CAT__NomCategorie insérés en amont)
+        function extraireCategories(items) {
+          const map = {};
+          let catCourante = null;
+          for (const it of items) {
+            if (it === '__AEROSOL__') { (map['__AEROSOL__']=map['__AEROSOL__']||[]).push(it); continue; }
+            if (it.startsWith('__CAT__')) { catCourante = it.replace('__CAT__',''); map[catCourante]=map[catCourante]||[]; continue; }
+            if (catCourante) map[catCourante].push(it);
+          }
+          return map;
+        }
+        const completParCat = {};
+        voiesAvecItems.forEach(v=>{
+          const m = extraireCategories(v.items);
+          for (const cat in m) (completParCat[cat] = completParCat[cat]||[]).push(...m[cat].map(it=>({item:it, voie:v})));
+        });
 
-                  return (
-                    <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
-                      onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                      onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                      style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                        background:rouge?'#fef2f2':v.color+'12',
-                        color:rouge?'#dc2626':v.color,
-                        border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
-                      {itemAffiche}
-                    </button>
-                  );
-                })}
+        const favorisParCat = {};
+        favoris.forEach(f=>{ (favorisParCat[f.cat] = favorisParCat[f.cat]||[]).push(f); });
+
+        const modeReduit = favoris.length>0 && !voieListeComplete;
+
+        function renderWidget(marqueur) {
+          if(marqueur==='__HYDRATATION__') {
+            const v = voiesSpeciales.find(x=>x.special==='hydratation');
+            if(!v) return null;
+            return (
+              <div key={marqueur}>
+                <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
+                <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
               </div>
+            );
+          }
+          if(marqueur==='__MORPHINE__') {
+            const v = voiesSpeciales.find(x=>x.special==='morphine');
+            if(!v) return null;
+            return (
+              <div key={marqueur}>
+                <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
+                <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
+              </div>
+            );
+          }
+          return null;
+        }
+
+        function renderCategorieFavoris(cat) {
+          const items = favorisParCat[cat];
+          if(!items || !items.length) return null;
+          const rendus = items.map(f=>{
+            const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
+            if(deja) return null;
+            const rouge=ROUGE.some(s=>f.label.includes(s));
+            const isPO = f.voie==='PO';
+            return (
+              <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
+                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+                onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+                style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                  background:rouge?'#fef2f2':f.color+'12',
+                  color:rouge?'#dc2626':f.color,
+                  border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
+                {f.label}
+              </button>
+            );
+          }).filter(Boolean);
+          if(!rendus.length) return null;
+          return (
+            <div key={cat}>
+              <div style={{fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{cat}</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:4}}>{rendus}</div>
             </div>
           );
         }
 
+        function renderCategorieComplete(cat) {
+          const entries = completParCat[cat];
+          if(!entries || !entries.length) return null;
+          const rendus = entries.map(({item, voie:v})=>{
+            const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
+            if(deja) return null;
+            const rouge=ROUGE.some(s=>item.includes(s));
+            const isPO = v.voie==='PO';
+            const pds = parseFloat(patient?.poids)||0;
+            const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+            let itemAffiche = item;
+            let texteEnregistre = item;
+            if (matchMgKg && pds>0) {
+              const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
+              const doseCalculee = Math.round(pds*parseFloat(mgParKg));
+              itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
+              texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
+            }
+            return (
+              <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
+                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+                onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+                style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                  background:rouge?'#fef2f2':v.color+'12',
+                  color:rouge?'#dc2626':v.color,
+                  border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
+                {itemAffiche}
+              </button>
+            );
+          }).filter(Boolean);
+          if(!rendus.length) return null;
+          return (
+            <div key={cat}>
+              <div style={{fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{cat}</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:4}}>{rendus}</div>
+            </div>
+          );
+        }
+
+        // Nébuliseur : widget hors catégorisation (RESPI seulement), affiché en tête
+        const aerosolPresent = completParCat['__AEROSOL__'];
+
         return (
           <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
-            {speciaux.map(v=>{
-              if(v.special==='morphine') return (
-                <div key={v.voie}>
-                  <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-                  <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
-                </div>
-              );
-              if(v.special==='hydratation') return (
-                <div key={v.voie}>
-                  <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
-                  <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
-                </div>
-              );
-              return null;
-            })}
+            {aerosolPresent && <AerosolSelector onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>}
 
-            {favoris.length>0 && !voieListeComplete ? (
-              <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                  {favoris.map(f=>{
-                    const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
-                    if(deja) return null;
-                    const rouge=ROUGE.some(s=>f.label.includes(s));
-                    const isPO = f.voie==='PO';
-                    return (
-                      <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
-                        onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                        onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                        style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                          background:rouge?'#fef2f2':f.color+'12',
-                          color:rouge?'#dc2626':f.color,
-                          border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
-                        {f.label}
-                      </button>
-                    );
-                  })}
-                </div>
+            {ordre.map(slot=>slot.startsWith('__')
+              ? renderWidget(slot)
+              : (modeReduit ? renderCategorieFavoris(slot) : renderCategorieComplete(slot))
+            )}
+
+            {favoris.length>0 && (
+              modeReduit ? (
                 <button onClick={()=>setVoieListeComplete(true)}
                   style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
                   ▸ Liste entière
                 </button>
-              </div>
-            ) : (
-              <>
-                {favoris.length>0 && (
-                  <button onClick={()=>setVoieListeComplete(false)}
-                    style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
-                    ▾ Réduire à l'essentiel
-                  </button>
-                )}
-                {voiesAvecItems.map(renderItemsVoie)}
-              </>
+              ) : (
+                <button onClick={()=>setVoieListeComplete(false)}
+                  style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                  ▾ Réduire à l'essentiel
+                </button>
+              )
             )}
           </div>
         );
