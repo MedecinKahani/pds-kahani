@@ -1,8 +1,8 @@
 import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 
-const TTL = 7 * 24 * 3600; // 7 jours — durée totale de conservation avant suppression complète
-const DELAI_MINIMISATION = 24 * 3600; // 24h — au-delà, on ne garde que le strict nécessaire pour recontacter le patient
+const TTL = 7 * 24 * 3600; // 7 jours — durée totale de conservation avant suppression complète (en secondes, pour Redis EX)
+const DELAI_MINIMISATION_MS = 24 * 3600 * 1000; // 24h en millisecondes — comparé à Date.now(), qui est en ms
 
 // Champs conservés après minimisation (nom, prénom, ville, téléphone).
 // Tout le reste (motif, diagnostic, anamnèse, notes...) est détruit.
@@ -41,7 +41,7 @@ export async function GET() {
 
     const age = maintenant - (data.ts || 0);
 
-    if (age >= DELAI_MINIMISATION && !data.minimise) {
+    if (age >= DELAI_MINIMISATION_MS && !data.minimise) {
       // Minimisation physique : on réécrit l'entrée en Redis avec uniquement
       // tel/ville, en conservant le TTL restant (pas de reset à 7 jours).
       const allege = minimiser(data);
