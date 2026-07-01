@@ -849,19 +849,20 @@ ${ordonnance||'--'}
                     {cat:'therapeutique', titre:'💊 Thérapeutique', color:'#ea580c'},
                     {cat:'soin',          titre:'🩹 Soins',         color:'#d97706'},
                   ].map(({cat,titre,color})=>{
-                    const dejaPrescrits = enAttente.filter(r=>r.categorie===cat);
+                    const prescritsCategorie = prescriptions.filter(r=>r.categorie===cat);
+                    const enAttenteCategorie = prescritsCategorie.filter(r=>!r.fait&&!r.nonRealise);
                     return (
                       <div key={cat} style={{flex:1,borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
                         <div style={{background:color+'18',padding:'10px 14px',borderBottom:'1px solid '+color+'22',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                           <span style={{fontWeight:700,color,fontSize:13}}>{titre}</span>
-                          {dejaPrescrits.length>0&&<span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:9,padding:'1px 6px'}}>{dejaPrescrits.length}</span>}
+                          {enAttenteCategorie.length>0&&<span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:9,padding:'1px 6px'}}>{enAttenteCategorie.length}</span>}
                         </div>
                         <div style={{flex:1,overflowY:'auto',padding:10,display:'flex',flexDirection:'column',gap:8,minHeight:0}}>
-                          {dejaPrescrits.length>0 && (
+                          {prescritsCategorie.length>0 && (
                             <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                              {dejaPrescrits.map(r=>{
+                              {prescritsCategorie.map(r=>{
                                 const gi=prescriptions.indexOf(r);
-                                return <PrescrItemMedecin key={gi} r={r} gi={gi} prescriptions={prescriptions} setPrescriptions={setPrescriptions} p={p} supprimerRx={supprimerRx}/>;
+                                return <PrescrItemMedecin key={gi} r={r} gi={gi} prescriptions={prescriptions} setPrescriptions={setPrescriptions} p={p} user={user} supprimerRx={supprimerRx}/>;
                               })}
                             </div>
                           )}
@@ -1000,22 +1001,76 @@ function CatSection({titre, color, collapsed, onToggle, children}) {
   );
 }
 
-function PrescrItemMedecin({r, gi, prescriptions, setPrescriptions, p, supprimerRx}) {
+function PrescrItemMedecin({r, gi, prescriptions, setPrescriptions, p, user, supprimerRx}) {
   const bc = r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
   const poMatch = r.texte.match(/^(.+?) ×(\d+)$/);
   const isPO = !!poMatch;
   const nbComp = isPO ? parseInt(poMatch[2]) : null;
 
-  function majQuantite(nouveau) {
-    const rx=[...prescriptions];
-    rx[gi]={...rx[gi],texte:poMatch[1]+' ×'+nouveau};
+  function sauvegarder(rx) {
     setPrescriptions(rx);
     fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
   }
 
+  function majQuantite(nouveau) {
+    const rx=[...prescriptions];
+    rx[gi]={...rx[gi],texte:poMatch[1]+' ×'+nouveau};
+    sauvegarder(rx);
+  }
+
+  function cocher() {
+    const rx=[...prescriptions];
+    rx[gi]={...rx[gi],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
+    sauvegarder(rx);
+  }
+
+  function annulerRealisation() {
+    const rx=[...prescriptions];
+    rx[gi]={...rx[gi],fait:false,nonRealise:false,resultat:null,faitPar:null,faitNom:null,faitA:null};
+    sauvegarder(rx);
+  }
+
+  // Prescription réalisée : coché, biffé, on sait qui/quand (peu importe médecin ou IDE)
+  if (r.fait) {
+    return (
+      <div style={{background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:7,padding:'6px 8px',opacity:0.75}}>
+        <div style={{display:'flex',alignItems:'flex-start',gap:6}}>
+          <div style={{width:16,height:16,borderRadius:4,background:bc,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>
+            <span style={{color:'#fff',fontSize:10}}>✓</span>
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:11,color:'#9ca3af',textDecoration:'line-through',lineHeight:1.3}}>{isPO?poMatch[1]:r.texte}</div>
+            <div style={{fontSize:8,color:'#16a34a',marginTop:2}}>Réalisé par {r.faitNom||r.faitPar}{r.faitA?' à '+new Date(r.faitA).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+          </div>
+          <button onClick={annulerRealisation} title="Annuler — erreur de clic"
+            style={{flexShrink:0,padding:'2px 6px',borderRadius:4,background:'#fff',color:'#9ca3af',fontSize:9,fontWeight:600,border:'1px solid #e5e7eb',cursor:'pointer'}}>↺</button>
+        </div>
+      </div>
+    );
+  }
+
+  // Prescription marquée non réalisée (par l'IDE)
+  if (r.nonRealise) {
+    return (
+      <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:7,padding:'6px 8px',opacity:0.85}}>
+        <div style={{display:'flex',alignItems:'flex-start',gap:6}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:11,color:'#ef4444',textDecoration:'line-through',lineHeight:1.3}}>{r.texte}</div>
+            <div style={{fontSize:8,color:'#dc2626',marginTop:2}}>✕ {r.motifNonRealise||'Non réalisé'}</div>
+          </div>
+          <button onClick={()=>supprimerRx(gi)} title="Supprimer"
+            style={{flexShrink:0,width:16,height:16,borderRadius:3,border:'1px solid #fecaca',background:'#fff',color:'#ef4444',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+        </div>
+      </div>
+    );
+  }
+
+  // En attente : case à cocher (le médecin peut marquer lui-même comme fait)
   return (
     <div style={{background:'#fff',border:'1px solid '+bc+'44',borderRadius:7,padding:'6px 8px'}}>
       <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
+        <div onClick={cocher} title="Marquer comme réalisé (par le médecin)"
+          style={{width:16,height:16,borderRadius:4,border:'2px solid '+bc,background:'#fff',cursor:'pointer',flexShrink:0,marginTop:1}}/>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{isPO?poMatch[1]:r.texte}</div>
           <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
