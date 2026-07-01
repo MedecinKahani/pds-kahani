@@ -49,7 +49,7 @@ export async function POST(req) {
         emplacement: body.patient?.emplacement || null,
       };
       await kv.hset(`patient:${id}`, patient);
-      await kv.expire(`patient:${id}`, 172800); // 48h en secondes
+      await kv.expire(`patient:${id}`, 86400); // 24h en secondes — le dossier légal complet vit dans DxCare
       await logAudit(id, 'create', session.matricule, { statut: patient.statut });
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
@@ -73,7 +73,7 @@ export async function POST(req) {
         delete patient.modalite_sortie;
         delete patient.moyen_sortie;
         await kv.hset(`patient:${id}`, patient);
-        await kv.expire(`patient:${id}`, 172800);
+        await kv.expire(`patient:${id}`, 86400); // 24h
         await kv.del(`archive:${id}`);
         await logAudit(id, 'restore', session.matricule, { emplacement: patient.emplacement });
       }
@@ -97,7 +97,7 @@ export async function POST(req) {
         if (modalite_sortie) patient.modalite_sortie = modalite_sortie;
         if (moyen_sortie) patient.moyen_sortie = moyen_sortie;
         await kv.hset(`archive:${id}`, patient);
-        await kv.expire(`archive:${id}`, 172800);
+        await kv.expire(`archive:${id}`, 86400); // 24h
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
         await logAudit(id, 'discharge', session.matricule, {
