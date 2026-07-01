@@ -1289,21 +1289,40 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   // initiale à valider/corriger par l'équipe médicale — pas de statistique
   // d'usage disponible dans l'appli pour la déterminer automatiquement).
   const FREQUENTS_ADULTE = [
-    {label:'Paracétamol 1g PO', voie:'PO', color:'#16a34a'},
-    {label:'Paracétamol 1g IV (Perfalgan)', voie:'IV', color:'#2563eb'},
-    {label:'Ibuprofène 400mg PO (Antarène)', voie:'PO', color:'#16a34a'},
-    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb'},
-    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a'},
+    // PO
+    {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Ibuprofène 200mg PO', voie:'PO', color:'#16a34a'},
     {label:'Amoxicilline 1g PO', voie:'PO', color:'#16a34a'},
     {label:'Augmentin 1g PO', voie:'PO', color:'#16a34a'},
-    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb'},
+    {label:'Azithromycine 250mg PO (Zithromax)', voie:'PO', color:'#16a34a'},
     {label:'Métoclopramide 10mg PO (Primpéran)', voie:'PO', color:'#16a34a'},
-    {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a'},
+    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a'},
     {label:'Cétirizine 10mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Furosémide 40mg PO (Lasilix)', voie:'PO', color:'#16a34a'},
-    {label:'Artéméther-Luméfantrine PO (Coartem)', voie:'PO', color:'#16a34a'},
-    {label:'Sels réhydratation PO (Adiaril)', voie:'PO', color:'#16a34a'},
+    {label:'Lansoprazole 15mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Hydroxyzine 25mg PO (Atarax)', voie:'PO', color:'#16a34a'},
+    {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a'},
+    {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Nicardipine 10mg PO (Loxen)', voie:'PO', color:'#16a34a'},
+    {label:'Nifédipine 50mg PO (Loxen LP)', voie:'PO', color:'#16a34a'},
+    {label:'Acétylleucine 500mg PO (Tanganil)', voie:'PO', color:'#16a34a'},
+    {label:'Furosémide 20mg PO (Lasilix)', voie:'PO', color:'#16a34a'},
+    {label:'Gaviscon 1 sachet PO', voie:'PO', color:'#16a34a'},
+    {label:'Amlodipine 5mg PO (Amlor)', voie:'PO', color:'#16a34a'},
+    {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a'},
+    // IV
+    {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb'},
+    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb'},
+    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb'},
     {label:'Acide tranexamique 500mg IV (Exacyl)', voie:'IV', color:'#2563eb'},
+    {label:'Acétylleucine 500mg IV (Tanganil)', voie:'IV', color:'#2563eb'},
+    {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb'},
+    // IM
+    {label:'Ceftriaxone 1g IM', voie:'IM', color:'#6b7280'},
+    {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280'},
+    // Inhalée
+    {label:'MEOPA', voie:'RESPI', color:'#0891b2'},
+    // Auriculaire
+    {label:'Ofloxacine solution auriculaire (Oflocet)', voie:'AURICULAIRE', color:'#a855f7'},
   ];
   const VOIES = {
     adulte: [
@@ -1322,14 +1341,15 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Clopidogrel 75mg PO','Kardegic 75mg PO','Rivaroxaban 15mg PO (Xarelto)',
         'Clobazam 5mg PO (Urbanyl)','Clonazépam 1mg PO (Rivotril)','Oxazépam 10mg PO (Seresta)','Midazolam 5mg PO (Hypnovel)',
         'Loxapine 50mg PO','Halopéridol 5mg PO','Phénobarbital 200mg PO (Gardénal)','Phénytoïne 250mg PO (Dilantin)','Lévétiracétam 500mg/5ml PO (Keppra)',
-        'Nicardipine 10mg PO (Loxen)','Nifédipine 50mg PO (Loxen LP)','Trinitrine 0.3mg PO (Natispray)','Furosémide 40mg PO (Lasilix)',
-        'Charbon activé PO','Racécadotril 100mg PO (Tiorfan)','Sels réhydratation PO (Adiaril)',
+        'Nicardipine 10mg PO (Loxen)','Nifédipine 50mg PO (Loxen LP)','Trinitrine 0.3mg PO (Natispray)','Furosémide 40mg PO (Lasilix)','Furosémide 20mg PO (Lasilix)',
+        'Amlodipine 5mg PO (Amlor)','Propranolol 10mg PO',
+        'Charbon activé PO','Racécadotril 100mg PO (Tiorfan)','Sels réhydratation PO (Adiaril)','Gaviscon 1 sachet PO',
         'Tropatépine 10mg PO (Lépicur)','Salbutamol 100mcg aérosol (Ventoline)',
         'Lévonorgestrel 1.5mg PO','Albendazole 4% PO (Zentel)','Ivermectine PO',
       ]},
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         'Paracétamol 1g IV (Perfalgan)','Paracétamol 500mg IV (Perfalgan)',
-        'Kétoprofène 100mg IV (Profenid)',
+        'Kétoprofène 100mg IV (Profenid)','Néfopam 20mg IV (Acupan)',
         'Nalbuphine 20mg IV (Nubain)','Naloxone 0.4mg IV (Narcan)',
         'Kétamine 250mg IV','Étomidate 20mg IV (Lipuro)',
         'Midazolam 50mg IV (Hypnovel)','Diazépam 10mg IV (Valium)','Clonazépam 1mg IV (Rivotril)','Flumazénil 0.5mg IV (Anexate)',
@@ -1376,6 +1396,9 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL__','Budésonide 0.5mg nébulisation (Pulmicort)','Budésonide 1mg nébulisation (Pulmicort)',
         'MEOPA','Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
+      ]},
+      {voie:'AURICULAIRE', label:'Auriculaire', color:'#a855f7', items:[
+        'Ofloxacine solution auriculaire (Oflocet)',
       ]},
     ],
     pediatrie: [
@@ -1433,6 +1456,11 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       </div>
       {tab==='adulte' && !theraListeComplete ? (
         <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'flex-start'}}>
+            <AerosolSelector onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
+            <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
+          </div>
+          <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
           <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
             {FREQUENTS_ADULTE.map(f=>{
               const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
