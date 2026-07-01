@@ -1,4 +1,6 @@
 import { kv } from '@vercel/kv';
+import { logAudit } from '@/lib/audit';
+import { getSession } from '@/lib/auth-server';
 
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -6,6 +8,9 @@ function genId() {
 
 export async function GET(req) {
   try {
+    const session = getSession();
+    if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 });
+
     const { searchParams } = new URL(req.url);
     const all = searchParams.get('all');
 
@@ -28,6 +33,9 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
+    const session = getSession();
+    if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 });
+
     const body = await req.json();
     const { action } = body;
 
@@ -42,6 +50,7 @@ export async function POST(req) {
       };
       await kv.hset(`patient:${id}`, patient);
       await kv.expire(`patient:${id}`, 172800); // 48h en secondes
+      await logAudit(id, 'create', session.matricule, { statut: patient.statut });
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
     }
@@ -49,6 +58,7 @@ export async function POST(req) {
     if (action === 'update') {
       const { id, patch } = body;
       await kv.hset(`patient:${id}`, patch);
+      await logAudit(id, 'update', session.matricule, { champs: Object.keys(patch || {}) });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
     }
@@ -65,6 +75,7 @@ export async function POST(req) {
         await kv.hset(`patient:${id}`, patient);
         await kv.expire(`patient:${id}`, 172800);
         await kv.del(`archive:${id}`);
+        await logAudit(id, 'restore', session.matricule, { emplacement: patient.emplacement });
       }
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -73,6 +84,7 @@ export async function POST(req) {
     if (action === 'delete') {
       const { id: delId } = body;
       await kv.del(`patient:${delId}`);
+      await logAudit(delId, 'delete', session.matricule, {});
       return Response.json({ ok: true });
     }
 
@@ -88,6 +100,10 @@ export async function POST(req) {
         await kv.expire(`archive:${id}`, 172800);
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
+        await logAudit(id, 'discharge', session.matricule, {
+          modalite_sortie: modalite_sortie || null,
+          moyen_sortie: moyen_sortie || null,
+        });
       }
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -99,6 +115,7 @@ export async function POST(req) {
       const actes = patient.actes ? JSON.parse(patient.actes) : [];
       actes.push({ ...acte, heure: Date.now() });
       await kv.hset(`patient:${id}`, { actes: JSON.stringify(actes) });
+      await logAudit(id, 'addActe', session.matricule, { acte: acte?.texte || acte?.type || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
     }
@@ -107,8 +124,11 @@ export async function POST(req) {
       const { id, prescription } = body;
       const patient = await kv.hgetall(`patient:${id}`);
       const prescriptions = patient.prescriptions ? JSON.parse(patient.prescriptions) : [];
-      prescriptions.push({ ...prescription, heure: Date.now() });
+      // L'auteur vient de la session vérifiée, jamais de ce que le client déclare
+      // (avant, un soignant aurait pu signer une prescription au nom d'un autre).
+      prescriptions.push({ ...prescription, auteur: session.matricule, heure: Date.now() });
       await kv.hset(`patient:${id}`, { prescriptions: JSON.stringify(prescriptions) });
+      await logAudit(id, 'addPrescription', session.matricule, { texte: prescription?.texte || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
     }
