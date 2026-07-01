@@ -100,6 +100,7 @@ export default function PrelevesPage() {
                   <div style={{fontWeight:700,fontSize:15,color:'#111827'}}>{p.nom} {p.prenom}</div>
                   {(p.age||p.ddn) && <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{p.age?`${p.age} ans`:''}{p.age&&p.ddn?' · ':''}{p.ddn||''}</div>}
                   {p.manuel && <div style={{fontSize:10,fontWeight:700,color:'#c2410c',background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:5,padding:'2px 6px',display:'inline-block',marginTop:4}}>✍️ Saisie manuelle (panne)</div>}
+                  {p.minimise && <div style={{fontSize:10,fontWeight:700,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',borderRadius:5,padding:'2px 6px',display:'inline-block',marginTop:4}}>🔒 Infos allégées après 24h (seuls tél/adresse conservés)</div>}
                 </div>
                 <div style={{fontSize:11,color:'#9ca3af',textAlign:'right'}}>
                   <div>{dureeDepuis(p.ts)}</div>
@@ -127,7 +128,7 @@ export default function PrelevesPage() {
                 </div>
               )}
 
-              <div style={{marginTop:8,fontSize:10,color:'#9ca3af'}}>Prélevé par {p.faitPar}</div>
+              {p.faitPar && <div style={{marginTop:8,fontSize:10,color:'#9ca3af'}}>Prélevé par {p.faitPar}</div>}
             </div>
           ))}
         </div>
