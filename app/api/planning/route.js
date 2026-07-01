@@ -1,5 +1,4 @@
-import { Redis } from '@upstash/redis';
-const redis = Redis.fromEnv();
+import redis from '@/lib/kv';
 
 const STANDS_DEFAUT = {
   pansement: { label: 'Pansement', icon: '🩹', couleur: '#f59e0b', dureeMin: 30, strict: false,
@@ -72,7 +71,7 @@ export async function POST(req) {
       motif: data.motif || '', creePar: data.creePar, creeParNom: data.creeParNom,
       ts: Date.now(),
     };
-    await redis.set(id, JSON.stringify(rdv), { ex: 90 * 24 * 3600 }); // 90 jours
+    await redis.set(id, JSON.stringify(rdv), 'EX', 90 * 24 * 3600); // 90 jours
     return Response.json({ ok: true, rdv });
   }
 

@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { kv } from '@/lib/kv';
 
 const MEDICAMENTS_DEFAUT = [
   { id: 'morphine', nom: 'Morphine 10mg/mL', unite: 'ampoules', stock: 0 },

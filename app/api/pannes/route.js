@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { kv } from '@/lib/kv';
 
 // Une panne est identifiée par sa date (YYYY-MM-DD) et son créneau : 'jour' (7h-19h) ou 'nuit' (19h-7h le lendemain)
 

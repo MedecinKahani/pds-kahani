@@ -1,11 +1,10 @@
-import { Redis } from '@upstash/redis';
-const redis = Redis.fromEnv();
+import redis from '@/lib/kv';
 const TTL = 7 * 24 * 3600; // 7 jours
 
 export async function POST(req) {
   const data = await req.json();
   const key = `prelev:${data.id}:${data.ts}`;
-  await redis.set(key, JSON.stringify(data), { ex: TTL });
+  await redis.set(key, JSON.stringify(data), 'EX', TTL);
   return Response.json({ ok: true });
 }
 
