@@ -5,7 +5,7 @@ function genId() {
   return (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2));
 }
 
-const FORM_VIDE = { nom:'', prenom:'', tel:'', ville:'', note:'', faitPar:'' };
+const FORM_VIDE = { nom:'', prenom:'', tel:'', ville:'', faitPar:'' };
 
 export default function PrelevesPage() {
   const [preleves, setPreleves] = useState([]);
@@ -53,7 +53,6 @@ export default function PrelevesPage() {
         prenom: form.prenom.trim(),
         tel: form.tel.trim(),
         ville: form.ville.trim(),
-        note: form.note.trim(),
         faitPar: form.faitPar.trim() || '?',
         manuel: true,
       })
@@ -98,9 +97,7 @@ export default function PrelevesPage() {
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
                 <div>
                   <div style={{fontWeight:700,fontSize:15,color:'#111827'}}>{p.nom} {p.prenom}</div>
-                  {(p.age||p.ddn) && <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{p.age?`${p.age} ans`:''}{p.age&&p.ddn?' · ':''}{p.ddn||''}</div>}
                   {p.manuel && <div style={{fontSize:10,fontWeight:700,color:'#c2410c',background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:5,padding:'2px 6px',display:'inline-block',marginTop:4}}>✍️ Saisie manuelle (panne)</div>}
-                  {p.minimise && <div style={{fontSize:10,fontWeight:700,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',borderRadius:5,padding:'2px 6px',display:'inline-block',marginTop:4}}>🔒 Infos médicales effacées après 24h (nom/tél/adresse conservés)</div>}
                 </div>
                 <div style={{fontSize:11,color:'#9ca3af',textAlign:'right'}}>
                   <div>{dureeDepuis(p.ts)}</div>
@@ -118,15 +115,6 @@ export default function PrelevesPage() {
                   <div style={{fontSize:14,fontWeight:700,color:'#166534'}}>{p.ville||'—'}</div>
                 </div>
               </div>
-
-              {(p.motif||p.diagnostic||p.anamnese||p.note) && (
-                <div style={{borderTop:'1px solid #f3f4f6',paddingTop:8,marginTop:4}}>
-                  {p.motif && <div style={{fontSize:11,color:'#374151',marginBottom:3}}><span style={{fontWeight:600}}>Motif :</span> {p.motif.replace(/_/g,' ')}</div>}
-                  {p.diagnostic && <div style={{fontSize:11,color:'#374151',marginBottom:3}}><span style={{fontWeight:600}}>Diagnostic :</span> {p.diagnostic}</div>}
-                  {p.anamnese && <div style={{fontSize:11,color:'#6b7280'}}><span style={{fontWeight:600}}>Motif :</span> {p.anamnese.slice(0,120)}{p.anamnese.length>120?'...':''}</div>}
-                  {p.note && <div style={{fontSize:11,color:'#6b7280'}}><span style={{fontWeight:600}}>Note :</span> {p.note}</div>}
-                </div>
-              )}
 
               {p.faitPar && <div style={{marginTop:8,fontSize:10,color:'#9ca3af'}}>Prélevé par {p.faitPar}</div>}
             </div>
@@ -157,10 +145,6 @@ export default function PrelevesPage() {
             <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Village / Quartier / Adresse</label>
             <input value={form.ville} onChange={e=>setForm({...form,ville:e.target.value})}
               style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 10px',boxSizing:'border-box'}}/>
-
-            <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Note (facultatif)</label>
-            <textarea value={form.note} onChange={e=>setForm({...form,note:e.target.value})} rows={2}
-              style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 10px',boxSizing:'border-box',resize:'vertical'}}/>
 
             <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Enregistré par</label>
             <input value={form.faitPar} onChange={e=>setForm({...form,faitPar:e.target.value})}

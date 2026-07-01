@@ -1,25 +1,25 @@
 import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 
-const TTL = 7 * 24 * 3600; // 7 jours — durée totale de conservation avant suppression complète (en secondes, pour Redis EX)
-const DELAI_MINIMISATION_MS = 24 * 3600 * 1000; // 24h en millisecondes — comparé à Date.now(), qui est en ms
-
-// Champs conservés après minimisation (nom, prénom, ville, téléphone).
-// Tout le reste (motif, diagnostic, anamnèse, notes...) est détruit.
-function minimiser(data) {
-  return {
-    id: data.id,
-    ts: data.ts,
-    nom: data.nom || null,
-    prenom: data.prenom || null,
-    tel: data.tel || null,
-    ville: data.ville || null,
-    minimise: true,
-  };
-}
+const TTL = 7 * 24 * 3600; // 7 jours — durée de conservation de la note (identité + coordonnées, rien d'autre)
 
 export async function POST(req) {
-  const data = await req.json();
+  const body = await req.json();
+
+  // La note ne contient QUE l'identité et les coordonnées pour rappeler le
+  // patient si le labo appelle. Aucune info clinique n'est jamais stockée
+  // ici, même si le formulaire d'origine en envoie (on filtre côté serveur).
+  const data = {
+    id: body.id,
+    ts: body.ts || Date.now(),
+    nom: body.nom || null,
+    prenom: body.prenom || null,
+    tel: body.tel || null,
+    ville: body.ville || null,
+    manuel: body.manuel || false, // indicateur d'origine (panne), pas une donnée clinique
+    faitPar: body.faitPar || null, // identité du soignant qui a enregistré, pas du patient
+  };
+
   const key = `prelev:${data.id}:${data.ts}`;
   await redis.set(key, JSON.stringify(data), { ex: TTL });
   return Response.json({ ok: true });
@@ -28,35 +28,10 @@ export async function POST(req) {
 export async function GET() {
   const keys = await redis.keys('prelev:*');
   if (!keys.length) return Response.json({ preleves: [] });
-
   const vals = await Promise.all(keys.map((k) => redis.get(k)));
-  const maintenant = Date.now();
-  const preleves = [];
-
-  for (let i = 0; i < keys.length; i++) {
-    const raw = vals[i];
-    if (!raw) continue;
-    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    if (!data) continue;
-
-    const age = maintenant - (data.ts || 0);
-
-    if (age >= DELAI_MINIMISATION_MS && !data.minimise) {
-      // Minimisation physique : on réécrit l'entrée en Redis avec uniquement
-      // tel/ville, en conservant le TTL restant (pas de reset à 7 jours).
-      const allege = minimiser(data);
-      try {
-        const ttlRestant = await redis.ttl(keys[i]);
-        await redis.set(keys[i], JSON.stringify(allege), { ex: ttlRestant > 0 ? ttlRestant : 1 });
-      } catch (e) {
-        console.error('minimisation prelev error', e);
-      }
-      preleves.push(allege);
-    } else {
-      preleves.push(data);
-    }
-  }
-
-  preleves.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const preleves = vals
+    .map((v) => (typeof v === 'string' ? JSON.parse(v) : v))
+    .filter(Boolean)
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
   return Response.json({ preleves });
 }
