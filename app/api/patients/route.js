@@ -1,6 +1,7 @@
 import { kv } from '@vercel/kv';
 import { logAudit } from '@/lib/audit';
 import { getSession } from '@/lib/auth-server';
+import { TTL_TOTAL_SECONDES, minimiserListe } from '@/lib/minimisation-patient';
 
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -15,11 +16,13 @@ export async function GET(req) {
     const all = searchParams.get('all');
 
     const activeKeys = await kv.keys('patient:*');
-    const active = activeKeys.length ? await Promise.all(activeKeys.map(k => kv.hgetall(k))) : [];
+    const activeRaw = activeKeys.length ? await Promise.all(activeKeys.map(k => kv.hgetall(k))) : [];
+    const active = await minimiserListe(kv, activeKeys, activeRaw);
 
     if (all) {
       const archiveKeys = await kv.keys('archive:*');
-      const archives = archiveKeys.length ? await Promise.all(archiveKeys.map(k => kv.hgetall(k))) : [];
+      const archiveRaw = archiveKeys.length ? await Promise.all(archiveKeys.map(k => kv.hgetall(k))) : [];
+      const archives = await minimiserListe(kv, archiveKeys, archiveRaw);
       const tous = [...active, ...archives].filter(Boolean).sort((a,b)=>(a.arrivee||0)-(b.arrivee||0));
       return Response.json({ patients: tous });
     }
@@ -49,7 +52,7 @@ export async function POST(req) {
         emplacement: body.patient?.emplacement || null,
       };
       await kv.hset(`patient:${id}`, patient);
-      await kv.expire(`patient:${id}`, 172800); // 48h en secondes
+      await kv.expire(`patient:${id}`, TTL_TOTAL_SECONDES); // 7 jours (le dossier légal reste dans DxCare)
       await logAudit(id, 'create', session.matricule, { statut: patient.statut });
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
@@ -73,7 +76,7 @@ export async function POST(req) {
         delete patient.modalite_sortie;
         delete patient.moyen_sortie;
         await kv.hset(`patient:${id}`, patient);
-        await kv.expire(`patient:${id}`, 172800);
+        await kv.expire(`patient:${id}`, TTL_TOTAL_SECONDES);
         await kv.del(`archive:${id}`);
         await logAudit(id, 'restore', session.matricule, { emplacement: patient.emplacement });
       }
@@ -97,7 +100,7 @@ export async function POST(req) {
         if (modalite_sortie) patient.modalite_sortie = modalite_sortie;
         if (moyen_sortie) patient.moyen_sortie = moyen_sortie;
         await kv.hset(`archive:${id}`, patient);
-        await kv.expire(`archive:${id}`, 172800);
+        await kv.expire(`archive:${id}`, TTL_TOTAL_SECONDES);
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
         await logAudit(id, 'discharge', session.matricule, {
@@ -212,6 +215,7 @@ async function incrementerCompteurs(patient) {
 async function getAllPatients() {
   const keys = await kv.keys('patient:*');
   if (!keys.length) return [];
-  const patients = await Promise.all(keys.map(k => kv.hgetall(k)));
+  const patientsRaw = await Promise.all(keys.map(k => kv.hgetall(k)));
+  const patients = await minimiserListe(kv, keys, patientsRaw);
   return patients.filter(Boolean).sort((a, b) => (a.arrivee || 0) - (b.arrivee || 0));
 }
