@@ -41,7 +41,7 @@ const EXAMENS_ROWS = [
   ],
   [
     {id:'hemocue', label:'Hémocue', color:'#dc2626'},
-    {id:'dextro', label:'Dextro', color:'#ea580c'},
+    {id:'dextro', label:'Dextro', color:'#dc2626'},
   ],
   [
     {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:[
@@ -81,7 +81,7 @@ const EXAMENS_ROWS = [
 const SOINS_ROWS = [
   [
     {id:'scoper', label:'Scopé', color:'#dc2626'},
-    {id:'reprise_const', label:'Reprise constantes après thérapeutique', color:'#6b7280'},
+    {id:'reprise_const', label:'Reprise constantes après thérapeutique', color:'#dc2626'},
   ],
   [
     {id:'drp', label:'DRP', color:'#3b82f6'},
@@ -98,11 +98,13 @@ const SOINS_ROWS = [
     {id:'vvp2', label:'VVP n°2', color:'#7c3aed'},
   ],
   [
+    {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
+    {id:'suture', label:'Suture', color:'#7c3aed'},
+  ],
+  [
     {id:'desinfection', label:'Désinfection plaie', color:'#f59e0b'},
     {id:'pst_simple', label:'Pansement simple', color:'#f59e0b'},
     {id:'pst_complexe', label:'Pansement complexe', color:'#f59e0b'},
-    {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
-    {id:'suture', label:'Suture', color:'#f59e0b'},
   ],
   [
     {id:'retrait_spu', label:'Retrait sonde urinaire', color:'#6b7280'},
