@@ -788,85 +788,57 @@ ${ordonnance||'--'}
                   </div>
                 </div>
               ) : (
-                /* VUE MÉDECIN : catégories + colonne droite */
+                /* VUE MÉDECIN : 3 colonnes larges, propositions toujours visibles */
                 <div style={{flex:1,display:'flex',minHeight:0,overflow:'hidden'}}>
-                  <div style={{flex:1,overflow:'auto',padding:12,display:'flex',flexDirection:'column',gap:8}}>
-                    <CatSection titre="🔬 Examens complémentaires" color="#374151"
-                      collapsed={collapsed.examens} onToggle={()=>setCollapsed(c=>({...c,examens:!c.examens}))}>
-                      <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
-                        {EXAMENS_COMPL.map(e=>{
-                          if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
-                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
-                          if(deja) return null;
-                          return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
-                        })}
-                        <AutreLibre categorie="examen" onAjouter={ajouterRx}/>
-                      </div>
-                    </CatSection>
-                    <CatSection titre="💊 Thérapeutique" color="#374151"
-                      collapsed={collapsed.therapeutique} onToggle={()=>setCollapsed(c=>({...c,therapeutique:!c.therapeutique}))}>
-                      <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
-                    </CatSection>
-                    <CatSection titre="🩹 Soins" color="#374151"
-                      collapsed={collapsed.soins} onToggle={()=>setCollapsed(c=>({...c,soins:!c.soins}))}>
-                      <div style={{padding:'8px 10px',display:'flex',flexWrap:'wrap',gap:5}}>
-                        {SOINS.map(s=>{
-                          const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
-                          if(deja) return null;
-                          return <RxBtn key={s.id} label={s.label} color={s.color} onClick={()=>ajouterRx(s.label,'soin')}/>;
-                        })}
-                        <AutreLibre categorie="soin" onAjouter={ajouterRx}/>
-                      </div>
-                    </CatSection>
-                  </div>
-                  {/* Colonne droite prescriptions */}
-                  <div style={{width:230,borderLeft:'1px solid #e5e7eb',background:'#fafafa',display:'flex',flexDirection:'column',flexShrink:0}}>
-                    <div style={{padding:'8px 12px',borderBottom:'1px solid #e5e7eb',fontSize:11,fontWeight:700,color:'#374151',display:'flex',alignItems:'center',gap:6}}>
-                      Prescriptions
-                      {enAttente.length>0&&<span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:9,padding:'1px 6px'}}>{enAttente.length}</span>}
-                    </div>
-                    <div style={{flex:1,overflow:'auto',padding:8}}>
-                      {enAttente.map((r,i)=>{
-                        const gi=prescriptions.indexOf(r);
-                        const bc=r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
-                        const poMatch = r.texte.match(/^(.+?) ×(\d+)$/);
-                        const isPO = !!poMatch;
-                        const nbComp = isPO ? parseInt(poMatch[2]) : null;
-                        return (
-                          <div key={gi} style={{background:'#fff',border:'1px solid '+bc+'44',borderRadius:7,padding:'6px 8px',marginBottom:4}}>
-                            <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
-                              <span style={{fontSize:10,flexShrink:0}}>{r.categorie==='examen'?'🔬':r.categorie==='therapeutique'?'💊':'🩹'}</span>
-                              <div style={{flex:1,minWidth:0}}>
-                                <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{isPO?poMatch[1]:r.texte}</div>
-                                <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
-                              </div>
-                              {isPO&&(
-                                <div style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
-                                  <button onClick={()=>{
-                                    const nouveau=Math.max(1,nbComp-1);
-                                    const rx=[...prescriptions];
-                                    rx[gi]={...rx[gi],texte:poMatch[1]+' ×'+nouveau};
-                                    setPrescriptions(rx);
-                                    fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
-                                  }} style={{width:20,height:20,borderRadius:4,border:'1px solid #d1d5db',background:'#f3f4f6',color:'#374151',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>−</button>
-                                  <span style={{fontSize:12,fontWeight:700,color:'#0d9488',minWidth:22,textAlign:'center'}}>×{nbComp}</span>
-                                  <button onClick={()=>{
-                                    const nouveau=nbComp+1;
-                                    const rx=[...prescriptions];
-                                    rx[gi]={...rx[gi],texte:poMatch[1]+' ×'+nouveau};
-                                    setPrescriptions(rx);
-                                    fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
-                                  }} style={{width:20,height:20,borderRadius:4,border:'1px solid #d1d5db',background:'#f3f4f6',color:'#374151',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>+</button>
-                                </div>
-                              )}
-                              <button onClick={()=>supprimerRx(gi)} title="Supprimer"
-                                style={{flexShrink:0,width:16,height:16,borderRadius:3,border:'1px solid #fecaca',background:'#fef2f2',color:'#ef4444',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                  {[
+                    {cat:'examen',        titre:'🔬 Examens',      color:'#7c3aed'},
+                    {cat:'therapeutique', titre:'💊 Thérapeutique', color:'#ea580c'},
+                    {cat:'soin',          titre:'🩹 Soins',         color:'#d97706'},
+                  ].map(({cat,titre,color})=>{
+                    const dejaPrescrits = enAttente.filter(r=>r.categorie===cat);
+                    return (
+                      <div key={cat} style={{flex:1,borderRight:'1px solid #e5e7eb',display:'flex',flexDirection:'column',overflow:'hidden',minHeight:0}}>
+                        <div style={{background:color+'18',padding:'10px 14px',borderBottom:'1px solid '+color+'22',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                          <span style={{fontWeight:700,color,fontSize:13}}>{titre}</span>
+                          {dejaPrescrits.length>0&&<span style={{background:'#ef4444',color:'#fff',borderRadius:99,fontSize:9,padding:'1px 6px'}}>{dejaPrescrits.length}</span>}
+                        </div>
+                        <div style={{flex:1,overflowY:'auto',padding:10,display:'flex',flexDirection:'column',gap:8,minHeight:0}}>
+                          {dejaPrescrits.length>0 && (
+                            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                              {dejaPrescrits.map(r=>{
+                                const gi=prescriptions.indexOf(r);
+                                return <PrescrItemMedecin key={gi} r={r} gi={gi} prescriptions={prescriptions} setPrescriptions={setPrescriptions} p={p} supprimerRx={supprimerRx}/>;
+                              })}
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                          )}
+                          {cat==='examen' && (
+                            <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                              {EXAMENS_COMPL.map(e=>{
+                                if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
+                                const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
+                                if(deja) return null;
+                                return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
+                              })}
+                              <AutreLibre categorie="examen" onAjouter={ajouterRx}/>
+                            </div>
+                          )}
+                          {cat==='therapeutique' && (
+                            <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
+                          )}
+                          {cat==='soin' && (
+                            <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                              {SOINS.map(s=>{
+                                const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
+                                if(deja) return null;
+                                return <RxBtn key={s.id} label={s.label} color={s.color} onClick={()=>ajouterRx(s.label,'soin')}/>;
+                              })}
+                              <AutreLibre categorie="soin" onAjouter={ajouterRx}/>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )
             )}
@@ -958,6 +930,42 @@ function CatSection({titre, color, collapsed, onToggle, children}) {
         <span style={{color,fontSize:12}}>{collapsed?'▶':'▼'}</span>
       </div>
       {!collapsed&&children}
+    </div>
+  );
+}
+
+function PrescrItemMedecin({r, gi, prescriptions, setPrescriptions, p, supprimerRx}) {
+  const bc = r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
+  const poMatch = r.texte.match(/^(.+?) ×(\d+)$/);
+  const isPO = !!poMatch;
+  const nbComp = isPO ? parseInt(poMatch[2]) : null;
+
+  function majQuantite(nouveau) {
+    const rx=[...prescriptions];
+    rx[gi]={...rx[gi],texte:poMatch[1]+' ×'+nouveau};
+    setPrescriptions(rx);
+    fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+  }
+
+  return (
+    <div style={{background:'#fff',border:'1px solid '+bc+'44',borderRadius:7,padding:'6px 8px'}}>
+      <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:11,color:'#374151',lineHeight:1.3}}>{isPO?poMatch[1]:r.texte}</div>
+          <div style={{fontSize:8,color:'#9ca3af',marginTop:2}}>{r.parNom||r.par} · {r.ts?new Date(r.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+        </div>
+        {isPO&&(
+          <div style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+            <button onClick={()=>majQuantite(Math.max(1,nbComp-1))}
+              style={{width:20,height:20,borderRadius:4,border:'1px solid #d1d5db',background:'#f3f4f6',color:'#374151',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>−</button>
+            <span style={{fontSize:12,fontWeight:700,color:'#0d9488',minWidth:22,textAlign:'center'}}>×{nbComp}</span>
+            <button onClick={()=>majQuantite(nbComp+1)}
+              style={{width:20,height:20,borderRadius:4,border:'1px solid #d1d5db',background:'#f3f4f6',color:'#374151',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>+</button>
+          </div>
+        )}
+        <button onClick={()=>supprimerRx(gi)} title="Supprimer"
+          style={{flexShrink:0,width:16,height:16,borderRadius:3,border:'1px solid #fecaca',background:'#fef2f2',color:'#ef4444',cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+      </div>
     </div>
   );
 }
@@ -1276,6 +1284,27 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   const estEnfant = !isNaN(age) && age < 16;
   const [tab, setTab] = useState(estEnfant ? 'pediatrie' : 'adulte');
   useEffect(()=>{ if(estEnfant) setTab('pediatrie'); }, [estEnfant]);
+  const [theraListeComplete, setTheraListeComplete] = useState(false);
+  // Sélection des 15 thérapeutiques les plus fréquentes en garde (proposition
+  // initiale à valider/corriger par l'équipe médicale — pas de statistique
+  // d'usage disponible dans l'appli pour la déterminer automatiquement).
+  const FREQUENTS_ADULTE = [
+    {label:'Paracétamol 1g PO', voie:'PO', color:'#16a34a'},
+    {label:'Paracétamol 1g IV (Perfalgan)', voie:'IV', color:'#2563eb'},
+    {label:'Ibuprofène 400mg PO (Antarène)', voie:'PO', color:'#16a34a'},
+    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb'},
+    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Amoxicilline 1g PO', voie:'PO', color:'#16a34a'},
+    {label:'Augmentin 1g PO', voie:'PO', color:'#16a34a'},
+    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb'},
+    {label:'Métoclopramide 10mg PO (Primpéran)', voie:'PO', color:'#16a34a'},
+    {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a'},
+    {label:'Cétirizine 10mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Furosémide 40mg PO (Lasilix)', voie:'PO', color:'#16a34a'},
+    {label:'Artéméther-Luméfantrine PO (Coartem)', voie:'PO', color:'#16a34a'},
+    {label:'Sels réhydratation PO (Adiaril)', voie:'PO', color:'#16a34a'},
+    {label:'Acide tranexamique 500mg IV (Exacyl)', voie:'IV', color:'#2563eb'},
+  ];
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
@@ -1402,7 +1431,41 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         ))}
         {estEnfant && <span style={{fontSize:10,color:'#9ca3af',alignSelf:'center',marginLeft:4}}>Patient &lt; 16 ans — doses adulte masquées</span>}
       </div>
+      {tab==='adulte' && !theraListeComplete ? (
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+            {FREQUENTS_ADULTE.map(f=>{
+              const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
+              if(deja) return null;
+              const rouge=ROUGE.some(s=>f.label.includes(s));
+              const isPO = f.voie==='PO';
+              return (
+                <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
+                  onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+                  style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                    background:rouge?'#fef2f2':f.color+'12',
+                    color:rouge?'#dc2626':f.color,
+                    border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+          <button onClick={()=>setTheraListeComplete(true)}
+            style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+            ▸ Liste entière
+          </button>
+          <AutreLibre categorie="therapeutique" onAjouter={onAjouter}/>
+        </div>
+      ) : (
       <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:8}}>
+        {tab==='adulte' && (
+          <button onClick={()=>setTheraListeComplete(false)}
+            style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+            ▾ Réduire à l'essentiel
+          </button>
+        )}
         {VOIES[tab].map(v=>{
           if(v.special==='morphine') return (
             <div key={v.voie}>
@@ -1458,6 +1521,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         })}
         <AutreLibre categorie="therapeutique" onAjouter={onAjouter}/>
       </div>
+      )}
     </div>
   );
 }
