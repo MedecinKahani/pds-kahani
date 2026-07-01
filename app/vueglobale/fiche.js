@@ -276,7 +276,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   function hasUpdate(key) {
     return localConst.some(c=>c.key===key);
   }
-  const [onglet, setOnglet] = useState(role==='ide' ? 'prescriptions' : 'clinique');
+  const [onglet, setOnglet] = useState((role==='ide'||role==='medecin') ? 'prescriptions' : 'clinique');
   const [anamnese, setAnamnese] = useState(p.anamnese||'');
   const [examen, setExamen] = useState(p.examen_clinique||'');
   const [evolution, setEvolution] = useState(p.evolution||'');
@@ -574,8 +574,8 @@ ${ordonnance||'--'}
           {/* Onglets */}
           <div style={{display:'flex',borderBottom:'1px solid #e5e7eb',background:'#f9fafb',flexShrink:0}}>
             {[
-              {id:'dxcare',        l:'Dossier médical'},
               {id:'prescriptions', l:'Prescriptions'},
+              {id:'dxcare',        l:'Dossier médical'},
             ].map(t=>(
               <button key={t.id} onClick={()=>setOnglet(t.id)}
                 style={{padding:'9px 16px',border:'none',background:'none',cursor:'pointer',fontSize:12,fontWeight:onglet===t.id?700:500,
