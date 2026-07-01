@@ -25,58 +25,82 @@ Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas d
 Abdominal : abdomen souple dépressible indolore.
 ORL : gorge et tympans propres.`;
 
-const EXAMENS_COMPL = [
-  {id:'hemocue', label:'Hémocue', color:'#dc2626'},
-  {id:'dextro', label:'Dextro', color:'#ea580c'},
-  {id:'ecg', label:'ECG', color:'#dc2626'},
-  {id:'crp', label:'CRP rapide', color:'#16a34a'},
-  {id:'tdr_palu', label:'TDR Paludisme', color:'#16a34a'},
-  {id:'tdr_dengue', label:'TDR Dengue', color:'#16a34a'},
-  {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
-  {id:'bu', label:'BU', color:'#d97706'},
-  {id:'bhcg', label:'bHCG urinaire', color:'#d97706'},
-  {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:[
-    {label:'NFS + CRP', color:'#7c3aed', note:'Tube violet'},
-    {label:'Gaz du sang', color:'#16a34a', note:'Seringue héparinée'},
-    {label:'Tropo / D-Dimère / BNP', color:'#0284c7', note:'Tube bleu/vert — à vérifier'},
-    {label:'Iono / Créatinine / BHC', color:'#0891b2', note:''},
-    {label:'Lipase', color:'#0891b2', note:''},
-  ]},
-  {id:'bio_mam', label:'Prélèvement Mamoudzou', color:'#0284c7', sub:[
-    {label:'NFS', color:'#7c3aed', note:'Tube violet'},
-    {label:'CRP', color:'#7c3aed', note:'Tube violet'},
-    {label:'Iono', color:'#0891b2', note:''},
-    {label:'Créatinine', color:'#0891b2', note:''},
-    {label:'BHC', color:'#0891b2', note:''},
-    {label:'Lipase', color:'#0891b2', note:''},
-    {label:'Hémoculture', color:'#dc2626', note:'Flacon hémo'},
-    {label:'ECBU', color:'#d97706', note:'Pot stérile'},
-    {label:'Sérologie', color:'#0284c7', note:''},
-    {label:'Bactério', color:'#6b7280', note:''},
-  ]},
+const EXAMENS_ROWS = [
+  [
+    {id:'ecg', label:'ECG', color:'#dc2626'},
+  ],
+  [
+    {id:'hemocue', label:'Hémocue', color:'#dc2626'},
+    {id:'dextro', label:'Dextro', color:'#ea580c'},
+  ],
+  [
+    {id:'bio_del', label:'Bio délocalisée', color:'#0891b2', sub:[
+      {label:'NFS + CRP', color:'#7c3aed', note:'Tube violet'},
+      {label:'Gaz du sang', color:'#16a34a', note:'Seringue héparinée'},
+      {label:'Tropo / D-Dimère / BNP', color:'#0284c7', note:'Tube bleu/vert — à vérifier'},
+      {label:'Iono / Créatinine / BHC', color:'#0891b2', note:''},
+      {label:'Lipase', color:'#0891b2', note:''},
+    ]},
+    {id:'bio_mam', label:'Prélèvement Mamoudzou', color:'#0284c7', sub:[
+      {label:'NFS', color:'#7c3aed', note:'Tube violet'},
+      {label:'CRP', color:'#7c3aed', note:'Tube violet'},
+      {label:'Iono', color:'#0891b2', note:''},
+      {label:'Créatinine', color:'#0891b2', note:''},
+      {label:'BHC', color:'#0891b2', note:''},
+      {label:'Lipase', color:'#0891b2', note:''},
+      {label:'Hémoculture', color:'#dc2626', note:'Flacon hémo'},
+      {label:'ECBU', color:'#d97706', note:'Pot stérile'},
+      {label:'Sérologie', color:'#0284c7', note:''},
+      {label:'Bactério', color:'#6b7280', note:''},
+    ]},
+  ],
+  [
+    {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
+  ],
+  [
+    {id:'crp', label:'CRP rapide', color:'#16a34a'},
+    {id:'tdr_palu', label:'TDR Paludisme', color:'#16a34a'},
+    {id:'tdr_dengue', label:'TDR Dengue', color:'#16a34a'},
+  ],
+  [
+    {id:'bu', label:'BU', color:'#d97706'},
+    {id:'bhcg', label:'bHCG urinaire', color:'#d97706'},
+  ],
 ];
 
-const SOINS = [
-  {id:'drp', label:'DRP', color:'#3b82f6'},
-  {id:'injection_im', label:'Injection IM', color:'#7c3aed'},
-  {id:'scoper', label:'Scopé', color:'#dc2626'},
-  {id:'o2_lun', label:'O2 lunettes', color:'#0891b2'},
-  {id:'o2_mas_moy', label:'O2 masque moyenne concentration', color:'#0891b2'},
-  {id:'o2_mas_haut', label:'O2 masque haute concentration', color:'#0891b2'},
-  {id:'demi_assis', label:'Demi-assis', color:'#0891b2'},
-  {id:'assis_strict', label:'Assis strict', color:'#0891b2'},
-  {id:'allonger', label:'Allongé strict', color:'#0891b2'},
-  {id:'vvp1', label:'VVP n°1', color:'#7c3aed'},
-  {id:'vvp2', label:'VVP n°2', color:'#7c3aed'},
-  {id:'reprise_const', label:'Reprise constantes après thérapeutique', color:'#6b7280'},
-  {id:'pst_simple', label:'Pansement simple', color:'#f59e0b'},
-  {id:'pst_complexe', label:'Pansement complexe', color:'#f59e0b'},
-  {id:'desinfection', label:'Désinfection plaie', color:'#f59e0b'},
-  {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
-  {id:'retrait_spu', label:'Retrait sonde urinaire', color:'#6b7280'},
-  {id:'pose_spu', label:'Pose sonde urinaire', color:'#6b7280'},
-  {id:'couv_survie', label:'Couverture de survie', color:'#6b7280'},
-  {id:'educ_asthme', label:'Éducation thérapeutique asthme — salle observation — TV — play vidéo', color:'#0891b2'},
+const SOINS_ROWS = [
+  [
+    {id:'scoper', label:'Scopé', color:'#dc2626'},
+    {id:'reprise_const', label:'Reprise constantes après thérapeutique', color:'#6b7280'},
+  ],
+  [
+    {id:'drp', label:'DRP', color:'#3b82f6'},
+  ],
+  // Oxygène : voir <OxygeneSelector/> rendu séparément à cet emplacement
+  [
+    {id:'assis', label:'Assis', color:'#0891b2'},
+    {id:'demi_assis', label:'Demi-assis', color:'#0891b2'},
+    {id:'allonge', label:'Allongé', color:'#0891b2'},
+    {id:'allonge_strict', label:'Allongé strict', color:'#0891b2'},
+  ],
+  [
+    {id:'vvp1', label:'VVP n°1', color:'#7c3aed'},
+    {id:'vvp2', label:'VVP n°2', color:'#7c3aed'},
+  ],
+  [
+    {id:'desinfection', label:'Désinfection plaie', color:'#f59e0b'},
+    {id:'pst_simple', label:'Pansement simple', color:'#f59e0b'},
+    {id:'pst_complexe', label:'Pansement complexe', color:'#f59e0b'},
+    {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
+    {id:'suture', label:'Suture', color:'#f59e0b'},
+  ],
+  [
+    {id:'retrait_spu', label:'Retrait sonde urinaire', color:'#6b7280'},
+    {id:'pose_spu', label:'Pose sonde urinaire', color:'#6b7280'},
+  ],
+  [
+    {id:'retrait_implant', label:'Retrait implant', color:'#6b7280'},
+  ],
 ];
 
 // ─── Bandeau constantes ───────────────────────────────────────────────────────
@@ -812,27 +836,39 @@ ${ordonnance||'--'}
                             </div>
                           )}
                           {cat==='examen' && (
-                            <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                              {EXAMENS_COMPL.map(e=>{
-                                if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
-                                const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
-                                if(deja) return null;
-                                return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
+                            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                              {EXAMENS_ROWS.map((row,ri)=>{
+                                const rendus = row.map(e=>{
+                                  if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
+                                  const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte?.startsWith(e.label));
+                                  if(deja) return null;
+                                  return <RxBtn key={e.id} label={e.label} color={e.color} onClick={()=>ajouterRx(e.label,'examen')}/>;
+                                }).filter(Boolean);
+                                if(!rendus.length) return null;
+                                return <div key={ri} style={{display:'flex',flexWrap:'wrap',gap:5}}>{rendus}</div>;
                               })}
-                              <AutreLibre categorie="examen" onAjouter={ajouterRx}/>
+                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}><AutreLibre categorie="examen" onAjouter={ajouterRx}/></div>
                             </div>
                           )}
                           {cat==='therapeutique' && (
                             <TheraSection prescriptions={prescriptions} onAjouter={ajouterRx} onAjouterPlusieurs={ajouterPlusieursRx} patient={p}/>
                           )}
                           {cat==='soin' && (
-                            <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                              {SOINS.map(s=>{
-                                const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
-                                if(deja) return null;
-                                return <RxBtn key={s.id} label={s.label} color={s.color} onClick={()=>ajouterRx(s.label,'soin')}/>;
+                            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                              {SOINS_ROWS.map((row,ri)=>{
+                                const rendus = row.map(s=>{
+                                  const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
+                                  if(deja) return null;
+                                  return <RxBtn key={s.id} label={s.label} color={s.color} onClick={()=>ajouterRx(s.label,'soin')}/>;
+                                }).filter(Boolean);
+                                return (
+                                  <div key={ri} style={{display:'flex',flexDirection:'column',gap:6}}>
+                                    {rendus.length>0 && <div style={{display:'flex',flexWrap:'wrap',gap:5}}>{rendus}</div>}
+                                    {ri===1 && <div style={{display:'flex',flexWrap:'wrap',gap:5}}><OxygeneSelector prescriptions={prescriptions} onAjouter={ajouterRx}/></div>}
+                                  </div>
+                                );
                               })}
-                              <AutreLibre categorie="soin" onAjouter={ajouterRx}/>
+                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}><AutreLibre categorie="soin" onAjouter={ajouterRx}/></div>
                             </div>
                           )}
                         </div>
@@ -978,6 +1014,48 @@ function RxBtn({label, color, onClick}) {
       style={{padding:'5px 10px',borderRadius:6,background:color+'15',color,border:'1.5px solid '+color+'55',fontSize:11,fontWeight:600,cursor:'pointer',transition:'filter 0.1s'}}>
       {label}
     </button>
+  );
+}
+
+function OxygeneSelector({prescriptions, onAjouter}) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({top:0,left:0});
+  const btnRef = useRef(null);
+  const OPTIONS = ['O2 lunettes','O2 masque moyenne concentration','O2 masque haute concentration'];
+  const deja = prescriptions.find(r=>!r.fait&&!r.nonRealise&&OPTIONS.includes(r.texte));
+
+  if (deja) return (
+    <div style={{padding:'5px 10px',borderRadius:6,background:'#ecfeff',color:'#0891b2',border:'1.5px solid #a5f3fc',fontSize:11,fontWeight:600,display:'inline-block'}}>
+      ✓ {deja.texte}
+    </div>
+  );
+
+  return (
+    <div style={{position:'relative',display:'inline-block'}}>
+      <button ref={btnRef} onClick={()=>{
+        const r=btnRef.current?.getBoundingClientRect();
+        if(r)setPos({top:r.bottom+4,left:r.left});
+        setOpen(o=>!o);
+      }}
+        onMouseEnter={ev=>{ev.currentTarget.style.filter='brightness(0.85)';}}
+        onMouseLeave={ev=>{ev.currentTarget.style.filter='none';}}
+        style={{padding:'5px 10px',borderRadius:6,background:'#0891b215',color:'#0891b2',border:'1.5px solid #0891b255',fontSize:11,fontWeight:600,cursor:'pointer'}}>
+        Oxygène {open?'▲':'▼'}
+      </button>
+      {open&&(
+        <div style={{position:'fixed',zIndex:9999,top:pos.top,left:pos.left,background:'#fff',border:'1.5px solid #a5f3fc',borderRadius:10,padding:8,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',minWidth:220}}>
+          {OPTIONS.map(label=>(
+            <div key={label} onClick={()=>{onAjouter(label,'soin');setOpen(false);}}
+              style={{padding:'6px 8px',borderRadius:6,cursor:'pointer',fontSize:11,fontWeight:600,color:'#0891b2'}}
+              onMouseEnter={ev=>{ev.currentTarget.style.background='#0891b215';}}
+              onMouseLeave={ev=>{ev.currentTarget.style.background='transparent';}}>
+              {label}
+            </div>
+          ))}
+          <button onClick={()=>setOpen(false)} style={{marginTop:6,width:'100%',padding:'5px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer'}}>Fermer</button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1284,46 +1362,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   const estEnfant = !isNaN(age) && age < 16;
   const [tab, setTab] = useState(estEnfant ? 'pediatrie' : 'adulte');
   useEffect(()=>{ if(estEnfant) setTab('pediatrie'); }, [estEnfant]);
-  const [theraListeComplete, setTheraListeComplete] = useState(false);
-  // Sélection des 15 thérapeutiques les plus fréquentes en garde (proposition
-  // initiale à valider/corriger par l'équipe médicale — pas de statistique
-  // d'usage disponible dans l'appli pour la déterminer automatiquement).
-  const FREQUENTS_ADULTE = [
-    // PO
-    {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Ibuprofène 200mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Amoxicilline 1g PO', voie:'PO', color:'#16a34a'},
-    {label:'Augmentin 1g PO', voie:'PO', color:'#16a34a'},
-    {label:'Azithromycine 250mg PO (Zithromax)', voie:'PO', color:'#16a34a'},
-    {label:'Métoclopramide 10mg PO (Primpéran)', voie:'PO', color:'#16a34a'},
-    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Cétirizine 10mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Lansoprazole 15mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Hydroxyzine 25mg PO (Atarax)', voie:'PO', color:'#16a34a'},
-    {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a'},
-    {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a'},
-    {label:'Nicardipine 10mg PO (Loxen)', voie:'PO', color:'#16a34a'},
-    {label:'Nifédipine 50mg PO (Loxen LP)', voie:'PO', color:'#16a34a'},
-    {label:'Acétylleucine 500mg PO (Tanganil)', voie:'PO', color:'#16a34a'},
-    {label:'Furosémide 20mg PO (Lasilix)', voie:'PO', color:'#16a34a'},
-    {label:'Gaviscon 1 sachet PO', voie:'PO', color:'#16a34a'},
-    {label:'Amlodipine 5mg PO (Amlor)', voie:'PO', color:'#16a34a'},
-    {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a'},
-    // IV
-    {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb'},
-    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb'},
-    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb'},
-    {label:'Acide tranexamique 500mg IV (Exacyl)', voie:'IV', color:'#2563eb'},
-    {label:'Acétylleucine 500mg IV (Tanganil)', voie:'IV', color:'#2563eb'},
-    {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb'},
-    // IM
-    {label:'Ceftriaxone 1g IM', voie:'IM', color:'#6b7280'},
-    {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280'},
-    // Inhalée
-    {label:'MEOPA', voie:'RESPI', color:'#0891b2'},
-    // Auriculaire
-    {label:'Ofloxacine solution auriculaire (Oflocet)', voie:'AURICULAIRE', color:'#a855f7'},
-  ];
+  const [voieOuverte, setVoieOuverte] = useState(null);
+  useEffect(()=>{ setVoieOuverte(null); }, [tab]); // on referme la voie ouverte en changeant d'onglet adulte/pédiatrie
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
@@ -1454,63 +1494,40 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         ))}
         {estEnfant && <span style={{fontSize:10,color:'#9ca3af',alignSelf:'center',marginLeft:4}}>Patient &lt; 16 ans — doses adulte masquées</span>}
       </div>
-      {tab==='adulte' && !theraListeComplete ? (
-        <div style={{display:'flex',flexDirection:'column',gap:8}}>
-          <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'flex-start'}}>
-            <AerosolSelector onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
+
+      {/* Sélecteur de voie : on choisit une voie, ça ouvre la catégorie correspondante */}
+      <div style={{display:'flex',flexWrap:'wrap',gap:5,marginBottom:8}}>
+        {VOIES[tab].map(v=>(
+          <button key={v.voie} onClick={()=>setVoieOuverte(vo=>vo===v.voie?null:v.voie)}
+            style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
+              border:'1.5px solid '+(voieOuverte===v.voie?v.color:v.color+'55'),
+              background:voieOuverte===v.voie?v.color:v.color+'12',
+              color:voieOuverte===v.voie?'#fff':v.color}}>
+            {v.label}
+          </button>
+        ))}
+      </div>
+
+      {voieOuverte && (()=>{
+        const v = VOIES[tab].find(x=>x.voie===voieOuverte);
+        if(!v) return null;
+
+        if(v.special==='morphine') return (
+          <div style={{maxHeight:'40vh',overflowY:'auto'}}>
+            <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
             <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
           </div>
-          <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
-          <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-            {FREQUENTS_ADULTE.map(f=>{
-              const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
-              if(deja) return null;
-              const rouge=ROUGE.some(s=>f.label.includes(s));
-              const isPO = f.voie==='PO';
-              return (
-                <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
-                  onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                  onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                  style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                    background:rouge?'#fef2f2':f.color+'12',
-                    color:rouge?'#dc2626':f.color,
-                    border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
-                  {f.label}
-                </button>
-              );
-            })}
+        );
+        if(v.special==='hydratation') return (
+          <div style={{maxHeight:'40vh',overflowY:'auto'}}>
+            <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
+            <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
           </div>
-          <button onClick={()=>setTheraListeComplete(true)}
-            style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
-            ▸ Liste entière
-          </button>
-          <AutreLibre categorie="therapeutique" onAjouter={onAjouter}/>
-        </div>
-      ) : (
-      <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:8}}>
-        {tab==='adulte' && (
-          <button onClick={()=>setTheraListeComplete(false)}
-            style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
-            ▾ Réduire à l'essentiel
-          </button>
-        )}
-        {VOIES[tab].map(v=>{
-          if(v.special==='morphine') return (
-            <div key={v.voie}>
-              <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-              <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
-            </div>
-          );
-          if(v.special==='hydratation') return (
-            <div key={v.voie}>
-              <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
-              <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
-            </div>
-          );
-          if(!v.items) return null;
-          return (
-          <div key={v.voie}>
-            <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
+        );
+        if(!v.items) return null;
+
+        return (
+          <div style={{maxHeight:'40vh',overflowY:'auto'}}>
             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
               {v.items.map(item=>{
                 if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
@@ -1545,11 +1562,10 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
               })}
             </div>
           </div>
-          );
-        })}
-        <AutreLibre categorie="therapeutique" onAjouter={onAjouter}/>
-      </div>
-      )}
+        );
+      })()}
+
+      <div style={{marginTop:8}}><AutreLibre categorie="therapeutique" onAjouter={onAjouter}/></div>
     </div>
   );
 }
