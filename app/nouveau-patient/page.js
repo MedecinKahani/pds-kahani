@@ -72,7 +72,7 @@ export default function NouveauPatient() {
   const [showAutreEmplacement, setShowAutreEmplacement] = useState(false);
 
   const [f, setF] = useState({
-    sexe:'', nom:'', prenom:'', ddn:'', age:'', ipp:'',
+    sexe:'', ddn:'', age:'', ipp:'',
     fc:'', sat:'', temp:'', tas:'', tad:'', poids:'', taille:'',
     symptome:'',
     respire:null, dextro:'', hemocue:'',
@@ -182,7 +182,7 @@ export default function NouveauPatient() {
 
   const canSubmit = (()=>{
     const s = f.symptome;
-    if (!f.sexe||!f.nom||!s) return false;
+    if (!f.sexe||!f.ipp||!s) return false;
     if (s==='plaie') {
       if (!f.temp) return false;
     } else if (!f.fc||!f.sat||!f.temp) {
@@ -221,7 +221,7 @@ export default function NouveauPatient() {
     // (risque de confusion si consultation pour OAP chez un patient au terrain asthmatique)
     // À prescrire manuellement par le médecin après examen clinique.
     const patient = {
-      sexe:f.sexe, nom:f.nom, prenom:f.prenom, ddn:ddnToISO(f.ddn), age:String(calcAge(f.ddn)??f.age??''), ipp:f.ipp,
+      sexe:f.sexe, ddn:ddnToISO(f.ddn), age:String(calcAge(f.ddn)??f.age??''), ipp:f.ipp,
       fc:f.fc, sat:f.sat, temp:f.temp, tas:f.tas, tad:f.tad, pam:pam?String(pam):'',
       poids:f.poids, taille:f.taille, symptome:f.symptome,
       respire:f.respire!==null?String(f.respire):'',
@@ -280,16 +280,6 @@ export default function NouveauPatient() {
             <Btn onClick={()=>set('sexe','M')} style={pSt(f.sexe==='M','#3b82f6')}>Homme</Btn>
             <Btn onClick={()=>set('sexe','F')} style={pSt(f.sexe==='F','#ec4899')}>Femme</Btn>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-            <div>
-              <label style={lbl}>Nom *</label>
-              <input value={f.nom} onChange={e=>set('nom',e.target.value.toUpperCase())} style={inp} placeholder="NOM" autoComplete="off"/>
-            </div>
-            <div>
-              <label style={lbl}>Prenom</label>
-              <input value={f.prenom} onChange={e=>{const v=e.target.value;set('prenom',v.charAt(0).toUpperCase()+v.slice(1).toLowerCase());}} style={inp} placeholder="Prenom" autoComplete="off"/>
-            </div>
-          </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:10}}>
             <div>
               <label style={lbl}>DDN</label>
@@ -308,8 +298,8 @@ export default function NouveauPatient() {
               <input value={f.age} onChange={e=>set('age',e.target.value)} style={inp} placeholder="ans" type="number"/>
             </div>
             <div>
-              <label style={lbl}>IPP</label>
-              <input value={f.ipp} onChange={e=>set('ipp',e.target.value)} style={inp} placeholder="IPP"/>
+              <label style={lbl}>IPP *</label>
+              <input value={f.ipp} onChange={e=>set('ipp',e.target.value)} style={inp} placeholder="IPP (identifiant DxCare)"/>
             </div>
           </div>
         </div>

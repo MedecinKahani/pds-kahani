@@ -158,7 +158,7 @@ function OverlaySortie({ patient, onClose, onConfirm }) {
     <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10000,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div style={{background:'#fff',borderRadius:16,width:440,padding:'24px',boxShadow:'0 24px 64px rgba(0,0,0,0.25)'}}>
         <div style={{fontWeight:800,fontSize:16,color:'#111827',marginBottom:4}}>Fiche de sortie</div>
-        <div style={{fontSize:13,color:'#6b7280',marginBottom:20}}>{p.prenom} {p.nom} · {p.age} ans</div>
+        <div style={{fontSize:13,color:'#6b7280',marginBottom:20}}>IPP {p.ipp||'—'} · {p.age} ans</div>
 
         <div style={{fontWeight:600,fontSize:13,color:'#374151',marginBottom:10}}>Modalité de sortie</div>
         <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:20}}>
@@ -330,12 +330,12 @@ export default function PageVueGlobale() {
 
   function imprimerSortie(p) {
     const presc = safeJSON(p?.prescriptions);
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sortie ${p.nom} ${p.prenom}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sortie IPP ${p.ipp||'?'}</title>
     <style>body{font-family:Arial,sans-serif;padding:2cm;max-width:800px;margin:auto}h1{font-size:18px;border-bottom:2px solid #333;padding-bottom:8px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{padding:6px 10px;border:1px solid #ddd;font-size:13px}th{background:#f3f4f6;font-weight:600}.sec{margin-top:16px;font-weight:bold;font-size:14px;color:#374151}</style>
     </head><body>
     <h1>Compte-rendu de passage — CMR Kahani</h1>
-    <table><tr><th>Nom</th><td>${p.nom} ${p.prenom}</td><th>DDN</th><td>${p.ddn||'--'}</td></tr>
-    <tr><th>IPP</th><td>${p.ipp||'--'}</td><th>Sexe</th><td>${p.sexe||'--'}</td></tr>
+    <table><tr><th>IPP</th><td>${p.ipp||'--'}</td><th>DDN</th><td>${p.ddn||'--'}</td></tr>
+    <tr><th>Sexe</th><td>${p.sexe||'--'}</td><th>Age</th><td>${p.age||'--'}</td></tr>
     <tr><th>Emplacement</th><td>${p.emplacement||'--'}</td><th>Arrivee</th><td>${p.arrivee?new Date(parseInt(p.arrivee)).toLocaleString('fr-FR'):'--'}</td></tr></table>
     <div class="sec">Motif</div><p>${p.symptome||'--'}${p.symptome_autre?' — '+p.symptome_autre:''}</p>
     <div class="sec">Constantes</div>
@@ -352,7 +352,7 @@ export default function PageVueGlobale() {
     <div class="sec">Evolution / Prise en charge</div><p>${p.prise_en_charge||'--'}</p>
     <p style="margin-top:2cm;font-size:11px;color:#9ca3af">Document genere le ${new Date().toLocaleString('fr-FR')} — PDS Kahani</p>
     </body></html>`;
-    const filename = [p.nom, p.prenom, p.ddn, p.ipp].filter(Boolean).join('_').replace(/\s+/g,'_') + '.pdf';
+    const filename = ['IPP'+(p.ipp||'inconnu'), p.ddn].filter(Boolean).join('_').replace(/\s+/g,'_') + '.pdf';
     const w = window.open('','_blank');
     w.document.write(html);
     w.document.close();
@@ -393,19 +393,9 @@ export default function PageVueGlobale() {
                 <div style={{fontWeight:800,fontSize:30,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                    {p.prenom} {p.nom} <span style={{color:c,fontSize:11}}>{sexeSymbol}</span>
+                    IPP {p.ipp||'—'} <span style={{color:c,fontSize:11}}>{sexeSymbol}</span>
                   </div>
                   <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()+'· ':''}{p.age} ans</div>
-                  {p.ipp&&<div style={{color:'#9ca3af',fontSize:8,marginTop:1,display:'flex',alignItems:'center',gap:2}}>
-                    {p.ipp}
-                    <span onClick={e=>{
-                      e.stopPropagation();
-                      navigator.clipboard.writeText(p.ipp);
-                      const el=e.currentTarget;
-                      el.textContent='✓';el.style.color='#16a34a';el.style.background='#f0fdf4';
-                      setTimeout(()=>{el.textContent='□';el.style.color='#9ca3af';el.style.background='transparent';},1500);
-                    }} style={{cursor:'pointer',color:'#9ca3af',fontSize:10,padding:'0 3px',borderRadius:3,border:'1px solid #e5e7eb',userSelect:'none'}}>□</span>
-                  </div>}
                 </div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 3px'}}>
@@ -593,7 +583,7 @@ export default function PageVueGlobale() {
                 style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0,cursor:'pointer',transition:'box-shadow 0.15s'}}
                 onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'}
                 onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.nom} {p.prenom} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>IPP {p.ipp||'—'} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
                 <div style={{color:'#d97706',fontSize:11,fontWeight:600,marginTop:2}}>{labelSymptome(p)||p.symptome||p.motifPrincipal}</div>
                 <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
                 <div style={{display:'flex',gap:5,marginTop:8}} onClick={e=>e.stopPropagation()}>
@@ -643,7 +633,7 @@ export default function PageVueGlobale() {
                     style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px 10px',flexShrink:0,cursor:'pointer'}}
                     onMouseEnter={e=>e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'}
                     onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-                    <div style={{fontWeight:700,color:'#111827',fontSize:12}}>{p.nom} {p.prenom} <span style={{fontSize:10,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                    <div style={{fontWeight:700,color:'#111827',fontSize:12}}>IPP {p.ipp||'—'} <span style={{fontSize:10,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
                     <div style={{color:'#3b82f6',fontSize:10,fontWeight:600,marginTop:2}}>{typeLabel}</div>
                     <div style={{color:'#9ca3af',fontSize:9,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
                     <div style={{display:'flex',gap:4,marginTop:6}} onClick={e=>e.stopPropagation()}>
@@ -716,7 +706,7 @@ export default function PageVueGlobale() {
               {patientsSortis.map(p=>(
                 <div key={p.id} style={{background:'#f9fafb',borderRadius:10,padding:'12px 14px',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
                   <div>
-                    <div style={{fontWeight:700,color:'#111827',fontSize:13}}>{p.prenom} {p.nom}</div>
+                    <div style={{fontWeight:700,color:'#111827',fontSize:13}}>IPP {p.ipp||'—'}</div>
                     <div style={{fontSize:11,color:'#6b7280',marginTop:2}}>{p.symptome||'--'} · {p.modalite_sortie||'Sorti'}{p.moyen_sortie?' — '+p.moyen_sortie:''}</div>
                     <div style={{fontSize:10,color:'#9ca3af',marginTop:1}}>Sorti à {p.sortie?new Date(parseInt(p.sortie)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'-'}</div>
                   </div>

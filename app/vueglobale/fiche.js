@@ -243,7 +243,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     const ddn = p.ddn||'';
     const [y,m,d] = ddn.split('-');
     const ddnAff = d&&m&&y ? `${d}/${m}/${y}` : ddn;
-    setEditIdentite({nom:p.nom||'',prenom:p.prenom||'',ddn:ddnAff,ipp:p.ipp||'',age:p.age||'',sexe:p.sexe||''});
+    setEditIdentite({ddn:ddnAff,ipp:p.ipp||'',age:p.age||'',sexe:p.sexe||''});
     setShowEditIdentite(true);
   }
 
@@ -256,7 +256,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
       : ddn;
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'update',id:p.id,patch:{
-        nom:editIdentite.nom,prenom:editIdentite.prenom,ddn:ddnSave,
+        ddn:ddnSave,
         ipp:editIdentite.ipp,age:editIdentite.age,sexe:editIdentite.sexe
       }})});
     onUpdate?.();
@@ -397,7 +397,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     // Créer entrée dédiée prélevés (TTL 7j)
     await fetch('/api/prelev',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        id:p.id, nom:p.nom, prenom:p.prenom, ddn:p.ddn, age:p.age,
+        id:p.id, ipp:p.ipp, ddn:p.ddn, sexe:p.sexe, age:p.age,
         tel:prelevTel, ville:prelevVille,
         motif:p.symptome, diagnostic:diagnostic, anamnese:anamnese,
         ts:Date.now(), faitPar:user?.nom||user?.matricule,
@@ -431,7 +431,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   function resume() {
     const rxTxt = prescriptions.map(r=>`- [${r.fait?'FAIT':r.nonRealise?'NON RÉALISÉ':'EN ATTENTE'}] ${r.texte}${r.motifNonRealise?' ('+r.motifNonRealise+')':''}`).join('\n');
     return `=== RÉSUMÉ PDS KAHANI ===
-Patient : ${p.nom} ${p.prenom} — ${p.age} ans
+Patient : ${p.age} ans
 DDN : ${p.ddn||'--'} | IPP : ${p.ipp||'--'}
 Arrivée : ${p.arrivee?new Date(parseInt(p.arrivee)).toLocaleString('fr-FR'):'--'}
 
@@ -536,7 +536,6 @@ ${ordonnance||'--'}
         {/* Ligne 1 : identité */}
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'7px 14px',borderBottom:'0.5px solid #f0f0f0'}}>
           <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-            <span style={{fontWeight:800,fontSize:15,color:'#111827'}}>{p.nom} {p.prenom}</span>
             <span style={{fontSize:12,color:'#6b7280'}}>{p.sexe==='M'?'♂':'♀'} · {p.age} ans</span>
             {p.ddn&&<span style={{fontSize:11,color:'#9ca3af'}}>{(()=>{const[y,m,d]=(p.ddn||'').split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()}</span>}
             <span onMouseDown={e=>{e.preventDefault();if(p.ipp){navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),10000);}}}
@@ -712,7 +711,7 @@ ${ordonnance||'--'}
                 {/* Bouton copie complète */}
                 {role!=='ide'&&(
                   <CopyBtn
-                    text={'PATIENT: '+p.nom+' '+p.prenom+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+getVal('fc',p.fc)+'bpm | SpO2:'+getVal('sat',p.sat)+'% | T°:'+getVal('temp',p.temp)+'°C\nPAS:'+getVal('tas',p.tas)+' PAD:'+getVal('tad',p.tad)+' PAM:'+(pamVal||'--')+'mmHg\nDextro:'+getVal('dextro',p.dextro)+' | Hb:'+getVal('hemocue',p.hemocue)+'\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN CLINIQUE:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+prescriptions.map(r=>'- ['+(r.fait?'FAIT':r.nonRealise?'NON REALISE':'EN ATTENTE')+'] '+r.texte).join('\n')+'\n\nORDONNANCE:\n'+(ordonnance||'--')}
+                    text={'PATIENT IPP '+(p.ipp||'?')+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+getVal('fc',p.fc)+'bpm | SpO2:'+getVal('sat',p.sat)+'% | T°:'+getVal('temp',p.temp)+'°C\nPAS:'+getVal('tas',p.tas)+' PAD:'+getVal('tad',p.tad)+' PAM:'+(pamVal||'--')+'mmHg\nDextro:'+getVal('dextro',p.dextro)+' | Hb:'+getVal('hemocue',p.hemocue)+'\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN CLINIQUE:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+prescriptions.map(r=>'- ['+(r.fait?'FAIT':r.nonRealise?'NON REALISE':'EN ATTENTE')+'] '+r.texte).join('\n')+'\n\nORDONNANCE:\n'+(ordonnance||'--')}
                     label="📋 Copier-coller complet pour DxCare"
                     fullWidth={true}
                   />
@@ -913,8 +912,6 @@ ${ordonnance||'--'}
           <div style={{background:'#fff',borderRadius:14,padding:'24px',width:360,boxShadow:'0 24px 64px rgba(0,0,0,0.2)'}}>
             <div style={{fontWeight:700,fontSize:15,color:'#111827',marginBottom:16}}>Modifier l'identité</div>
             {[
-              {label:'Nom',    field:'nom',    w:'100%', upper:true},
-              {label:'Prénom', field:'prenom', w:'100%'},
               {label:'Sexe',   field:'sexe',   w:'100%', options:['M','F']},
               {label:'DDN',    field:'ddn',    w:'100%', placeholder:'JJ/MM/AAAA'},
               {label:'Âge',    field:'age',    w:'80px'},
@@ -1632,7 +1629,7 @@ function TitrationMorphine({onAjouter, onAjouterPlusieurs, prescriptions, poidsI
 function RecapRdvBtn({p}) {
   const [copied, setCopied] = useState(false);
   function copier() {
-    const txt = [p.ipp||'--', p.ddn||'--', p.nom||'--', p.prenom||'--'].join('\t');
+    const txt = [p.ipp||'--', p.ddn||'--', p.sexe||'--'].join('\t');
     navigator.clipboard.writeText(txt);
     setCopied(true);
     setTimeout(()=>setCopied(false), 2500);
@@ -1722,7 +1719,7 @@ function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, 
     {key:'examen',    label:'CR consultation',text:(anamnese?'MOTIF:\n'+anamnese+'\n\n':'')+(examen?'EXAMEN:\n'+examen+'\n\n':'')+(evolution?'EVOLUTION:\n'+evolution:'')},
     {key:'diag',      label:'Diagnostic',   text:diagnostic||'--'},
     {key:'ordonnance',label:'Prescription', text:ordonnance||'--'},
-    {key:'tout',      label:'Tout copier',  text:'PATIENT: '+p.nom+' '+p.prenom+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+fc+' | SpO2:'+sat+'% | T°:'+temp+'°C\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+rxTxt+'\n\nORDONNANCE:\n'+(ordonnance||'--')},
+    {key:'tout',      label:'Tout copier',  text:'PATIENT IPP '+(p.ipp||'?')+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+fc+' | SpO2:'+sat+'% | T°:'+temp+'°C\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+rxTxt+'\n\nORDONNANCE:\n'+(ordonnance||'--')},
   ];
 
   if(compact) return (
@@ -2049,7 +2046,7 @@ function DeplacerBtn({p, onUpdate, patients=[]}) {
               style={{padding:'6px 10px',borderRadius:6,cursor:occ||cur2?'default':'pointer',fontSize:11,fontWeight:600,color:occ?'#d1d5db':cur2?'#16a34a':em.c,background:cur2?'#f0fdf4':'#fff',textDecoration:occ?'line-through':'none',display:'flex',alignItems:'center',gap:6}}
               onMouseEnter={e=>{if(!occ&&!cur2)e.currentTarget.style.background=em.c+'15';}}
               onMouseLeave={e=>{e.currentTarget.style.background=cur2?'#f0fdf4':'#fff';}}>
-              {cur2&&<span style={{fontSize:9}}>✓</span>}{em.l}{occ&&<span style={{fontSize:9,color:'#d1d5db',marginLeft:'auto'}}>{occ.nom}</span>}
+              {cur2&&<span style={{fontSize:9}}>✓</span>}{em.l}{occ&&<span style={{fontSize:9,color:'#d1d5db',marginLeft:'auto'}}>IPP {occ.ipp||'—'}</span>}
             </div>
           );
         })}

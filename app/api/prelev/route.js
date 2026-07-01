@@ -12,8 +12,9 @@ export async function POST(req) {
   const data = {
     id: body.id,
     ts: body.ts || Date.now(),
-    nom: body.nom || null,
-    prenom: body.prenom || null,
+    ipp: body.ipp || null,
+    ddn: body.ddn || null,
+    sexe: body.sexe || null,
     tel: body.tel || null,
     ville: body.ville || null,
     manuel: body.manuel || false, // indicateur d'origine (panne), pas une donnée clinique

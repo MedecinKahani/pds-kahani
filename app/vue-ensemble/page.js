@@ -32,7 +32,7 @@ function Case({id, label, p}) {
       </div>
       {p&&(
         <div style={{padding:'0 9px 7px'}}>
-          <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+          <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>IPP {p.ipp||'—'}</div>
           <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.age} ans</div>
           <div style={{color:'#374151',fontSize:10,marginTop:2,fontWeight:500}}>{p.symptome||p.motifPrincipal}</div>
           <div style={{position:'absolute',bottom:5,right:7,fontSize:9,color:'#9ca3af',fontWeight:600}}>{duree(p.arrivee)}</div>

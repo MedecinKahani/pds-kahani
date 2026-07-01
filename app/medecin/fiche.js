@@ -187,8 +187,8 @@ export default function FichePatient({patient, onClose, onUpdate, user}) {
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <div style={{width:40,height:40,borderRadius:'50%',background:'#ccfbf1',border:'2px solid #5eead4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:'#0d9488',flexShrink:0}}>{p.sexe==='F'?'F':'M'}</div>
           <div>
-            <div style={{fontWeight:700,fontSize:15,color:'#111827'}}>{p.nom} {p.prenom}</div>
-            <div style={{fontSize:11,color:'#6b7280'}}>{p.age} ans{p.ipp?' · '+p.ipp:''}{p.poids?' · '+p.poids+'kg':''}{p.allergie==='Oui'?' · ⚠️ '+p.allergie_detail:''}</div>
+            <div style={{fontWeight:700,fontSize:15,color:'#111827'}}>IPP {p.ipp||'—'}</div>
+            <div style={{fontSize:11,color:'#6b7280'}}>{p.age} ans{p.poids?' · '+p.poids+'kg':''}{p.allergie==='Oui'?' · ⚠️ '+p.allergie_detail:''}</div>
           </div>
         </div>
         <div style={{display:'flex',gap:6,alignItems:'center'}}>
