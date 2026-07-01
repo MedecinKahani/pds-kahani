@@ -1,4 +1,5 @@
 import { kv } from '@vercel/kv';
+import { logAudit } from '@/lib/audit';
 
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -42,6 +43,7 @@ export async function POST(req) {
       };
       await kv.hset(`patient:${id}`, patient);
       await kv.expire(`patient:${id}`, 172800); // 48h en secondes
+      await logAudit(id, 'create', body.matricule, { statut: patient.statut });
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
     }
@@ -49,6 +51,7 @@ export async function POST(req) {
     if (action === 'update') {
       const { id, patch } = body;
       await kv.hset(`patient:${id}`, patch);
+      await logAudit(id, 'update', body.matricule, { champs: Object.keys(patch || {}) });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
     }
@@ -65,6 +68,7 @@ export async function POST(req) {
         await kv.hset(`patient:${id}`, patient);
         await kv.expire(`patient:${id}`, 172800);
         await kv.del(`archive:${id}`);
+        await logAudit(id, 'restore', body.matricule, { emplacement: patient.emplacement });
       }
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -73,6 +77,7 @@ export async function POST(req) {
     if (action === 'delete') {
       const { id: delId } = body;
       await kv.del(`patient:${delId}`);
+      await logAudit(delId, 'delete', body.matricule, {});
       return Response.json({ ok: true });
     }
 
@@ -88,6 +93,10 @@ export async function POST(req) {
         await kv.expire(`archive:${id}`, 172800);
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
+        await logAudit(id, 'discharge', body.matricule, {
+          modalite_sortie: modalite_sortie || null,
+          moyen_sortie: moyen_sortie || null,
+        });
       }
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -99,6 +108,7 @@ export async function POST(req) {
       const actes = patient.actes ? JSON.parse(patient.actes) : [];
       actes.push({ ...acte, heure: Date.now() });
       await kv.hset(`patient:${id}`, { actes: JSON.stringify(actes) });
+      await logAudit(id, 'addActe', body.matricule, { acte: acte?.texte || acte?.type || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
     }
@@ -109,6 +119,7 @@ export async function POST(req) {
       const prescriptions = patient.prescriptions ? JSON.parse(patient.prescriptions) : [];
       prescriptions.push({ ...prescription, heure: Date.now() });
       await kv.hset(`patient:${id}`, { prescriptions: JSON.stringify(prescriptions) });
+      await logAudit(id, 'addPrescription', body.matricule || prescription?.auteur, { texte: prescription?.texte || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
     }
