@@ -128,7 +128,7 @@ export default function PageMedecin() {
 
             {/* Identite style Odaiji */}
             <div style={{borderBottom:'1px solid #f3f4f6',paddingBottom:5}}>
-              <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+              <div style={{fontWeight:700,color:'#111827',fontSize:13,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>IPP {p.ipp||'—'}</div>
               <div style={{display:'flex',gap:8,marginTop:2}}>
                 <span style={{color:'#6b7280',fontSize:10}}>{p.age} ans</span>
                 {p.ipp&&<span style={{color:'#9ca3af',fontSize:10}}>{p.ipp}</span>}
@@ -183,7 +183,7 @@ export default function PageMedecin() {
               <div style={{marginLeft:'auto',background:dureeInfo.bg,color:dureeInfo.color,fontSize:9,fontWeight:700,padding:'2px 8px',borderRadius:99,border:'1px solid '+dureeInfo.color+'33'}}>{dureeInfo.label}</div>
               <button onClick={async e=>{
                 e.stopPropagation();
-                if(!confirm('Confirmer la sortie de '+p.nom+' '+p.prenom+' ?')) return;
+                if(!confirm('Confirmer la sortie du patient IPP '+(p.ipp||'?')+' ?')) return;
                 await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
                 load();
               }} style={{padding:'2px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:700,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>
@@ -334,7 +334,7 @@ export default function PageMedecin() {
               ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
               return(
               <div key={p.id} style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0}}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.nom} {p.prenom}</div>
+                <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>IPP {p.ipp||'—'}</div>
                 <div style={{color:'#6b7280',fontSize:11,marginTop:2}}>{p.symptome||p.motifPrincipal}</div>
                 <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{duree(p.arrivee)}</div>
                 {p.emplacement_suggere&&<div style={{color:'#0d9488',fontSize:10,marginTop:1,fontWeight:600}}>Suggere : {p.emplacement_suggere}</div>}
