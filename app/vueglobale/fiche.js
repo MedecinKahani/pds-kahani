@@ -1373,7 +1373,46 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   const [tab, setTab] = useState(estEnfant ? 'pediatrie' : 'adulte');
   useEffect(()=>{ if(estEnfant) setTab('pediatrie'); }, [estEnfant]);
   const [voieOuverte, setVoieOuverte] = useState(null);
-  useEffect(()=>{ setVoieOuverte(null); }, [tab]); // on referme la voie ouverte en changeant d'onglet adulte/pédiatrie
+  const [voieListeComplete, setVoieListeComplete] = useState(false);
+  useEffect(()=>{ setVoieOuverte(null); setVoieListeComplete(false); }, [tab]); // on referme tout en changeant d'onglet adulte/pédiatrie
+  // Médicaments les plus fréquents en garde (proposition à valider/corriger
+  // par l'équipe médicale — pas de statistique d'usage disponible dans
+  // l'appli pour la déterminer automatiquement). Affichés par défaut dans
+  // chaque catégorie ; "Liste entière" révèle tout le reste.
+  const FREQUENTS_ADULTE = [
+    // Per os
+    {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Ibuprofène 200mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Amoxicilline 1g PO', voie:'PO', color:'#16a34a'},
+    {label:'Augmentin 1g PO', voie:'PO', color:'#16a34a'},
+    {label:'Azithromycine 250mg PO (Zithromax)', voie:'PO', color:'#16a34a'},
+    {label:'Métoclopramide 10mg PO (Primpéran)', voie:'PO', color:'#16a34a'},
+    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Cétirizine 10mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Lansoprazole 15mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Hydroxyzine 25mg PO (Atarax)', voie:'PO', color:'#16a34a'},
+    {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a'},
+    {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a'},
+    {label:'Nicardipine 10mg PO (Loxen)', voie:'PO', color:'#16a34a'},
+    {label:'Nifédipine 50mg PO (Loxen LP)', voie:'PO', color:'#16a34a'},
+    {label:'Acétylleucine 500mg PO (Tanganil)', voie:'PO', color:'#16a34a'},
+    {label:'Furosémide 20mg PO (Lasilix)', voie:'PO', color:'#16a34a'},
+    {label:'Gaviscon 1 sachet PO', voie:'PO', color:'#16a34a'},
+    {label:'Amlodipine 5mg PO (Amlor)', voie:'PO', color:'#16a34a'},
+    {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a'},
+    {label:'MEOPA', voie:'RESPI', color:'#0891b2'},
+    {label:'Ofloxacine solution auriculaire (Oflocet)', voie:'AURICULAIRE', color:'#a855f7'},
+    // IV
+    {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb'},
+    {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb'},
+    {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb'},
+    {label:'Acide tranexamique 500mg IV (Exacyl)', voie:'IV', color:'#2563eb'},
+    {label:'Acétylleucine 500mg IV (Tanganil)', voie:'IV', color:'#2563eb'},
+    {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb'},
+    // IM
+    {label:'Ceftriaxone 1g IM', voie:'IM', color:'#6b7280'},
+    {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280'},
+  ];
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
@@ -1506,13 +1545,14 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       </div>
 
       {/* 3 groupes seulement : Per os (+ Respiratoire, Auriculaire), IV (+ Hydratation, Morphine), IM (+ SC) */}
-      <div style={{display:'flex',flexWrap:'wrap',gap:5,marginBottom:8}}>
+      {/* Style volontairement uniforme et plus marqué que les boutons de médicaments : ce sont des catégories, pas des choix finaux */}
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}}>
         {GROUPES_VOIE.map(g=>(
-          <button key={g.id} onClick={()=>setVoieOuverte(vo=>vo===g.id?null:g.id)}
-            style={{padding:'5px 14px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
-              border:'1.5px solid '+(voieOuverte===g.id?g.color:g.color+'55'),
-              background:voieOuverte===g.id?g.color:g.color+'12',
-              color:voieOuverte===g.id?'#fff':g.color}}>
+          <button key={g.id} onClick={()=>{setVoieOuverte(vo=>vo===g.id?null:g.id);setVoieListeComplete(false);}}
+            style={{padding:'8px 18px',borderRadius:8,fontSize:12,fontWeight:800,letterSpacing:0.3,textTransform:'uppercase',cursor:'pointer',
+              border:'2px solid '+(voieOuverte===g.id?'#374151':'#d1d5db'),
+              background:voieOuverte===g.id?'#374151':'#fff',
+              color:voieOuverte===g.id?'#fff':'#374151'}}>
             {g.label}
           </button>
         ))}
@@ -1524,9 +1564,56 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         const sousVoies = VOIES[tab].filter(v=>groupe.voies.includes(v.voie));
         if(!sousVoies.length) return null;
 
+        const speciaux = sousVoies.filter(v=>v.special);
+        const voiesAvecItems = sousVoies.filter(v=>v.items);
+        const favoris = tab==='adulte' ? FREQUENTS_ADULTE.filter(f=>groupe.voies.includes(f.voie)) : [];
+
+        function renderItemsVoie(v) {
+          return (
+            <div key={v.voie}>
+              {voiesAvecItems.length>1 && (
+                <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
+              )}
+              <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                {v.items.map(item=>{
+                  if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
+                  const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
+                  if(deja) return null;
+                  const rouge=ROUGE.some(s=>item.includes(s));
+                  const isPO = v.voie==='PO';
+
+                  // Calcul dose réelle pour les items "Xmg/kg" si poids connu
+                  const pds = parseFloat(patient?.poids)||0;
+                  const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+                  let itemAffiche = item;
+                  let texteEnregistre = item;
+                  if (matchMgKg && pds>0) {
+                    const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
+                    const doseCalculee = Math.round(pds*parseFloat(mgParKg));
+                    itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
+                    texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
+                  }
+
+                  return (
+                    <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
+                      onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+                      onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+                      style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                        background:rouge?'#fef2f2':v.color+'12',
+                        color:rouge?'#dc2626':v.color,
+                        border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
+                      {itemAffiche}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
-            {sousVoies.map(v=>{
+            {speciaux.map(v=>{
               if(v.special==='morphine') return (
                 <div key={v.voie}>
                   <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
@@ -1539,49 +1626,46 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
                   <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
                 </div>
               );
-              if(!v.items) return null;
-
-              return (
-                <div key={v.voie}>
-                  {sousVoies.length>1 && (
-                    <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
-                  )}
-                  <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                    {v.items.map(item=>{
-                      if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
-                      const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
-                      if(deja) return null;
-                      const rouge=ROUGE.some(s=>item.includes(s));
-                      const isPO = v.voie==='PO';
-
-                      // Calcul dose réelle pour les items "Xmg/kg" si poids connu
-                      const pds = parseFloat(patient?.poids)||0;
-                      const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
-                      let itemAffiche = item;
-                      let texteEnregistre = item;
-                      if (matchMgKg && pds>0) {
-                        const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
-                        const doseCalculee = Math.round(pds*parseFloat(mgParKg));
-                        itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
-                        texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
-                      }
-
-                      return (
-                        <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
-                          onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                          onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                          style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                            background:rouge?'#fef2f2':v.color+'12',
-                            color:rouge?'#dc2626':v.color,
-                            border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
-                          {itemAffiche}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
+              return null;
             })}
+
+            {favoris.length>0 && !voieListeComplete ? (
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                  {favoris.map(f=>{
+                    const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
+                    if(deja) return null;
+                    const rouge=ROUGE.some(s=>f.label.includes(s));
+                    const isPO = f.voie==='PO';
+                    return (
+                      <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
+                        onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+                        onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+                        style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                          background:rouge?'#fef2f2':f.color+'12',
+                          color:rouge?'#dc2626':f.color,
+                          border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
+                        {f.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button onClick={()=>setVoieListeComplete(true)}
+                  style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                  ▸ Liste entière
+                </button>
+              </div>
+            ) : (
+              <>
+                {favoris.length>0 && (
+                  <button onClick={()=>setVoieListeComplete(false)}
+                    style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                    ▾ Réduire à l'essentiel
+                  </button>
+                )}
+                {voiesAvecItems.map(renderItemsVoie)}
+              </>
+            )}
           </div>
         );
       })()}
