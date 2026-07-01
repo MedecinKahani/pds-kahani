@@ -44,24 +44,12 @@ const BG = {
 };
 
 function BoutonStats({ router }) {
-  const [alerte, setAlerte] = React.useState(false);
-
-  React.useEffect(() => {
-    const now = new Date();
-    const isFirst = now.getDate() === 1;
-    fetch('/api/stats-alerte').then(r=>r.json()).then(d=>{
-      setAlerte(d.alerte || isFirst);
-    }).catch(()=>setAlerte(isFirst));
-  }, []);
-
-  const style = alerte
-    ? {padding:'7px 14px',borderRadius:8,background:'#dc2626',color:'#fff',fontSize:12,fontWeight:700,border:'none',cursor:'pointer',animation:'pulse 1.5s infinite'}
-    : {padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'};
+  const style = {padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'};
 
   return (
     <div style={{position:'relative',display:'inline-block'}}>
       <button onClick={()=>router.push('/stats-mensuelles')} style={style}>
-        {alerte ? '🔴 Statistiques !' : 'Statistiques'}
+        Statistiques
       </button>
       <button onClick={()=>router.push('/preleves')} style={style}>
         🧪 Prélevés
@@ -69,7 +57,6 @@ function BoutonStats({ router }) {
       <button onClick={()=>router.push('/planning')} style={style}>
         📅 Planning
       </button>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}`}</style>
     </div>
   );
 }
