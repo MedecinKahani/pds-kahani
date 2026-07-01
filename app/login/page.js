@@ -71,7 +71,7 @@ export default function Login() {
             <form onSubmit={handleLogin}>
               <label style={{display:'block',fontWeight:600,color:'#374151',fontSize:13,marginBottom:8}}>Votre matricule</label>
               <input type="text" value={matricule} onChange={e=>setMatricule(e.target.value.toUpperCase())}
-                placeholder="Ex : 023799" autoFocus
+                placeholder="Votre matricule" autoFocus
                 style={{width:'100%',padding:'14px 16px',borderRadius:10,border:erreur?'2px solid #ef4444':'1.5px solid #e5e7eb',fontSize:22,letterSpacing:6,textAlign:'center',outline:'none',marginBottom:14,boxSizing:'border-box',background:'#f9fafb',color:'#111827'}}/>
               {erreur&&<div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 12px',color:'#dc2626',fontSize:13,marginBottom:14,textAlign:'center'}}>{erreur}</div>}
               <button type="submit" disabled={chargement||!matricule.trim()}
