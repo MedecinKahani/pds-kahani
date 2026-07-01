@@ -25,6 +25,16 @@ Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas d
 Abdominal : abdomen souple dépressible indolore.
 ORL : gorge et tympans propres.`;
 
+// Regroupement des voies d'administration en 3 boutons visibles pour le
+// médecin (Per os / IV / IM) — le détail (Respiratoire, Auriculaire, SC,
+// Hydratation, Titration morphine) reste accessible mais rangé dans le
+// groupe le plus proche cliniquement, pour ne pas surcharger l'écran.
+const GROUPES_VOIE = [
+  {id:'PO', label:'Per os', color:'#16a34a', voies:['PO','RESPI','AURICULAIRE']},
+  {id:'IV', label:'IV', color:'#2563eb', voies:['IV','HYDRATATION','MORPHINE']},
+  {id:'IM', label:'IM', color:'#6b7280', voies:['IM','SC']},
+];
+
 const EXAMENS_ROWS = [
   [
     {id:'ecg', label:'ECG', color:'#dc2626'},
@@ -1495,72 +1505,83 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         {estEnfant && <span style={{fontSize:10,color:'#9ca3af',alignSelf:'center',marginLeft:4}}>Patient &lt; 16 ans — doses adulte masquées</span>}
       </div>
 
-      {/* Sélecteur de voie : on choisit une voie, ça ouvre la catégorie correspondante */}
+      {/* 3 groupes seulement : Per os (+ Respiratoire, Auriculaire), IV (+ Hydratation, Morphine), IM (+ SC) */}
       <div style={{display:'flex',flexWrap:'wrap',gap:5,marginBottom:8}}>
-        {VOIES[tab].map(v=>(
-          <button key={v.voie} onClick={()=>setVoieOuverte(vo=>vo===v.voie?null:v.voie)}
-            style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
-              border:'1.5px solid '+(voieOuverte===v.voie?v.color:v.color+'55'),
-              background:voieOuverte===v.voie?v.color:v.color+'12',
-              color:voieOuverte===v.voie?'#fff':v.color}}>
-            {v.label}
+        {GROUPES_VOIE.map(g=>(
+          <button key={g.id} onClick={()=>setVoieOuverte(vo=>vo===g.id?null:g.id)}
+            style={{padding:'5px 14px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',
+              border:'1.5px solid '+(voieOuverte===g.id?g.color:g.color+'55'),
+              background:voieOuverte===g.id?g.color:g.color+'12',
+              color:voieOuverte===g.id?'#fff':g.color}}>
+            {g.label}
           </button>
         ))}
       </div>
 
       {voieOuverte && (()=>{
-        const v = VOIES[tab].find(x=>x.voie===voieOuverte);
-        if(!v) return null;
-
-        if(v.special==='morphine') return (
-          <div style={{maxHeight:'40vh',overflowY:'auto'}}>
-            <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-            <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
-          </div>
-        );
-        if(v.special==='hydratation') return (
-          <div style={{maxHeight:'40vh',overflowY:'auto'}}>
-            <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
-            <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
-          </div>
-        );
-        if(!v.items) return null;
+        const groupe = GROUPES_VOIE.find(g=>g.id===voieOuverte);
+        if(!groupe) return null;
+        const sousVoies = VOIES[tab].filter(v=>groupe.voies.includes(v.voie));
+        if(!sousVoies.length) return null;
 
         return (
-          <div style={{maxHeight:'40vh',overflowY:'auto'}}>
-            <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-              {v.items.map(item=>{
-                if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
-                const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
-                if(deja) return null;
-                const rouge=ROUGE.some(s=>item.includes(s));
-                const isPO = v.voie==='PO';
+          <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
+            {sousVoies.map(v=>{
+              if(v.special==='morphine') return (
+                <div key={v.voie}>
+                  <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
+                  <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
+                </div>
+              );
+              if(v.special==='hydratation') return (
+                <div key={v.voie}>
+                  <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
+                  <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
+                </div>
+              );
+              if(!v.items) return null;
 
-                // Calcul dose réelle pour les items "Xmg/kg" si poids connu
-                const pds = parseFloat(patient?.poids)||0;
-                const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
-                let itemAffiche = item;
-                let texteEnregistre = item;
-                if (matchMgKg && pds>0) {
-                  const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
-                  const doseCalculee = Math.round(pds*parseFloat(mgParKg));
-                  itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
-                  texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
-                }
+              return (
+                <div key={v.voie}>
+                  {sousVoies.length>1 && (
+                    <div style={{fontSize:9,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f9fafb',borderRadius:4}}>{v.label}</div>
+                  )}
+                  <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                    {v.items.map(item=>{
+                      if(item==='__AEROSOL__') return <AerosolSelector key="aerosol" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>;
+                      const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
+                      if(deja) return null;
+                      const rouge=ROUGE.some(s=>item.includes(s));
+                      const isPO = v.voie==='PO';
 
-                return (
-                  <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
-                    onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                    onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                    style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                      background:rouge?'#fef2f2':v.color+'12',
-                      color:rouge?'#dc2626':v.color,
-                      border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
-                    {itemAffiche}
-                  </button>
-                );
-              })}
-            </div>
+                      // Calcul dose réelle pour les items "Xmg/kg" si poids connu
+                      const pds = parseFloat(patient?.poids)||0;
+                      const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+                      let itemAffiche = item;
+                      let texteEnregistre = item;
+                      if (matchMgKg && pds>0) {
+                        const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
+                        const doseCalculee = Math.round(pds*parseFloat(mgParKg));
+                        itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
+                        texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
+                      }
+
+                      return (
+                        <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
+                          onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+                          onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+                          style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                            background:rouge?'#fef2f2':v.color+'12',
+                            color:rouge?'#dc2626':v.color,
+                            border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
+                          {itemAffiche}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         );
       })()}
