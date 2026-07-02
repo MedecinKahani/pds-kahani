@@ -797,7 +797,7 @@ ${ordonnance||'--'}
                     {[
                       {cat:'examen',        titre:'🔬 Examens',     color:'#7c3aed'},
                       {cat:'therapeutique', titre:'💊 Thérapeutique',color:'#ea580c'},
-                      {cat:'soin',          titre:'🩹 Soins',        color:'#d97706'},
+                      {cat:'soin',          titre:'🩹 Soins',        color:'#0d9488'},
                     ].map(({cat,titre,color})=>{
                       const items = prescriptions.filter(r=>r.categorie===cat);
                       return (
@@ -838,7 +838,7 @@ ${ordonnance||'--'}
                   {[
                     {cat:'examen',        titre:'🔬 Examens',      color:'#7c3aed'},
                     {cat:'therapeutique', titre:'💊 Thérapeutique', color:'#ea580c'},
-                    {cat:'soin',          titre:'🩹 Soins',         color:'#d97706'},
+                    {cat:'soin',          titre:'🩹 Soins',         color:'#0d9488'},
                   ].map(({cat,titre,color})=>{
                     const prescritsCategorie = prescriptions.filter(r=>r.categorie===cat);
                     const enAttenteCategorie = prescritsCategorie.filter(r=>!r.fait&&!r.nonRealise);
@@ -993,7 +993,7 @@ function CatSection({titre, color, collapsed, onToggle, children}) {
 }
 
 function PrescrItemMedecin({r, gi, prescriptions, setPrescriptions, p, user, supprimerRx}) {
-  const bc = r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#0d9488':'#f59e0b';
+  const bc = r.categorie==='examen'?'#7c3aed':r.categorie==='therapeutique'?'#ea580c':'#0d9488';
   const poMatch = r.texte.match(/^(.+?) ×(\d+)$/);
   const isPO = !!poMatch;
   const nbComp = isPO ? parseInt(poMatch[2]) : null;
@@ -1397,7 +1397,7 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
   const CATS = [
     {id:'examen', label:'🔬 Examen', color:'#7c3aed'},
     {id:'therapeutique', label:'💊 Thérapeutique', color:'#ea580c'},
-    {id:'soin', label:'🩹 Soin', color:'#d97706'},
+    {id:'soin', label:'🩹 Soin', color:'#0d9488'},
   ];
 
   async function ajouter() {
