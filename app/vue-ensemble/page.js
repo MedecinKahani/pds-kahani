@@ -21,6 +21,14 @@ function duree(ts) {
 
 function Case({id, label, p}) {
   const c = COULEURS[id]||'#9ca3af';
+  const [copied, setCopied] = useState(false);
+  function copierIpp(e) {
+    e.stopPropagation();
+    if (!p?.ipp) return;
+    navigator.clipboard.writeText(p.ipp);
+    setCopied(true);
+    setTimeout(()=>setCopied(false), 2000);
+  }
   return (
     <div style={{background:p?'#e2e8f0':BG_VIDE[id]||'#f9fafb',border:'1.5px solid '+(p?c:'#e5e7eb'),borderRadius:10,position:'relative',overflow:'hidden',height:'100%'}}>
       <div style={{padding:'7px 9px 3px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -32,7 +40,10 @@ function Case({id, label, p}) {
       </div>
       {p&&(
         <div style={{padding:'0 9px 7px'}}>
-          <div style={{fontWeight:700,color:'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>IPP {p.ipp||'—'}</div>
+          <div onClick={copierIpp} title="Copier l'IPP"
+            style={{fontWeight:700,color:copied?'#16a34a':'#111827',fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',cursor:p.ipp?'pointer':'default',display:'inline-flex',alignItems:'center',gap:4}}>
+            {copied ? '✓ Copié' : 'IPP '+(p.ipp||'—')}
+          </div>
           <div style={{color:'#6b7280',fontSize:10,marginTop:1}}>{p.age} ans</div>
           <div style={{color:'#374151',fontSize:10,marginTop:2,fontWeight:500}}>{p.symptome||p.motifPrincipal}</div>
           <div style={{position:'absolute',bottom:5,right:7,fontSize:9,color:'#9ca3af',fontWeight:600}}>{duree(p.arrivee)}</div>
