@@ -110,6 +110,7 @@ const SOINS_ROWS = [
   [
     {id:'vvp1', label:'VVP n°1', color:'#7c3aed'},
     {id:'vvp2', label:'VVP n°2', color:'#7c3aed'},
+    {id:'kto', label:'KTO', color:'#7c3aed'},
     {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
     {id:'suture', label:'Suture', color:'#7c3aed'},
   ],
