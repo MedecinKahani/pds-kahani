@@ -1438,8 +1438,9 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
 
 function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   const age = parseFloat(patient?.age);
-  const estEnfant = !isNaN(age) && age < 12;
-  const [tab, setTab] = useState(estEnfant ? 'pediatrie' : 'adulte');
+  const estEnfant = !isNaN(age) && age < 12; // < 12 ans : pédiatrie uniquement, adulte masqué
+  const estAdo = !isNaN(age) && age >= 12 && age < 16; // 12-16 ans : les deux visibles, pédiatrie par défaut
+  const [tab, setTab] = useState(estEnfant || estAdo ? 'pediatrie' : 'adulte');
   useEffect(()=>{ if(estEnfant) setTab('pediatrie'); }, [estEnfant]);
   const [voieOuverte, setVoieOuverte] = useState(null);
   const [voieListeComplete, setVoieListeComplete] = useState(false);
