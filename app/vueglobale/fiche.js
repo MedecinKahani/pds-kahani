@@ -1618,13 +1618,11 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Vaccin antitétanique SC', 'Vaccin Hépatite B SC (Engerix B10)', 'Vaccin ROR SC (Priorix)',
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
-        '__AEROSOL__',
-        '__CAT__Asthme',
-        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)', 'Sérum physiologique nébulisation',
+        '__AEROSOL_ADULTE__',
+        '__CAT__Rhinite',
+        'Sérum physiologique nébulisation',
         '__CAT__Antalgique',
         'MEOPA',
-        '__CAT__Réanimation / Antidotes',
-        'Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
       ]},
       {voie:'AURICULAIRE', label:'Auriculaire', color:'#a855f7', items:[
         '__CAT__Anti-infectieux',
@@ -1751,7 +1749,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           const map = {};
           let catCourante = null;
           for (const it of items) {
-            if (it === '__AEROSOL__' || it === '__AEROSOL_PED__') { (map[it]=map[it]||[]).push(it); continue; }
+            if (it === '__AEROSOL__' || it === '__AEROSOL_PED__' || it === '__AEROSOL_ADULTE__') { (map[it]=map[it]||[]).push(it); continue; }
             if (it.startsWith('__CAT__')) { catCourante = it.replace('__CAT__',''); map[catCourante]=map[catCourante]||[]; continue; }
             if (catCourante) map[catCourante].push(it);
           }
@@ -1882,14 +1880,21 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         }
 
         // Nébuliseur : widget hors catégorisation (RESPI seulement), affiché en tête.
-        // Adulte : sélecteur poids -> dose calculée. Pédiatrie : Ventoline/Atrovent
-        // séparés, choix manuel de dose (pas de poids, pas de calcul auto).
+        // Adulte et pédiatrie utilisent désormais la même organisation : Ventoline/Atrovent
+        // séparés sous catégorie Asthme (dose fixe adulte, choix manuel en pédiatrie).
         const aerosolPresent = completParCat['__AEROSOL__'];
+        const aerosolAdultePresent = completParCat['__AEROSOL_ADULTE__'];
         const aerosolPedPresent = completParCat['__AEROSOL_PED__'];
 
         return (
           <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
             {aerosolPresent && <AerosolSelector onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>}
+            {aerosolAdultePresent && (
+              <div>
+                <div style={{fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>Asthme</div>
+                <AerosolAdulteSelector onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>
+              </div>
+            )}
             {aerosolPedPresent && (
               <div>
                 <div style={{fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>Asthme</div>
@@ -2001,6 +2006,45 @@ function DoseDosetteButton({item, couleur, rouge, onAjouter}) {
       <button onClick={()=>{setOpen(false);setQte('');}}
         style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
     </span>
+  );
+}
+
+function AerosolAdulteSelector({onAjouterPlusieurs, prescriptions}) {
+  const dejaVento = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Salbutamol'));
+  const dejaAtro = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Ipratropium'));
+
+  if (dejaVento && dejaAtro) return (
+    <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Aérosols déjà prescrits</div>
+  );
+
+  function ajouterVento() {
+    onAjouterPlusieurs([1,2,3].map(i=>({texte:`Salbutamol 5mg nébulisation (Ventoline) — Séance ${i}/3`, categorie:'therapeutique'})));
+  }
+  function ajouterAtro() {
+    onAjouterPlusieurs([{texte:`Ipratropium 0.5mg nébulisation (Atrovent) — Séance 1/1`, categorie:'therapeutique'}]);
+  }
+
+  return (
+    <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+      {!dejaVento && (
+        <button onClick={ajouterVento}
+          onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.9)';}}
+          onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+          style={{padding:'8px 16px',borderRadius:8,fontSize:12,fontWeight:700,cursor:'pointer',
+            background:'#0891b212',color:'#0891b2',border:'1.5px solid #0891b255'}}>
+          💨 Ventoline ×3
+        </button>
+      )}
+      {!dejaAtro && (
+        <button onClick={ajouterAtro}
+          onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.9)';}}
+          onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+          style={{padding:'8px 16px',borderRadius:8,fontSize:12,fontWeight:700,cursor:'pointer',
+            background:'#0891b212',color:'#0891b2',border:'1.5px solid #0891b255'}}>
+          💨 Atrovent ×1
+        </button>
+      )}
+    </div>
   );
 }
 
