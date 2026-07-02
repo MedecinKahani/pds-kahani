@@ -1502,7 +1502,15 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Sels réhydratation PO (Adiaril)', voie:'PO', color:'#16a34a', cat:'Digestif'},
     {label:'Cétirizine PO (Zyrtec)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Paracétamol 15mg/kg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Kétoprofène 1mg/kg IV (Profenid)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Morphine 0.1mg/kg IV [STP]', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Phloroglucinol 1mg/kg IV (Spasfon)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Ceftriaxone 50mg/kg IV (Rocéphine)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
+    {label:'Amoxicilline 50mg/kg/j IV (Clamoxyl)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
+    {label:'Amox+Ac Clav 100mg/kg/j IV (Augmentin)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
+    {label:'Adrénaline 0.01mg/kg IV', voie:'IV', color:'#2563eb', cat:'Réanimation / Antidotes'},
+    {label:'Clonazépam 0.02mg/kg IV (Rivotril)', voie:'IV', color:'#2563eb', cat:'Réanimation / Antidotes'},
+    {label:'Méthylprednisolone IV (Solumedrol)', voie:'IV', color:'#2563eb', cat:'Allergologie / Corticoïdes'},
   ];
   const VOIES = {
     adulte: [
@@ -1627,7 +1635,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       ]},
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         '__CAT__Antalgique',
-        'Morphine 0.1mg/kg IV [STP]', 'Paracétamol 15mg/kg IV (Perfalgan)',
+        'Kétoprofène 1mg/kg IV (Profenid)', 'Morphine 0.1mg/kg IV [STP]', 'Paracétamol 15mg/kg IV (Perfalgan)',
+        'Phloroglucinol 1mg/kg IV (Spasfon)',
         '__CAT__Anti-infectieux',
         'Amoxicilline 50mg/kg/j IV (Clamoxyl)', 'Amox+Ac Clav 100mg/kg/j IV (Augmentin)',
         'Ceftriaxone 50mg/kg IV (Rocéphine)',
