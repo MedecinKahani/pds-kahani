@@ -336,25 +336,25 @@ export default function NouveauPatient() {
 
         <div style={card}>
           <div style={{fontWeight:700,fontSize:14,color:'#111827',marginBottom:12}}>Motif *</div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
             {[
-              {id:'coma',l:'😵 Trouble de la conscience'},
-              {id:'avc',l:'🧠 Paralysie / Suspicion AVC'},
-              {id:'detresse_respi',l:'🫁 Difficulte respiratoire'},
-              {id:'plaie',l:'🩹 Plaie'},
-              {id:'fievre',l:'🌡️ Fievre'},
-              {id:'vertige',l:'💫 Vertige / Malaise'},
-              {id:'douleur',l:'😣 Douleur'},
-              {id:'soins_ide',l:'💉 Soins infirmiers'},
-              {id:'autre',l:'❓ Autre'},
+              {id:'coma',e:'😵',l:'Trouble de la conscience'},
+              {id:'avc',e:'🧠',l:'Paralysie / Suspicion AVC'},
+              {id:'detresse_respi',e:'🫁',l:'Difficulte respiratoire'},
+              {id:'plaie',e:'🩹',l:'Plaie'},
+              {id:'fievre',e:'🌡️',l:'Fievre'},
+              {id:'vertige',e:'💫',l:'Vertige / Malaise'},
+              {id:'douleur',e:'😣',l:'Douleur'},
+              {id:'soins_ide',e:'💉',l:'Soins infirmiers'},
+              {id:'autre',e:'❓',l:'Autre'},
             ].map(function(s) {
               return (
                 <Btn key={s.id} onClick={()=>set('symptome',s.id)}
-                  style={{padding:'12px',borderRadius:8,fontWeight:600,fontSize:13,textAlign:'left',
+                  style={{padding:'16px 10px',borderRadius:12,textAlign:'center',
                     background:f.symptome===s.id?'#0d9488':'#f9fafb',
-                    color:f.symptome===s.id?'#fff':'#374151',
                     border:'2px solid '+(f.symptome===s.id?'#0d9488':'#e5e7eb')}}>
-                  {s.l}
+                  <div style={{fontSize:28,marginBottom:6}}>{s.e}</div>
+                  <div style={{fontWeight:600,fontSize:12.5,lineHeight:1.25,color:f.symptome===s.id?'#fff':'#374151'}}>{s.l}</div>
                 </Btn>
               );
             })}
