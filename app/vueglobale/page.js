@@ -386,6 +386,14 @@ export default function PageVueGlobale() {
     const hasSoins = cats.soins.length > 0;
     const pam = p?.tas && p?.tad ? Math.round(parseFloat(p.tad)+(parseFloat(p.tas)-parseFloat(p.tad))/3) : null;
     const sexeSymbol = p?.sexe==='M'||p?.sexe==='Homme'?'♂':p?.sexe==='F'||p?.sexe==='Femme'?'♀':'';
+    const [ippCopied, setIppCopied] = React.useState(false);
+    function copierIpp(e) {
+      e.stopPropagation();
+      if (!p?.ipp) return;
+      navigator.clipboard.writeText(p.ipp);
+      setIppCopied(true);
+      setTimeout(()=>setIppCopied(false), 2000);
+    }
 
     return(
       <div onClick={()=>{if(!p)return;if(!p)return;setFicheOuverte(isSelected?null:p);if(p.statut==='attente_medecin')patch(p.id,{statut:'en_cours'});}}
@@ -404,8 +412,14 @@ export default function PageVueGlobale() {
               <div style={{display:'flex',gap:5,alignItems:'flex-start'}}>
                 <div style={{fontWeight:800,fontSize:30,color:c,lineHeight:1,flexShrink:0}}>{label}</div>
                 <div style={{minWidth:0,flex:1}}>
-                  <div style={{fontWeight:700,color:'#111827',fontSize:12,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                    IPP {p.ipp||'—'} <span style={{color:c,fontSize:11}}>{sexeSymbol}</span>
+                  <div onClick={copierIpp} title="Copier l'IPP"
+                    style={{display:'inline-flex',alignItems:'center',gap:4,fontWeight:700,fontSize:12,lineHeight:1.2,
+                      padding:'1px 6px',borderRadius:5,cursor:p.ipp?'pointer':'default',
+                      border:'1px solid '+(ippCopied?'#16a34a':'#e5e7eb'),
+                      background:ippCopied?'#f0fdf4':'#f9fafb',
+                      color:ippCopied?'#16a34a':'#111827',
+                      maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                    {ippCopied ? '✓ Copié' : 'IPP '+(p.ipp||'—')} <span style={{color:ippCopied?'#16a34a':c,fontSize:11}}>{sexeSymbol}</span>
                   </div>
                   <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()+'· ':''}{p.age} ans</div>
                 </div>
