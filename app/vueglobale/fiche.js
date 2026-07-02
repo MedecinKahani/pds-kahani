@@ -48,7 +48,7 @@ const ORDRE_CATEGORIES_DEFAUT = [
 const ORDRE_CATEGORIES_PAR_GROUPE = {
   IV: [
     '__HYDRATATION__', 'Antalgique', 'Anti-infectieux',
-    'Cardio-vasculaire', 'Digestif', 'Réanimation / Antidotes', 'Métabolique / Solutés',
+    'Cardio-vasculaire', 'Réanimation / Antidotes', 'Métabolique / Solutés',
     'Allergologie / Corticoïdes', 'Neuro-sédation', 'Autres',
   ],
 };
@@ -1464,7 +1464,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
     {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a', cat:'Neuro-sédation'},
     {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
-    {label:'Phloroglucinol 80mg PO (Spasfon)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Phloroglucinol 80mg PO (Spasfon)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
     {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
@@ -1482,7 +1482,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
-    {label:'Phloroglucinol 40mg IV (Spasfon)', voie:'IV', color:'#2563eb', cat:'Digestif'},
+    {label:'Phloroglucinol 40mg IV (Spasfon)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     // IM
     {label:'Adrénaline 0.5mg IM', voie:'IM', color:'#6b7280', cat:'Réanimation / Antidotes'},
     {label:'Adrénaline 1mg IM', voie:'IM', color:'#6b7280', cat:'Réanimation / Antidotes'},
@@ -1510,7 +1510,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         '__CAT__Antalgique',
         'Acide acétylsalicylique 500mg PO (Aspégic)', 'Ibuprofène 200mg PO', 'Ibuprofène 400mg PO (Antarène)',
         'Kétoprofène 100mg PO (Profenid)', 'Naproxène 550mg PO', 'Paracétamol 500mg PO', 'Paracétamol 1g PO',
-        'Paracétamol codéïne 500mg PO', 'Tramadol 50mg PO (Topalgic)', 'Tramadol 100mg PO',
+        'Paracétamol codéïne 500mg PO', 'Phloroglucinol 80mg PO (Spasfon)', 'Tramadol 50mg PO (Topalgic)', 'Tramadol 100mg PO',
         '__CAT__Anti-infectieux',
         'Albendazole 4% PO (Zentel)', 'Amoxicilline 1g PO', 'Artéméther-Luméfantrine PO (Coartem)', 'Augmentin 1g PO',
         'Azithromycine 250mg PO (Zithromax)', 'Cefixime 40mg/5ml PO', 'Doxycycline 100mg PO', 'Ivermectine PO',
@@ -1529,7 +1529,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Phénytoïne 250mg PO (Dilantin)', 'Tropatépine 10mg PO (Lépicur)',
         '__CAT__Digestif',
         'Charbon activé PO', 'Gaviscon 1 sachet PO', 'Lansoprazole 15mg PO', 'Métoclopramide 10mg PO (Primpéran)',
-        'Métopimazine 7.5mg PO (Vogalène)', 'Pantoprazole 40mg PO', 'Phloroglucinol 80mg PO (Spasfon)',
+        'Métopimazine 7.5mg PO (Vogalène)', 'Pantoprazole 40mg PO',
         'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO (Adiaril)',
         '__CAT__Allergologie / Corticoïdes',
         'Cétirizine 10mg PO', 'Dexchlorphéniramine PO (Polaramine)', 'Hydroxyzine 25mg PO (Atarax)',
@@ -1540,7 +1540,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         '__CAT__Antalgique',
         'Kétoprofène 100mg IV (Profenid)', 'Nalbuphine 20mg IV (Nubain)', 'Néfopam 20mg IV (Acupan)',
-        'Paracétamol 1g IV (Perfalgan)', 'Paracétamol 500mg IV (Perfalgan)', 'Tramadol 100mg IV (Topalgic)',
+        'Paracétamol 1g IV (Perfalgan)', 'Paracétamol 500mg IV (Perfalgan)', 'Phloroglucinol 40mg IV (Spasfon)', 'Tramadol 100mg IV (Topalgic)',
         '__CAT__Anti-infectieux',
         'Amoxicilline 1g IV', 'Amoxicilline 2g IV', 'Amoxicilline/Ac. clavulanique 1g IV (Augmentin)',
         'Amoxicilline/Ac. clavulanique 2g IV (Augmentin)', 'Ceftriaxone 1g IV', 'Ceftriaxone 2g IV', 'Métronidazole 500mg IV',
@@ -1548,8 +1548,6 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Adénosine 6mg IV (Krenosin)', 'Amiodarone 150mg IV (Cordarone)', 'Digoxine 0.5mg IV',
         'Énoxaparine 4000UI IV (Lovenox)', 'Fondaparinux 2.5mg IV (Arixtra)', 'Furosémide 20mg IV (Lasilix)',
         'Furosémide 250mg IV (Lasilix spécial)', 'Nicardipine 10mg IV (Loxen)',
-        '__CAT__Digestif',
-        'Phloroglucinol 40mg IV (Spasfon)',
         '__CAT__Neuro-sédation',
         'Acétylleucine 500mg IV (Tanganil)', 'Clonazépam 1mg IV (Rivotril)', 'Diazépam 10mg IV (Valium)',
         'Étomidate 20mg IV (Lipuro)', 'Kétamine 250mg IV', 'Midazolam 50mg IV (Hypnovel)',
