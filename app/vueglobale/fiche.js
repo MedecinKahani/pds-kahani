@@ -56,8 +56,6 @@ const ORDRE_CATEGORIES_PAR_GROUPE = {
 const EXAMENS_ROWS = [
   [
     {id:'ecg', label:'ECG', color:'#dc2626'},
-  ],
-  [
     {id:'hemocue', label:'Hémocue', color:'#dc2626'},
     {id:'dextro', label:'Dextro', color:'#dc2626'},
   ],
@@ -84,8 +82,6 @@ const EXAMENS_ROWS = [
   ],
   [
     {id:'tdr_tet', label:'Tétanotop', color:'#16a34a'},
-  ],
-  [
     {id:'crp', label:'CRP rapide', color:'#16a34a'},
     {id:'tdr_palu', label:'TDR Paludisme', color:'#16a34a'},
     {id:'tdr_dengue', label:'TDR Dengue', color:'#16a34a'},
@@ -114,8 +110,6 @@ const SOINS_ROWS = [
   [
     {id:'vvp1', label:'VVP n°1', color:'#7c3aed'},
     {id:'vvp2', label:'VVP n°2', color:'#7c3aed'},
-  ],
-  [
     {id:'anesth_loc', label:'Anesthésie locale (Lidocaïne)', color:'#7c3aed'},
     {id:'suture', label:'Suture', color:'#7c3aed'},
   ],
@@ -127,8 +121,6 @@ const SOINS_ROWS = [
   [
     {id:'retrait_spu', label:'Retrait sonde urinaire', color:'#6b7280'},
     {id:'pose_spu', label:'Pose sonde urinaire', color:'#6b7280'},
-  ],
-  [
     {id:'retrait_implant', label:'Retrait implant', color:'#6b7280'},
   ],
 ];
@@ -1854,12 +1846,12 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             {favoris.length>0 && (
               modeReduit ? (
                 <button onClick={()=>setVoieListeComplete(true)}
-                  style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                  style={{width:'100%',textAlign:'center',padding:'6px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
                   ▸ Liste entière
                 </button>
               ) : (
                 <button onClick={()=>setVoieListeComplete(false)}
-                  style={{alignSelf:'flex-start',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
+                  style={{width:'100%',textAlign:'center',padding:'6px 10px',borderRadius:6,fontSize:11,fontWeight:600,color:'#6b7280',background:'#f3f4f6',border:'1px solid #e5e7eb',cursor:'pointer'}}>
                   ▾ Réduire à l'essentiel
                 </button>
               )
