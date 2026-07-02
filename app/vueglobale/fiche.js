@@ -257,7 +257,9 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
         <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3,minWidth:0}}>
           {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through'}}>{baseVal}</span>}
-          <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,whiteSpace:'nowrap'}}>{cur||'—'}</span>
+          <span style={{fontSize:cur==='Positif'||cur==='Négatif'?16:13,fontWeight:700,color,lineHeight:1,whiteSpace:'nowrap'}}>
+            {cur==='Positif'?'+':cur==='Négatif'?'−':(cur||'—')}
+          </span>
         </div>
         <button
           onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);}}
