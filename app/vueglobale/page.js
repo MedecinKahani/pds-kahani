@@ -255,18 +255,15 @@ export default function PageVueGlobale() {
     return()=>clearInterval(iv);
   },[]);
 
-  // Présence temps réel : battement régulier + lecture de la liste des agents connectés.
+  // Présence temps réel : lecture de la liste des agents connectés (le battement
+  // lui-même est envoyé globalement depuis le layout racine, sur toutes les pages).
   useEffect(()=>{
-    function battement() {
-      fetch('/api/presence',{method:'POST'}).catch(()=>{});
-    }
     function chargerAgents() {
       fetch('/api/presence').then(r=>r.json()).then(d=>setAgents(d.agents||[])).catch(()=>{});
     }
-    battement(); chargerAgents();
-    const ivBattement=setInterval(battement,20000);
+    chargerAgents();
     const ivAgents=setInterval(chargerAgents,10000);
-    return()=>{clearInterval(ivBattement);clearInterval(ivAgents);};
+    return()=>clearInterval(ivAgents);
   },[]);
 
   async function patch(id,data){
