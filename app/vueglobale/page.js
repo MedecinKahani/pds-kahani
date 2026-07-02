@@ -142,9 +142,6 @@ function BoutonStats({ router }) {
       <button onClick={()=>router.push('/preleves')} style={style}>
         🧪 Prélevés
       </button>
-      <button onClick={()=>router.push('/planning')} style={style}>
-        📅 Planning
-      </button>
     </div>
   );
 }
