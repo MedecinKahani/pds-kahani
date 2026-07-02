@@ -41,7 +41,7 @@ const GROUPES_VOIE = [
 // été demandé (Hydratation et Titration morphine intercalées entre les
 // catégories médicamenteuses, plutôt que systématiquement en tête).
 const ORDRE_CATEGORIES_DEFAUT = [
-  'Asthme', 'Antalgique', 'Anti-infectieux', 'Cardio-vasculaire', 'Respiratoire',
+  'Asthme', 'Rhinite', 'Antalgique', 'Anti-infectieux', 'Cardio-vasculaire', 'Respiratoire',
   'Neuro-sédation', 'Digestif', 'Allergologie / Corticoïdes',
   'Réanimation / Antidotes', 'Métabolique / Solutés', 'Anesthésie locale', 'Autres',
 ];
@@ -1662,7 +1662,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL_PED__',
-        '__CAT__Asthme',
+        '__CAT__Rhinite',
         'Sérum physiologique nébulisation', 'DRP',
         '__CAT__Antalgique',
         'MEOPA',
@@ -1671,7 +1671,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       ]},
     ],
   };
-  const ROUGE = ['Tramadol','Codéine','Morphine','MEOPA'];
+  const ROUGE = ['Tramadol','Codéine','Morphine','MEOPA','laryngite'];
 
   return (
     <div style={{padding:'8px 10px'}}>
@@ -1859,7 +1859,12 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         return (
           <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
             {aerosolPresent && <AerosolSelector onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>}
-            {aerosolPedPresent && <AerosolPediatrieSelector onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>}
+            {aerosolPedPresent && (
+              <div>
+                <div style={{fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>Asthme</div>
+                <AerosolPediatrieSelector onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>
+              </div>
+            )}
 
             {ordre.map(slot=>slot.startsWith('__')
               ? renderWidget(slot)
