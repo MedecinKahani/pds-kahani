@@ -31,7 +31,7 @@ ORL : gorge et tympans propres.`;
 // groupe le plus proche cliniquement, pour ne pas surcharger l'écran.
 const GROUPES_VOIE = [
   {id:'PO', label:'Per os', color:'#16a34a', voies:['PO','AURICULAIRE']},
-  {id:'IV', label:'IV', color:'#2563eb', voies:['IV','HYDRATATION','MORPHINE']},
+  {id:'IV', label:'IV', color:'#2563eb', voies:['IV','HYDRATATION']},
   {id:'IM', label:'IM', color:'#6b7280', voies:['IM','SC']},
   {id:'NEBUL', label:'Nébulisation', color:'#0891b2', voies:['RESPI']},
 ];
@@ -47,7 +47,7 @@ const ORDRE_CATEGORIES_DEFAUT = [
 ];
 const ORDRE_CATEGORIES_PAR_GROUPE = {
   IV: [
-    '__HYDRATATION__', 'Antalgique', '__MORPHINE__', 'Anti-infectieux',
+    '__HYDRATATION__', 'Antalgique', 'Anti-infectieux',
     'Cardio-vasculaire', 'Réanimation / Antidotes', 'Métabolique / Solutés',
     'Allergologie / Corticoïdes', 'Neuro-sédation', 'Autres',
   ],
@@ -1564,7 +1564,6 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Potassium chlorure 10% IV', 'Sodium bicarbonate 4.2% IV', 'Vitamine B1 100mg IV (Bévitine)',
       ]},
       {voie:'HYDRATATION', label:'Hydratation IV', color:'#0891b2', special:'hydratation'},
-      {voie:'MORPHINE', label:'Titration morphine IV', color:'#dc2626', special:'morphine'},
       {voie:'IM', label:'Voie IM', color:'#6b7280', items:[
         '__CAT__Antalgique',
         'Kétoprofène 100mg IM (Profenid)', 'Morphine 10mg IM [STP]',
@@ -1738,43 +1737,42 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           if(marqueur==='__HYDRATATION__') {
             const v = voiesSpeciales.find(x=>x.special==='hydratation');
             if(!v) return null;
-            return (
-              <div key={marqueur}>
-                <div style={{fontSize:9,fontWeight:700,color:'#0891b2',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#f0f9ff',borderRadius:4}}>Hydratation IV</div>
-                <HydratationSelector onAjouter={onAjouter} prescriptions={prescriptions}/>
-              </div>
-            );
-          }
-          if(marqueur==='__MORPHINE__') {
-            const v = voiesSpeciales.find(x=>x.special==='morphine');
-            if(!v) return null;
-            return (
-              <div key={marqueur}>
-                <div style={{fontSize:9,fontWeight:700,color:'#dc2626',textTransform:'uppercase',letterSpacing:0.5,marginBottom:4,padding:'3px 6px',background:'#fef2f2',borderRadius:4}}>⚠ Titration morphine IV [STP]</div>
-                <TitrationMorphine onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>
-              </div>
-            );
+            return <HydratationSelector key={marqueur} onAjouter={onAjouter} prescriptions={prescriptions}/>;
           }
           return null;
         }
 
+        // Code couleur par catégorie thérapeutique (demande médicale) — remplace
+        // l'ancien code couleur par voie d'administration. Les prescriptions
+        // sécurisées (ROUGE : Tramadol, Codéine, Morphine, MEOPA) restent rouges
+        // quelle que soit leur catégorie.
+        const COULEUR_CATEGORIE = {
+          'Antalgique': '#16a34a',
+          'Anti-infectieux': '#7c3aed',
+          'Digestif': '#ea580c',
+          'Cardio-vasculaire': '#db2777',
+          'Allergologie / Corticoïdes': '#6b7280',
+        };
+        const COULEUR_CATEGORIE_DEFAUT = '#2563eb';
+
         // Rendu d'un bouton médicament : en pédiatrie, aucune dose n'est proposée
         // d'emblée (mg/kg ou mg fixe, hors paracétamol sachet) — saisie manuelle
         // systématique (sécurité). En adulte, comportement inchangé (dose fixe affichée).
-        function renderMedButton(item, v, rouge) {
+        function renderMedButton(item, v, rouge, cat) {
           const isPO = v.voie==='PO';
+          const couleur = rouge ? '#dc2626' : (COULEUR_CATEGORIE[cat] || COULEUR_CATEGORIE_DEFAUT);
           if (tab==='pediatrie') {
             const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
             if (matchMgKg) {
               const [, nomMed, , parJour, suffixe] = matchMgKg;
               return (
                 <DoseManuelleButton key={item} nomMed={nomMed} parJour={parJour} suffixe={suffixe}
-                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+                  couleur={couleur} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
               );
             }
             if (item.startsWith('Budésonide')) {
               return (
-                <DoseDosetteButton key={item} item={item} voie={v} rouge={rouge} onAjouter={onAjouter}/>
+                <DoseDosetteButton key={item} item={item} couleur={couleur} rouge={rouge} onAjouter={onAjouter}/>
               );
             }
             const matchMgFixe = item.match(/^(.+?) (\d+(?:\.\d+)?)mg(?!\/)(\s.*)?$/);
@@ -1782,7 +1780,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
               const [, nomMed, , suffixe] = matchMgFixe;
               return (
                 <DoseManuelleButton key={item} nomMed={nomMed} parJour={null} suffixe={suffixe}
-                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+                  couleur={couleur} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
               );
             }
           }
@@ -1791,9 +1789,9 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
               onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
               onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
               style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                background:rouge?'#fef2f2':v.color+'12',
-                color:rouge?'#dc2626':v.color,
-                border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
+                background:couleur+'12',
+                color:couleur,
+                border:'1.5px solid '+couleur+'44'}}>
               {item}
             </button>
           );
@@ -1801,31 +1799,37 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
 
         function renderCategorieFavoris(cat) {
           const items = favorisParCat[cat];
-          if(!items || !items.length) return null;
-          const rendus = items.map(f=>{
+          if((!items || !items.length) && !(cat==='Antalgique' && tab==='adulte' && voieOuverte==='IV')) return null;
+          const rendus = (items||[]).map(f=>{
             const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
             if(deja) return null;
             const rouge=ROUGE.some(s=>f.label.includes(s));
-            return renderMedButton(f.label, {voie:f.voie, color:f.color}, rouge);
+            return renderMedButton(f.label, {voie:f.voie}, rouge, cat);
           }).filter(Boolean);
+          if(cat==='Antalgique' && tab==='adulte' && voieOuverte==='IV') {
+            rendus.push(<TitrationMorphine key="__morphine_inline__" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>);
+          }
           if(!rendus.length) return null;
           return (
             <div key={cat}>
               <div style={{fontSize:9,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:0.5,marginBottom:3}}>{cat}</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:4}}>{rendus}</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:4,alignItems:'center'}}>{rendus}</div>
             </div>
           );
         }
 
         function renderCategorieComplete(cat) {
           const entries = completParCat[cat];
-          if(!entries || !entries.length) return null;
-          const rendus = entries.map(({item, voie:v})=>{
+          if((!entries || !entries.length) && !(cat==='Antalgique' && tab==='adulte' && voieOuverte==='IV')) return null;
+          const rendus = (entries||[]).map(({item, voie:v})=>{
             const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
             if(deja) return null;
             const rouge=ROUGE.some(s=>item.includes(s));
-            return renderMedButton(item, v, rouge);
+            return renderMedButton(item, v, rouge, cat);
           }).filter(Boolean);
+          if(cat==='Antalgique' && tab==='adulte' && voieOuverte==='IV') {
+            rendus.push(<TitrationMorphine key="__morphine_inline__" onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>);
+          }
           if(!rendus.length) return null;
           return (
             <div key={cat}>
@@ -1869,7 +1873,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   );
 }
 
-function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjouter}) {
+function DoseManuelleButton({nomMed, parJour, suffixe, couleur, rouge, isPO, onAjouter}) {
   const [open, setOpen] = useState(false);
   const [mg, setMg] = useState('');
 
@@ -1886,9 +1890,9 @@ function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjou
         onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
         onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
         style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-          background:rouge?'#fef2f2':voie.color+'12',
-          color:rouge?'#dc2626':voie.color,
-          border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
+          background:rouge?'#fef2f2':couleur+'12',
+          color:couleur,
+          border:'1.5px solid '+(rouge?'#fecaca':couleur+'44')}}>
         {nomMed}{suffixe||''}
       </button>
     );
@@ -1896,21 +1900,21 @@ function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjou
 
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 6px',borderRadius:5,
-      background:voie.color+'12',border:'1.5px solid '+voie.color}}>
-      <span style={{fontSize:11,fontWeight:600,color:voie.color}}>{nomMed}{suffixe||''}</span>
+      background:couleur+'12',border:'1.5px solid '+couleur}}>
+      <span style={{fontSize:11,fontWeight:600,color:couleur}}>{nomMed}{suffixe||''}</span>
       <input autoFocus value={mg} onChange={e=>setMg(e.target.value)} type="number" placeholder="mg"
         onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setMg('');}}}
-        style={{width:52,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+voie.color,fontSize:11,outline:'none',textAlign:'center'}}/>
+        style={{width:52,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+couleur,fontSize:11,outline:'none',textAlign:'center'}}/>
       <span style={{fontSize:10,color:'#6b7280'}}>mg{parJour?'/j':''}</span>
       <button onClick={confirmer} disabled={!mg}
-        style={{padding:'2px 7px',borderRadius:4,background:mg?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+        style={{padding:'2px 7px',borderRadius:4,background:mg?couleur:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
       <button onClick={()=>{setOpen(false);setMg('');}}
         style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
     </span>
   );
 }
 
-function DoseDosetteButton({item, voie, rouge, onAjouter}) {
+function DoseDosetteButton({item, couleur, rouge, onAjouter}) {
   const [open, setOpen] = useState(false);
   const [qte, setQte] = useState('');
 
@@ -1927,9 +1931,9 @@ function DoseDosetteButton({item, voie, rouge, onAjouter}) {
         onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
         onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
         style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-          background:rouge?'#fef2f2':voie.color+'12',
-          color:rouge?'#dc2626':voie.color,
-          border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
+          background:rouge?'#fef2f2':couleur+'12',
+          color:couleur,
+          border:'1.5px solid '+(rouge?'#fecaca':couleur+'44')}}>
         {item}
       </button>
     );
@@ -1937,14 +1941,14 @@ function DoseDosetteButton({item, voie, rouge, onAjouter}) {
 
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 6px',borderRadius:5,
-      background:voie.color+'12',border:'1.5px solid '+voie.color}}>
-      <span style={{fontSize:11,fontWeight:600,color:voie.color}}>{item}</span>
+      background:couleur+'12',border:'1.5px solid '+couleur}}>
+      <span style={{fontSize:11,fontWeight:600,color:couleur}}>{item}</span>
       <input autoFocus value={qte} onChange={e=>setQte(e.target.value)} type="number" placeholder="nb"
         onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setQte('');}}}
-        style={{width:44,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+voie.color,fontSize:11,outline:'none',textAlign:'center'}}/>
+        style={{width:44,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+couleur,fontSize:11,outline:'none',textAlign:'center'}}/>
       <span style={{fontSize:10,color:'#6b7280'}}>dosette(s)</span>
       <button onClick={confirmer} disabled={!qte}
-        style={{padding:'2px 7px',borderRadius:4,background:qte?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+        style={{padding:'2px 7px',borderRadius:4,background:qte?couleur:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
       <button onClick={()=>{setOpen(false);setQte('');}}
         style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
     </span>
@@ -2012,20 +2016,18 @@ function HydratationSelector({onAjouter, prescriptions}) {
   ];
 
   return (
-    <div style={{background:'#f0f9ff',borderRadius:8,padding:'8px 12px',border:'1.5px solid #bae6fd'}}>
-      <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:solute?8:0}}>
-        {SOLUTES.map(s=>(
-          <button key={s.id} onClick={()=>{setSolute(s.id===solute?'':s.id);setQte('');setDuree('');}}
-            style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',
-              border:'1.5px solid '+(solute===s.id?s.color:s.color+'44'),
-              background:solute===s.id?s.color:s.color+'12',
-              color:solute===s.id?'#fff':s.color}}>
-            {s.label}
-          </button>
-        ))}
-      </div>
+    <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:4}}>
+      {SOLUTES.map(s=>(
+        <button key={s.id} onClick={()=>{setSolute(s.id===solute?'':s.id);setQte('');setDuree('');}}
+          style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',
+            border:'1.5px solid '+(solute===s.id?s.color:s.color+'44'),
+            background:solute===s.id?s.color:s.color+'12',
+            color:solute===s.id?'#fff':s.color}}>
+          {s.label}
+        </button>
+      ))}
       {solute&&(
-        <div style={{display:'flex',alignItems:'center',gap:6,marginTop:6}}>
+        <span style={{display:'inline-flex',alignItems:'center',gap:6}}>
           <input value={qte} onChange={e=>setQte(e.target.value)} placeholder="ml" type="number" autoFocus
             style={{width:65,padding:'4px 8px',borderRadius:6,border:'1.5px solid #0891b2',fontSize:12,outline:'none',textAlign:'center'}}/>
           <span style={{fontSize:11,color:'#6b7280'}}>ml en</span>
@@ -2043,7 +2045,7 @@ function HydratationSelector({onAjouter, prescriptions}) {
           </button>
           <button onClick={()=>setSolute('')}
             style={{padding:'4px 8px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
-        </div>
+        </span>
       )}
     </div>
   );
