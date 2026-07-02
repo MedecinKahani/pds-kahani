@@ -859,6 +859,7 @@ ${ordonnance||'--'}
                           )}
                           {cat==='examen' && (
                             <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}><AutreLibre categorie="examen" onAjouter={ajouterRx}/></div>
                               {EXAMENS_ROWS.map((row,ri)=>{
                                 const rendus = row.map(e=>{
                                   if(e.sub) return <SubBtn key={e.id} e={e} prescriptions={prescriptions} onAjouter={ajouterRx} subOpen={subOpen} setSubOpen={setSubOpen}/>;
@@ -869,7 +870,6 @@ ${ordonnance||'--'}
                                 if(!rendus.length) return null;
                                 return <div key={ri} style={{display:'flex',flexWrap:'wrap',gap:5}}>{rendus}</div>;
                               })}
-                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}><AutreLibre categorie="examen" onAjouter={ajouterRx}/></div>
                             </div>
                           )}
                           {cat==='therapeutique' && (
@@ -877,6 +877,7 @@ ${ordonnance||'--'}
                           )}
                           {cat==='soin' && (
                             <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}><AutreLibre categorie="soin" onAjouter={ajouterRx}/></div>
                               {SOINS_ROWS.map((row,ri)=>{
                                 const rendus = row.map(s=>{
                                   const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte===s.label);
@@ -890,7 +891,6 @@ ${ordonnance||'--'}
                                   </div>
                                 );
                               })}
-                              <div style={{display:'flex',flexWrap:'wrap',gap:5}}><AutreLibre categorie="soin" onAjouter={ajouterRx}/></div>
                             </div>
                           )}
                         </div>
@@ -1670,6 +1670,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
 
   return (
     <div style={{padding:'8px 10px'}}>
+      <div style={{marginBottom:8}}><AutreLibre categorie="therapeutique" onAjouter={onAjouter}/></div>
       <div style={{display:'flex',gap:5,marginBottom:8}}>
         {(estEnfant ? ['pediatrie'] : ['adulte','pediatrie']).map(t=>(
           <button key={t} onClick={()=>setTab(t)}
@@ -1866,8 +1867,6 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           </div>
         );
       })()}
-
-      <div style={{marginTop:8}}><AutreLibre categorie="therapeutique" onAjouter={onAjouter}/></div>
     </div>
   );
 }
