@@ -2001,11 +2001,9 @@ function HydratationSelector({onAjouter, prescriptions}) {
   const SOLUTES = [
     {id:'NaCl 0.9%', label:'NaCl 0.9%', color:'#0891b2'},
     {id:'Ringer Lactate', label:'Ringer Lactate', color:'#0891b2'},
-    {id:'G5%', label:'G5%', color:'#f59e0b'},
-    {id:'G10%', label:'G10%', color:'#f59e0b'},
-    {id:'G30%', label:'G30%', color:'#ea580c'},
-    {id:'NaCl 0.9% + KCl 2g', label:'NaCl + KCl 2g', color:'#7c3aed'},
-    {id:'G5% + NaCl 0.9%', label:'G5% + NaCl', color:'#7c3aed'},
+    {id:'PG5%', label:'PG5%', color:'#f59e0b'},
+    {id:'PG10%', label:'PG10%', color:'#f59e0b'},
+    {id:'PG30%', label:'PG30%', color:'#ea580c'},
   ];
 
   return (
