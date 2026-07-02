@@ -1782,6 +1782,18 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             const isPO = v.voie==='PO';
             const pds = parseFloat(patient?.poids)||0;
             const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+
+            // Pédiatrie : seule la dose Paracétamol (PO/Perfalgan) est calculée automatiquement.
+            // Toutes les autres molécules mg/kg exigent une saisie manuelle de la dose en mg
+            // (sécurité : pas de dose auto-proposée hors paracétamol).
+            if (matchMgKg && matchMgKg[1] !== 'Paracétamol') {
+              const [, nomMed, , parJour, suffixe] = matchMgKg;
+              return (
+                <DoseManuelleButton key={item} nomMed={nomMed} parJour={parJour} suffixe={suffixe}
+                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+              );
+            }
+
             let itemAffiche = item;
             let texteEnregistre = item;
             if (matchMgKg && pds>0) {
@@ -1842,6 +1854,47 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
 
       <div style={{marginTop:8}}><AutreLibre categorie="therapeutique" onAjouter={onAjouter}/></div>
     </div>
+  );
+}
+
+function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjouter}) {
+  const [open, setOpen] = useState(false);
+  const [mg, setMg] = useState('');
+
+  function confirmer() {
+    if(!mg) return;
+    const texte = nomMed+' '+mg+'mg'+(parJour?'/j':'')+(suffixe||'');
+    onAjouter(isPO?texte+' ×1':texte,'therapeutique');
+    setMg(''); setOpen(false);
+  }
+
+  if(!open) {
+    return (
+      <button onClick={()=>setOpen(true)}
+        onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+        onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+        style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+          background:rouge?'#fef2f2':voie.color+'12',
+          color:rouge?'#dc2626':voie.color,
+          border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
+        {nomMed}{suffixe||''} — dose à saisir
+      </button>
+    );
+  }
+
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 6px',borderRadius:5,
+      background:voie.color+'12',border:'1.5px solid '+voie.color}}>
+      <span style={{fontSize:11,fontWeight:600,color:voie.color}}>{nomMed}{suffixe||''}</span>
+      <input autoFocus value={mg} onChange={e=>setMg(e.target.value)} type="number" placeholder="mg"
+        onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setMg('');}}}
+        style={{width:52,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+voie.color,fontSize:11,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:10,color:'#6b7280'}}>mg{parJour?'/j':''}</span>
+      <button onClick={confirmer} disabled={!mg}
+        style={{padding:'2px 7px',borderRadius:4,background:mg?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+      <button onClick={()=>{setOpen(false);setMg('');}}
+        style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
+    </span>
   );
 }
 
