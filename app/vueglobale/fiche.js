@@ -1677,30 +1677,36 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   return (
     <div style={{padding:'8px 10px'}}>
       <div style={{marginBottom:8}}><AutreLibre categorie="therapeutique" onAjouter={onAjouter}/></div>
-      <div style={{display:'flex',gap:5,marginBottom:8}}>
-        {(estEnfant ? ['pediatrie'] : ['adulte','pediatrie']).map(t=>(
-          <button key={t} onClick={()=>setTab(t)}
-            style={{padding:'3px 10px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-              border:'1.5px solid '+(tab===t?'#ea580c':'#e5e7eb'),
-              background:tab===t?'#ea580c':'#fff',color:tab===t?'#fff':'#6b7280'}}>
-            {t==='adulte'?'Adulte':'Pédiatrie'}
-          </button>
-        ))}
-        {estEnfant && <span style={{fontSize:10,color:'#9ca3af',alignSelf:'center',marginLeft:4}}>Patient &lt; 16 ans — doses adulte masquées</span>}
+      <div style={{display:'flex',gap:5,marginBottom:4}}>
+        {(estEnfant ? ['pediatrie'] : ['adulte','pediatrie']).map(t=>{
+          const col = t==='adulte' ? '#2563eb' : '#db2777';
+          return (
+            <button key={t} onClick={()=>setTab(t)}
+              style={{flex:1,padding:'7px 10px',borderRadius:6,fontSize:13,fontWeight:700,cursor:'pointer',
+                border:'1.5px solid '+(tab===t?col:'#e5e7eb'),
+                background:tab===t?col:'#fff',color:tab===t?'#fff':'#6b7280'}}>
+              {t==='adulte'?'Adulte':'Pédiatrie'}
+            </button>
+          );
+        })}
       </div>
+      {estEnfant && <div style={{fontSize:10,color:'#9ca3af',marginBottom:8}}>Patient &lt; 16 ans — doses adulte masquées</div>}
 
-      {/* 3 groupes seulement : Per os (+ Respiratoire, Auriculaire), IV (+ Hydratation, Morphine), IM (+ SC) */}
-      {/* Style volontairement uniforme et plus marqué que les boutons de médicaments : ce sont des catégories, pas des choix finaux */}
-      <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}}>
-        {GROUPES_VOIE.map(g=>(
-          <button key={g.id} onClick={()=>{setVoieOuverte(vo=>vo===g.id?null:g.id);setVoieListeComplete(false);}}
-            style={{padding:'8px 18px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',
-              border:'2px solid '+(voieOuverte===g.id?'#374151':'#d1d5db'),
-              background:voieOuverte===g.id?'#374151':'#fff',
-              color:voieOuverte===g.id?'#fff':'#374151'}}>
-            {g.label}
-          </button>
-        ))}
+      {/* 4 groupes : Per os (+ Respiratoire, Auriculaire), IV (+ Hydratation, Morphine), IM (+ SC), Nébulisation */}
+      {/* Chacun 1/4 de la largeur, couleur propre au groupe une fois sélectionné + émoticône pour distinguer d'un coup d'œil */}
+      <div style={{display:'flex',gap:6,marginBottom:10}}>
+        {GROUPES_VOIE.map(g=>{
+          const emoji = {PO:'💊', IV:'💧', IM:'💉', NEBUL:'💨'}[g.id] || '';
+          return (
+            <button key={g.id} onClick={()=>{setVoieOuverte(vo=>vo===g.id?null:g.id);setVoieListeComplete(false);}}
+              style={{flex:1,padding:'8px 4px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',
+                border:'2px solid '+(voieOuverte===g.id?g.color:'#d1d5db'),
+                background:voieOuverte===g.id?g.color:'#fff',
+                color:voieOuverte===g.id?'#fff':'#374151'}}>
+              {emoji} {g.label}
+            </button>
+          );
+        })}
       </div>
 
       {voieOuverte && (()=>{
