@@ -516,25 +516,25 @@ ${ordonnance||'--'}
   // ── BANDEAU ──────────────────────────────────────────────────────────────────
 
   const CONSTANTES_R1 = [
-    {label:'FC',     fk:'fc',   unit:'bpm',  base:p.fc,   type:'num'},
-    {label:'Sat',    fk:'sat',  unit:'%',    base:p.sat,  type:'num'},
-    {label:'T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
-    {label:'PAS',    fk:'tas',  unit:'mmHg', base:p.tas,  type:'num'},
-    {label:'PAD',    fk:'tad',  unit:'mmHg', base:p.tad,  type:'num'},
-    {label:'PAM',    fk:'pam',  unit:'mmHg', base:pamVal?.toString(), type:'fixed'},
-    {label:'BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
-    {label:'Poids',  fk:'poids', unit:'kg',  base:p.poids, type:'fixed'},
+    {label:'🫀 FC',     fk:'fc',   unit:'bpm',  base:p.fc,   type:'num'},
+    {label:'💧 Sat',    fk:'sat',  unit:'%',    base:p.sat,  type:'num'},
+    {label:'🌡️ T°',     fk:'temp', unit:'°C',   base:p.temp, type:'num'},
+    {label:'🩸 PAS',    fk:'tas',  unit:'mmHg', base:p.tas,  type:'num'},
+    {label:'🩸 PAD',    fk:'tad',  unit:'mmHg', base:p.tad,  type:'num'},
+    {label:'🩸 PAM',    fk:'pam',  unit:'mmHg', base:pamVal?.toString(), type:'fixed'},
+    {label:'🧪 BU', fk:'bu_resultat', unit:'', base:p.bu_resultat, type:'bu'},
+    {label:'⚖️ Poids',  fk:'poids', unit:'kg',  base:p.poids, type:'fixed'},
   ];
 
   const CONSTANTES_R2 = [
-    {label:'Hémocue',   fk:'hemocue',     unit:'g/dL', base:p.hemocue,     type:'num'},
-    {label:'Dextro',    fk:'dextro',      unit:'g/L',  base:p.dextro,      type:'num'},
-    {label:'TDR Palu',  fk:'tdr_palu',    unit:'',     base:p.tdr_palu,    type:'qual', options:['Négatif','Positif']},
-    {label:'TDR Dengue',fk:'tdr_dengue',  unit:'',     base:p.tdr_dengue,  type:'qual', options:['Négatif','Positif']},
-    {label:'CRP',       fk:'crp_test',    unit:'',     base:p.crp_test,    type:'qual', options:['Nég','1 barre','2 barres','3 barres','4 barres']},
-    {label:'Tétanotop', fk:'tdr_tet',     unit:'',     base:p.quicktest,   type:'qual', options:['Négatif','Positif']},
-    {label:'bHCG',      fk:'bhcg_resultat',unit:'',    base:p.bhcg_resultat,type:'qual',options:['Négatif','Positif']},
-    {label:'Taille',    fk:'taille',      unit:'cm',   base:p.taille,      type:'fixed'},
+    {label:'🔴 Hémocue',   fk:'hemocue',     unit:'g/dL', base:p.hemocue,     type:'num'},
+    {label:'🍬 Dextro',    fk:'dextro',      unit:'g/L',  base:p.dextro,      type:'num'},
+    {label:'🦟 TDR Palu',  fk:'tdr_palu',    unit:'',     base:p.tdr_palu,    type:'qual', options:['Négatif','Positif']},
+    {label:'🦟 TDR Dengue',fk:'tdr_dengue',  unit:'',     base:p.tdr_dengue,  type:'qual', options:['Négatif','Positif']},
+    {label:'🧫 CRP',       fk:'crp_test',    unit:'',     base:p.crp_test,    type:'qual', options:['Nég','1 barre','2 barres','3 barres','4 barres']},
+    {label:'💉 Tétanotop', fk:'tdr_tet',     unit:'',     base:p.quicktest,   type:'qual', options:['Négatif','Positif']},
+    {label:'🤰 bHCG',      fk:'bhcg_resultat',unit:'',    base:p.bhcg_resultat,type:'qual',options:['Négatif','Positif']},
+    {label:'📏 Taille',    fk:'taille',      unit:'cm',   base:p.taille,      type:'fixed'},
   ];
 
   function renderConst(c) {

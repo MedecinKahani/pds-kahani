@@ -271,9 +271,9 @@ export default function NouveauPatient() {
   });
 
   const TESTS_FIEVRE = [
-    {k:'crp',l:'CRP rapide (Actim)',type:'barres'},
-    {k:'tdr_palu',l:'TDR Paludisme',type:'posneg'},
-    {k:'tdr_dengue',l:'TDR Dengue',type:'posneg'},
+    {k:'crp',l:'🧫 CRP rapide (Actim)',type:'barres'},
+    {k:'tdr_palu',l:'🦟 TDR Paludisme',type:'posneg'},
+    {k:'tdr_dengue',l:'🦟 TDR Dengue',type:'posneg'},
   ];
 
   return (
@@ -319,12 +319,12 @@ export default function NouveauPatient() {
           <div style={{fontWeight:700,fontSize:14,color:'#111827',marginBottom:12}}>Constantes *</div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:8}}>
             {[
-              {k:'fc',l:'FC *',u:'bpm',warn:(v)=>parseFloat(v)<fcMin||parseFloat(v)>fcMax},
-              {k:'sat',l:'SpO2 *',u:'%',warn:(v)=>parseFloat(v)<95},
-              {k:'temp',l:'T° *',u:'°C',warn:(v)=>parseFloat(v)<36||parseFloat(v)>38.4},
-              {k:'tas',l:'TAS',u:'mmHg',warn:(v)=>parseFloat(v)<90||parseFloat(v)>160},
-              {k:'tad',l:'TAD',u:'mmHg',warn:()=>false},
-              {k:'poids',l:'Poids',u:'kg',warn:()=>false},
+              {k:'fc',l:'🫀 FC *',u:'bpm',warn:(v)=>parseFloat(v)<fcMin||parseFloat(v)>fcMax},
+              {k:'sat',l:'💧 SpO2 *',u:'%',warn:(v)=>parseFloat(v)<95},
+              {k:'temp',l:'🌡️ T° *',u:'°C',warn:(v)=>parseFloat(v)<36||parseFloat(v)>38.4},
+              {k:'tas',l:'🩸 TAS',u:'mmHg',warn:(v)=>parseFloat(v)<90||parseFloat(v)>160},
+              {k:'tad',l:'🩸 TAD',u:'mmHg',warn:()=>false},
+              {k:'poids',l:'⚖️ Poids',u:'kg',warn:()=>false},
             ].map(function(item) {
               const k=item.k; const l=item.l; const u=item.u; const warn=item.warn;
               return (
@@ -381,7 +381,7 @@ export default function NouveauPatient() {
               <div style={{marginTop:10}}>
                 <AlerteBox couleur="orange" texte="Prevenir médecin — Dextro + Hemocue obligatoires"/>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
-                  {[{k:'dextro',l:'Dextro *',u:'g/L'},{k:'hemocue',l:'Hemocue *',u:'g/dL'}].map(function(item) {
+                  {[{k:'dextro',l:'🍬 Dextro *',u:'g/L'},{k:'hemocue',l:'🔴 Hemocue *',u:'g/dL'}].map(function(item) {
                     return (
                       <div key={item.k}>
                         <label style={lbl}>{item.l}</label>
@@ -410,7 +410,7 @@ export default function NouveauPatient() {
                 <AlerteBox couleur="rouge" texte="AVC recent — Alerter médecin EN URGENCE — Brancard 1 — ECG + Dextro obligatoires"/>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
                   <div>
-                    <label style={lbl}>Dextro *</label>
+                    <label style={lbl}>🍬 Dextro *</label>
                     <div style={{position:'relative'}}>
                       <input value={f.dextro} onChange={e=>set('dextro',e.target.value)} inputMode="decimal" style={{...inp,paddingRight:36}} placeholder="--"/>
                       <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#9ca3af'}}>g/L</span>
@@ -430,7 +430,7 @@ export default function NouveauPatient() {
                 <AlerteBox couleur="orange" texte="Avertir médecin — Lit 1 ou 2 — ECG + Dextro obligatoires"/>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
                   <div>
-                    <label style={lbl}>Dextro *</label>
+                    <label style={lbl}>🍬 Dextro *</label>
                     <div style={{position:'relative'}}>
                       <input value={f.dextro} onChange={e=>set('dextro',e.target.value)} inputMode="decimal" style={{...inp,paddingRight:36}} placeholder="--"/>
                       <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#9ca3af'}}>g/L</span>
@@ -497,7 +497,7 @@ export default function NouveauPatient() {
             </div>
             {(f.carnet==='absent'||f.carnet==='illisible') && (
               <div>
-                <label style={lbl}>Quick test tetanos *</label>
+                <label style={lbl}>💉 Quick test tetanos *</label>
                 <div style={{display:'flex',gap:8}}>
                   <Btn onClick={()=>set('quicktest','pos')} style={pSt(f.quicktest==='pos','#ef4444')}>Positif</Btn>
                   <Btn onClick={()=>set('quicktest','neg')} style={pSt(f.quicktest==='neg','#16a34a')}>Negatif — Rappel tetanos auto</Btn>
@@ -573,7 +573,7 @@ export default function NouveauPatient() {
           <div style={card}>
             <div style={{fontWeight:600,fontSize:13,color:'#374151',marginBottom:10}}>Dextro et Hemocue obligatoires</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-              {[{k:'dextro',l:'Dextro *',u:'g/L'},{k:'hemocue',l:'Hemocue *',u:'g/dL'}].map(function(item) {
+              {[{k:'dextro',l:'🍬 Dextro *',u:'g/L'},{k:'hemocue',l:'🔴 Hemocue *',u:'g/dL'}].map(function(item) {
                 return (
                   <div key={item.k}>
                     <label style={lbl}>{item.l}</label>
@@ -616,7 +616,7 @@ export default function NouveauPatient() {
               <div style={{background:'#fdf4ff',borderRadius:8,padding:'10px 12px',border:'1px solid #e9d5ff',marginBottom:8}}>
                 <div style={{color:'#7c3aed',fontWeight:700,fontSize:12,marginBottom:8}}>Femme + douleur abdominale — BU et bHCG obligatoires</div>
                 <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                  {[{k:'bu_fait',l:'BU'},{k:'bhcg_fait',l:'bHCG urinaire'}].map(function(item) {
+                  {[{k:'bu_fait',l:'🧪 BU'},{k:'bhcg_fait',l:'🤰 bHCG urinaire'}].map(function(item) {
                     return (
                       <Btn key={item.k} onClick={()=>set(item.k,!f[item.k])} style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,background:f[item.k]?'#7c3aed':'#fff',color:f[item.k]?'#fff':'#7c3aed',border:'1px solid '+(f[item.k]?'#7c3aed':'#e9d5ff')}}>
                         {f[item.k]?'Fait: '+item.l:item.l}
