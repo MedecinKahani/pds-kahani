@@ -1468,6 +1468,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
     {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Tramadol 100mg IV (Topalgic)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     // Nébulisation
     {label:'MEOPA', voie:'RESPI', color:'#0891b2', cat:'Respiratoire'},
     // Auriculaire
@@ -1534,7 +1535,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         '__CAT__Antalgique',
         'Kétoprofène 100mg IV (Profenid)', 'Nalbuphine 20mg IV (Nubain)', 'Néfopam 20mg IV (Acupan)',
-        'Paracétamol 1g IV (Perfalgan)', 'Paracétamol 500mg IV (Perfalgan)',
+        'Paracétamol 1g IV (Perfalgan)', 'Paracétamol 500mg IV (Perfalgan)', 'Tramadol 100mg IV (Topalgic)',
         '__CAT__Anti-infectieux',
         'Amoxicilline 1g IV', 'Amoxicilline 2g IV', 'Amoxicilline/Ac. clavulanique 1g IV (Augmentin)',
         'Amoxicilline/Ac. clavulanique 2g IV (Augmentin)', 'Ceftriaxone 1g IV', 'Ceftriaxone 2g IV', 'Métronidazole 500mg IV',
