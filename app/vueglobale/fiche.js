@@ -1780,13 +1780,11 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             if(deja) return null;
             const rouge=ROUGE.some(s=>item.includes(s));
             const isPO = v.voie==='PO';
-            const pds = parseFloat(patient?.poids)||0;
             const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
 
-            // Pédiatrie : seule la dose Paracétamol (PO/Perfalgan) est calculée automatiquement.
-            // Toutes les autres molécules mg/kg exigent une saisie manuelle de la dose en mg
-            // (sécurité : pas de dose auto-proposée hors paracétamol).
-            if (matchMgKg && matchMgKg[1] !== 'Paracétamol') {
+            // Pédiatrie : aucune dose au poids (mg/kg) n'est calculée automatiquement,
+            // y compris paracétamol/perfalgan — saisie manuelle systématique (sécurité).
+            if (matchMgKg) {
               const [, nomMed, , parJour, suffixe] = matchMgKg;
               return (
                 <DoseManuelleButton key={item} nomMed={nomMed} parJour={parJour} suffixe={suffixe}
@@ -1794,14 +1792,27 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
               );
             }
 
-            let itemAffiche = item;
-            let texteEnregistre = item;
-            if (matchMgKg && pds>0) {
-              const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
-              const doseCalculee = Math.round(pds*parseFloat(mgParKg));
-              itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
-              texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
+            // Budésonide nébulisation : dosettes à dosage fixe (0.5mg/1mg), on garde le choix
+            // mais le nombre de dosettes est saisi manuellement (pas de quantité imposée).
+            if (item.startsWith('Budésonide')) {
+              return (
+                <DoseDosetteButton key={item} item={item} voie={v} rouge={rouge} onAjouter={onAjouter}/>
+              );
             }
+
+            // Dose fixe non calculée au poids (hors paracétamol en sachet, conservé tel quel) :
+            // même principe que mg/kg, saisie manuelle plutôt que dose imposée d'emblée.
+            const matchMgFixe = item.match(/^(.+?) (\d+(?:\.\d+)?)mg(?!\/)(\s.*)?$/);
+            if (matchMgFixe && matchMgFixe[1] !== 'Paracétamol') {
+              const [, nomMed, , suffixe] = matchMgFixe;
+              return (
+                <DoseManuelleButton key={item} nomMed={nomMed} parJour={null} suffixe={suffixe}
+                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+              );
+            }
+
+            const itemAffiche = item;
+            const texteEnregistre = item;
             return (
               <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
                 onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
@@ -1893,6 +1904,47 @@ function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjou
       <button onClick={confirmer} disabled={!mg}
         style={{padding:'2px 7px',borderRadius:4,background:mg?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
       <button onClick={()=>{setOpen(false);setMg('');}}
+        style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
+    </span>
+  );
+}
+
+function DoseDosetteButton({item, voie, rouge, onAjouter}) {
+  const [open, setOpen] = useState(false);
+  const [qte, setQte] = useState('');
+
+  function confirmer() {
+    if(!qte) return;
+    const n = parseInt(qte,10);
+    onAjouter(item+' ×'+qte+' dosette'+(n>1?'s':''), 'therapeutique');
+    setQte(''); setOpen(false);
+  }
+
+  if(!open) {
+    return (
+      <button onClick={()=>setOpen(true)}
+        onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+        onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+        style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+          background:rouge?'#fef2f2':voie.color+'12',
+          color:rouge?'#dc2626':voie.color,
+          border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
+        {item}
+      </button>
+    );
+  }
+
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 6px',borderRadius:5,
+      background:voie.color+'12',border:'1.5px solid '+voie.color}}>
+      <span style={{fontSize:11,fontWeight:600,color:voie.color}}>{item}</span>
+      <input autoFocus value={qte} onChange={e=>setQte(e.target.value)} type="number" placeholder="nb"
+        onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setQte('');}}}
+        style={{width:44,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+voie.color,fontSize:11,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:10,color:'#6b7280'}}>dosette(s)</span>
+      <button onClick={confirmer} disabled={!qte}
+        style={{padding:'2px 7px',borderRadius:4,background:qte?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+      <button onClick={()=>{setOpen(false);setQte('');}}
         style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
     </span>
   );
@@ -2296,8 +2348,13 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
 
   return (
     <>
-      <Btn onClick={()=>ajouter('ANTALGIQUE\n\nParacétamol '+doseP+' PO\n→ '+posoP+'\n→ À avaler avec un grand verre d\'eau')}
-        bg="#f0fdf4" color="#16a34a" border="#bbf7d0">🩹 Paracétamol {doseP}</Btn>
+      {pds>0 && pds<=33 ? (
+        <BtnPosoManuelle emoji="🩹" label="Paracétamol" bg="#f0fdf4" color="#16a34a" border="#bbf7d0"
+          onConfirm={mg=>ajouter('ANTALGIQUE\n\nParacétamol '+mg+'mg PO\n→ toutes les 6h (max 4 prises/j)\n→ Sirop ou sachet selon disponibilité\n→ Ne pas dépasser 60mg/kg/j\n→ À avaler avec un grand verre d\'eau')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTALGIQUE\n\nParacétamol '+doseP+' PO\n→ '+posoP+'\n→ À avaler avec un grand verre d\'eau')}
+          bg="#f0fdf4" color="#16a34a" border="#bbf7d0">🩹 Paracétamol {doseP}</Btn>
+      )}
 
       {!adulte && pds>0 ? (
         <BtnPosoManuelle emoji="🔥" label="Ibuprofène" bg="#fff7ed" color="#ea580c" border="#fed7aa"
