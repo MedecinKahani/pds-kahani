@@ -1978,7 +1978,7 @@ function AerosolSelector({onAjouter, onAjouterPlusieurs, prescriptions, poidsIni
   );
 
   return (
-    <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:8}}>
+    <div style={{background:'#f0f9ff',borderRadius:8,padding:'8px 12px',border:'1.5px solid #bae6fd',marginBottom:4,display:'flex',flexWrap:'wrap',alignItems:'center',gap:8}}>
       <span style={{fontSize:11,color:'#0891b2',fontWeight:700}}>💨 Ventoline ×3 + Atrovent ×1</span>
       <label style={{fontSize:11,color:'#374151',fontWeight:500}}>Poids</label>
       <input value={poids} onChange={e=>setPoids(e.target.value)} placeholder="kg" type="number"
