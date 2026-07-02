@@ -1189,7 +1189,7 @@ function AutreLibre({categorie, onAjouter}) {
       onMouseEnter={e=>e.currentTarget.style.filter='brightness(0.88)'}
       onMouseLeave={e=>e.currentTarget.style.filter='none'}
       style={{padding:'5px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'1.5px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:'pointer'}}>
-      + Autre...
+      + Autre prescription, saisie libre
     </button>
   );
   return (
