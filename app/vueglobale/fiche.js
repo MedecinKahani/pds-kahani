@@ -1465,6 +1465,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Ofloxacine 200mg PO', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
     {label:'Oxazépam 10mg PO (Seresta)', voie:'PO', color:'#16a34a', cat:'Neuro-sédation'},
     {label:'Paracétamol 500mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
     {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     // Nébulisation
