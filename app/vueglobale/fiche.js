@@ -135,20 +135,6 @@ function ColC(v, k) {
   return n<mn||n>mx ? '#ef4444' : '#16a34a';
 }
 
-// Sépare l'émoticône du texte d'un label "🫀 FC" pour afficher l'icône dans
-// un petit carré blanc, distinct du texte (demande médicale : mieux mettre
-// l'icône en valeur que la coller au texte).
-function LabelIcon({label}) {
-  const [icon, ...rest] = label.split(' ');
-  const texte = rest.join(' ');
-  return (
-    <div style={{display:'flex',alignItems:'center',gap:3,marginBottom:2}}>
-      <div style={{width:13,height:13,borderRadius:3,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,flexShrink:0,lineHeight:1}}>{icon}</div>
-      <span style={{fontSize:7,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5}}>{texte}</span>
-    </div>
-  );
-}
-
 function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   const [open, setOpen] = useState(false);
   const [val, setVal] = useState('');
@@ -156,21 +142,22 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   const latest = history.length ? history[history.length-1] : null;
   const cur = latest ? latest.val : baseVal;
   const color = cur&&cur!=='--' ? (ColC(cur,fk)||'#111827') : '#9ca3af';
+  const [icon, ...rest] = label.split(' ');
+  const texte = rest.join(' ');
 
   return (
-    <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0,cursor:'default'}}>
-        <LabelIcon label={label}/>
-        <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'nowrap'}}>
-          {latest&&baseVal&&<span style={{fontSize:12,color:'#94a3b8',textDecoration:'line-through',marginRight:3,fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
-          <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
-          {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8,color:'#9ca3af'}}>{unit}</span>}
-          <button
-            onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
-            onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',marginLeft:2}}>+</button>
-        </div>
+    <div style={{position:'relative'}}>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,cursor:'default',display:'flex',alignItems:'center',gap:6}}>
+        <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
+        <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
+        {latest&&baseVal&&<span style={{fontSize:11,color:'#94a3b8',textDecoration:'line-through',fontVariantNumeric:'tabular-nums',marginLeft:'auto'}}>{baseVal}</span>}
+        <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums',marginLeft:(latest&&baseVal)?0:'auto',whiteSpace:'nowrap'}}>{cur||'—'}</span>
+        {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8,color:'#9ca3af',flexShrink:0}}>{unit}</span>}
+        <button
+          onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
+          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
+          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
+          style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',minWidth:120}}
@@ -197,18 +184,17 @@ function BUBtn({ baseVal, history, onAdd }) {
   const CROIX = ['+','++','+++'];
   const [sel, setSel] = useState({});
   return (
-    <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb'}}>
-        <LabelIcon label="🧪 BU"/>
-        <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'nowrap'}}>
-          {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
-          <span title={cur||''} style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
-          <button
-            onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);setSel({});}}
-            onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
-        </div>
+    <div style={{position:'relative'}}>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',display:'flex',alignItems:'center',gap:6}}>
+        <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>🧪</div>
+        <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>BU</span>
+        {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:50,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginLeft:'auto'}}>{baseVal}</span>}
+        <span title={cur||''} style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help',marginLeft:(latest&&baseVal)?0:'auto',whiteSpace:'nowrap'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
+        <button
+          onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);setSel({});}}
+          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
+          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
+          style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'10px 12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',minWidth:280}}
@@ -255,20 +241,21 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
   const cur = latest ? latest.val : baseVal;
   const isPos = cur==='Positif'||cur?.includes('barre');
   const color = cur ? (isPos?'#ef4444':'#16a34a') : '#9ca3af';
+  const [icon, ...rest] = label.split(' ');
+  const texte = rest.join(' ');
 
   return (
-    <div style={{position:'relative',display:'inline-block'}}>
-      <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
-        <LabelIcon label={label}/>
-        <div style={{display:'flex',alignItems:'center',gap:3}}>
-          {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through'}}>{baseVal}</span>}
-          <span style={{fontSize:14,fontWeight:700,color,lineHeight:1}}>{cur||'—'}</span>
-          <button
-            onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);}}
-            onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;'}
-            style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',marginLeft:2}}>+</button>
-        </div>
+    <div style={{position:'relative'}}>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,display:'flex',alignItems:'center',gap:6}}>
+        <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
+        <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
+        {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through',marginLeft:'auto'}}>{baseVal}</span>}
+        <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,marginLeft:(latest&&baseVal)?0:'auto',whiteSpace:'nowrap'}}>{cur||'—'}</span>
+        <button
+          onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);}}
+          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
+          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
+          style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>+</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'6px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',display:'flex',flexWrap:'wrap',gap:4,minWidth:140}}
@@ -555,26 +542,22 @@ ${ordonnance||'--'}
     if (c.type==='fixed') {
       // PAM : cas spécial avec couleur et alerte
       if (c.fk==='pam') return (
-        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
-          <div style={{display:'flex',alignItems:'center',gap:3,marginBottom:2}}>
-            <div style={{width:13,height:13,borderRadius:3,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,flexShrink:0,lineHeight:1}}>{c.label.split(' ')[0]}</div>
-            <span style={{fontSize:7,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5}}>{c.label.split(' ').slice(1).join(' ')} <span style={{fontWeight:400,textTransform:'none'}}>auto</span></span>
-          </div>
-          <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-            <span style={{fontSize:13,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
-            {pamVal&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
-          </div>
-          {pamVal&&pamVal<65&&<div style={{fontSize:8,color:'#ef4444',fontWeight:700,marginTop:1}}>⚠ Bas</div>}
+        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,display:'flex',alignItems:'center',gap:6}}>
+          <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{c.label.split(' ')[0]}</div>
+          <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{c.label.split(' ').slice(1).join(' ')} <span style={{fontWeight:400,textTransform:'none'}}>auto</span></span>
+          <span style={{fontSize:13,fontWeight:700,color:pamColor,lineHeight:1,marginLeft:'auto',whiteSpace:'nowrap'}}>{pamVal||'—'}</span>
+          {pamVal&&<span style={{fontSize:8,color:'#9ca3af',flexShrink:0}}>{c.unit}</span>}
+          {pamVal&&pamVal<65&&<span style={{fontSize:8,color:'#ef4444',fontWeight:700,flexShrink:0}}>⚠ Bas</span>}
         </div>
       );
       // Poids / Taille : valeur simple non éditable
+      const [icon, ...rest] = c.label.split(' ');
       return (
-        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
-          <LabelIcon label={c.label}/>
-          <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-            <span style={{fontSize:13,fontWeight:700,color:'#374151',lineHeight:1}}>{c.base||'—'}</span>
-            {c.base&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
-          </div>
+        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,display:'flex',alignItems:'center',gap:6}}>
+          <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
+          <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{rest.join(' ')}</span>
+          <span style={{fontSize:13,fontWeight:700,color:'#374151',lineHeight:1,marginLeft:'auto',whiteSpace:'nowrap'}}>{c.base||'—'}</span>
+          {c.base&&<span style={{fontSize:8,color:'#9ca3af',flexShrink:0}}>{c.unit}</span>}
         </div>
       );
     }
