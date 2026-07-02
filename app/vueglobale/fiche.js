@@ -1491,6 +1491,20 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280', cat:'Antalgique'},
     {label:'Vaccin Repevax IM', voie:'IM', color:'#6b7280', cat:'Autres'},
   ];
+  // Liste à valider par l'équipe médicale — proposition initiale, pas une vraie
+  // statistique d'usage (10 molécules les plus fréquentes en pédiatrie).
+  const FREQUENTS_PEDIATRIE = [
+    {label:'Paracétamol 15mg/kg PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Ibuprofène 10mg/kg PO (Nurofen)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Amoxicilline 50mg/kg/j PO (Clamoxyl)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Amox+Ac Clav 100mg/60ml PO (Augmentin)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Racécadotril 100mg PO (Tiorfan)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Sels réhydratation PO (Adiaril)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Cétirizine PO (Zyrtec)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
+    {label:'Paracétamol 15mg/kg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Ceftriaxone 50mg/kg IV (Rocéphine)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
+    {label:'Budésonide 0.5mg nébulisation (Pulmicort)', voie:'RESPI', color:'#64748b', cat:'Respiratoire'},
+  ];
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
@@ -1598,28 +1612,28 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     pediatrie: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
         '__CAT__Antalgique',
-        'Ibuprofène 10mg/kg PO', 'Paracétamol 15mg/kg PO', 'Paracétamol 100mg sachet PO',
-        'Paracétamol 200mg sachet PO', 'Paracétamol 300mg sachet PO',
+        'Ibuprofène 10mg/kg PO (Nurofen)', 'Paracétamol 15mg/kg PO (Doliprane)', 'Paracétamol 100mg sachet PO (Doliprane)',
+        'Paracétamol 200mg sachet PO (Doliprane)', 'Paracétamol 300mg sachet PO (Doliprane)',
         '__CAT__Anti-infectieux',
-        'Albendazole 4% PO (Zentel)', 'Amox+Ac Clav 100mg/60ml PO', 'Amoxicilline 50mg/kg/j PO',
+        'Albendazole 4% PO (Zentel)', 'Amox+Ac Clav 100mg/60ml PO (Augmentin)', 'Amoxicilline 50mg/kg/j PO (Clamoxyl)',
         'Artéméther-Luméfantrine selon poids PO (Coartem)', 'Azithromycine 250mg PO (Zithromax)',
-        'Cefixime 40mg/5ml PO', 'Ivermectine PO',
+        'Cefixime 40mg/5ml PO (Oroken)', 'Ivermectine PO (Stromectol)',
         '__CAT__Digestif',
-        'Métoclopramide sirop PO', 'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO',
+        'Métoclopramide sirop PO (Primpéran)', 'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO (Adiaril)',
         '__CAT__Allergologie / Corticoïdes',
-        'Cétirizine PO', 'Dexchlorphéniramine PO', 'Prednisolone 5mg PO',
+        'Cétirizine PO (Zyrtec)', 'Dexchlorphéniramine PO (Polaramine)', 'Prednisolone 5mg PO (Solupred)',
         '__CAT__Autres',
-        'Lévonorgestrel 1.5mg PO',
+        'Lévonorgestrel 1.5mg PO (Norlevo)',
       ]},
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         '__CAT__Antalgique',
         'Morphine 0.1mg/kg IV [STP]', 'Paracétamol 15mg/kg IV (Perfalgan)',
         '__CAT__Anti-infectieux',
-        'Ceftriaxone 50mg/kg IV', 'Ceftriaxone 100mg/kg IV',
+        'Ceftriaxone 50mg/kg IV (Rocéphine)', 'Ceftriaxone 100mg/kg IV (Rocéphine)',
         '__CAT__Cardio-vasculaire',
         'Furosémide 1mg/kg IV (Lasilix)',
         '__CAT__Neuro-sédation',
-        'Clonazépam 0.02mg/kg IV (Rivotril)', 'Diazépam rectal IV (Valium)', 'Kétamine IV', 'Midazolam IV (Hypnovel)',
+        'Clonazépam 0.02mg/kg IV (Rivotril)', 'Diazépam rectal IV (Valium)', 'Kétamine IV (Kétalar)', 'Midazolam IV (Hypnovel)',
         'Phénobarbital IV (Gardénal)',
         '__CAT__Allergologie / Corticoïdes',
         'Dexaméthasone 0.15mg/kg IV', 'Méthylprednisolone IV (Solumedrol)',
@@ -1629,9 +1643,10 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Calcium gluconate 10% IV', 'Glucose 10% IV', 'Glucose 30% IV', 'Magnésium sulfate IV', 'NaCl 0.9% IV',
         'Ringer Lactate IV', 'Vitamine B1 IV',
       ]},
+      {voie:'HYDRATATION', label:'Hydratation IV', color:'#0891b2', special:'hydratation'},
       {voie:'IM', label:'Voie IM', color:'#6b7280', items:[
         '__CAT__Anti-infectieux',
-        'Ceftriaxone 50mg/kg IM', 'Ceftriaxone 100mg/kg IM',
+        'Ceftriaxone 50mg/kg IM (Rocéphine)', 'Ceftriaxone 100mg/kg IM (Rocéphine)',
         '__CAT__Neuro-sédation',
         'Phénobarbital IM (Gardénal)',
         '__CAT__Réanimation / Antidotes',
@@ -1691,7 +1706,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
 
         const voiesSpeciales = sousVoies.filter(v=>v.special); // ex: HYDRATATION, MORPHINE
         const voiesAvecItems = sousVoies.filter(v=>v.items);
-        const favoris = tab==='adulte' ? FREQUENTS_ADULTE.filter(f=>groupe.voies.includes(f.voie)) : [];
+        const favoris = tab==='adulte' ? FREQUENTS_ADULTE.filter(f=>groupe.voies.includes(f.voie)) : FREQUENTS_PEDIATRIE.filter(f=>groupe.voies.includes(f.voie));
 
         // Ordre des catégories : personnalisé pour IV (widgets intercalés), défaut ailleurs
         const ordre = ORDRE_CATEGORIES_PAR_GROUPE[voieOuverte] || ORDRE_CATEGORIES_DEFAUT;
@@ -1743,6 +1758,47 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           return null;
         }
 
+        // Rendu d'un bouton médicament : en pédiatrie, aucune dose n'est proposée
+        // d'emblée (mg/kg ou mg fixe, hors paracétamol sachet) — saisie manuelle
+        // systématique (sécurité). En adulte, comportement inchangé (dose fixe affichée).
+        function renderMedButton(item, v, rouge) {
+          const isPO = v.voie==='PO';
+          if (tab==='pediatrie') {
+            const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+            if (matchMgKg) {
+              const [, nomMed, , parJour, suffixe] = matchMgKg;
+              return (
+                <DoseManuelleButton key={item} nomMed={nomMed} parJour={parJour} suffixe={suffixe}
+                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+              );
+            }
+            if (item.startsWith('Budésonide')) {
+              return (
+                <DoseDosetteButton key={item} item={item} voie={v} rouge={rouge} onAjouter={onAjouter}/>
+              );
+            }
+            const matchMgFixe = item.match(/^(.+?) (\d+(?:\.\d+)?)mg(?!\/)(\s.*)?$/);
+            if (matchMgFixe && matchMgFixe[1] !== 'Paracétamol') {
+              const [, nomMed, , suffixe] = matchMgFixe;
+              return (
+                <DoseManuelleButton key={item} nomMed={nomMed} parJour={null} suffixe={suffixe}
+                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+              );
+            }
+          }
+          return (
+            <button key={item} onClick={()=>onAjouter(isPO?item+' ×1':item,'therapeutique')}
+              onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+              onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+              style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                background:rouge?'#fef2f2':v.color+'12',
+                color:rouge?'#dc2626':v.color,
+                border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
+              {item}
+            </button>
+          );
+        }
+
         function renderCategorieFavoris(cat) {
           const items = favorisParCat[cat];
           if(!items || !items.length) return null;
@@ -1750,18 +1806,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
             if(deja) return null;
             const rouge=ROUGE.some(s=>f.label.includes(s));
-            const isPO = f.voie==='PO';
-            return (
-              <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
-                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                  background:rouge?'#fef2f2':f.color+'12',
-                  color:rouge?'#dc2626':f.color,
-                  border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
-                {f.label}
-              </button>
-            );
+            return renderMedButton(f.label, {voie:f.voie, color:f.color}, rouge);
           }).filter(Boolean);
           if(!rendus.length) return null;
           return (
@@ -1779,28 +1824,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
             if(deja) return null;
             const rouge=ROUGE.some(s=>item.includes(s));
-            const isPO = v.voie==='PO';
-            const pds = parseFloat(patient?.poids)||0;
-            const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
-            let itemAffiche = item;
-            let texteEnregistre = item;
-            if (matchMgKg && pds>0) {
-              const [, nomMed, mgParKg, parJour, suffixe] = matchMgKg;
-              const doseCalculee = Math.round(pds*parseFloat(mgParKg));
-              itemAffiche = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'')+' ('+mgParKg+'mg × '+pds+'kg = '+doseCalculee+'mg)';
-              texteEnregistre = nomMed+' '+doseCalculee+'mg'+(parJour?'/j':'')+(suffixe||'');
-            }
-            return (
-              <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
-                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                  background:rouge?'#fef2f2':v.color+'12',
-                  color:rouge?'#dc2626':v.color,
-                  border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
-                {itemAffiche}
-              </button>
-            );
+            return renderMedButton(item, v, rouge);
           }).filter(Boolean);
           if(!rendus.length) return null;
           return (
@@ -1842,6 +1866,88 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
 
       <div style={{marginTop:8}}><AutreLibre categorie="therapeutique" onAjouter={onAjouter}/></div>
     </div>
+  );
+}
+
+function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjouter}) {
+  const [open, setOpen] = useState(false);
+  const [mg, setMg] = useState('');
+
+  function confirmer() {
+    if(!mg) return;
+    const texte = nomMed+' '+mg+'mg'+(parJour?'/j':'')+(suffixe||'');
+    onAjouter(isPO?texte+' ×1':texte,'therapeutique');
+    setMg(''); setOpen(false);
+  }
+
+  if(!open) {
+    return (
+      <button onClick={()=>setOpen(true)}
+        onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+        onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+        style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+          background:rouge?'#fef2f2':voie.color+'12',
+          color:rouge?'#dc2626':voie.color,
+          border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
+        {nomMed}{suffixe||''}
+      </button>
+    );
+  }
+
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 6px',borderRadius:5,
+      background:voie.color+'12',border:'1.5px solid '+voie.color}}>
+      <span style={{fontSize:11,fontWeight:600,color:voie.color}}>{nomMed}{suffixe||''}</span>
+      <input autoFocus value={mg} onChange={e=>setMg(e.target.value)} type="number" placeholder="mg"
+        onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setMg('');}}}
+        style={{width:52,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+voie.color,fontSize:11,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:10,color:'#6b7280'}}>mg{parJour?'/j':''}</span>
+      <button onClick={confirmer} disabled={!mg}
+        style={{padding:'2px 7px',borderRadius:4,background:mg?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+      <button onClick={()=>{setOpen(false);setMg('');}}
+        style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
+    </span>
+  );
+}
+
+function DoseDosetteButton({item, voie, rouge, onAjouter}) {
+  const [open, setOpen] = useState(false);
+  const [qte, setQte] = useState('');
+
+  function confirmer() {
+    if(!qte) return;
+    const n = parseInt(qte,10);
+    onAjouter(item+' ×'+qte+' dosette'+(n>1?'s':''), 'therapeutique');
+    setQte(''); setOpen(false);
+  }
+
+  if(!open) {
+    return (
+      <button onClick={()=>setOpen(true)}
+        onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+        onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+        style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+          background:rouge?'#fef2f2':voie.color+'12',
+          color:rouge?'#dc2626':voie.color,
+          border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
+        {item}
+      </button>
+    );
+  }
+
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 6px',borderRadius:5,
+      background:voie.color+'12',border:'1.5px solid '+voie.color}}>
+      <span style={{fontSize:11,fontWeight:600,color:voie.color}}>{item}</span>
+      <input autoFocus value={qte} onChange={e=>setQte(e.target.value)} type="number" placeholder="nb"
+        onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setQte('');}}}
+        style={{width:44,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+voie.color,fontSize:11,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:10,color:'#6b7280'}}>dosette(s)</span>
+      <button onClick={confirmer} disabled={!qte}
+        style={{padding:'2px 7px',borderRadius:4,background:qte?voie.color:'#e5e7eb',color:'#fff',fontSize:10,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+      <button onClick={()=>{setOpen(false);setQte('');}}
+        style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
+    </span>
   );
 }
 
@@ -2151,6 +2257,33 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
     </button>
   );
 
+  // Bouton à saisie manuelle : pas de dose proposée d'emblée (sécurité pédiatrie),
+  // clic ouvre un champ mg, la valeur saisie est injectée dans le texte de l'ordonnance.
+  const BtnPosoManuelle = ({emoji,label,bg,color,border,unit='mg',onConfirm}) => {
+    const [open, setOpen] = useState(false);
+    const [val, setVal] = useState('');
+    function confirmer() { if(!val) return; onConfirm(val); setVal(''); setOpen(false); }
+    if(!open) return (
+      <button onClick={()=>setOpen(true)}
+        style={{padding:'3px 8px',borderRadius:5,background:bg,color,fontSize:10,fontWeight:600,border:'1px solid '+border,cursor:'pointer'}}>
+        {emoji} {label}
+      </button>
+    );
+    return (
+      <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'2px 6px',borderRadius:5,background:bg,border:'1.5px solid '+color}}>
+        <span style={{fontSize:10,fontWeight:600,color}}>{emoji} {label}</span>
+        <input autoFocus value={val} onChange={e=>setVal(e.target.value)} type="number" placeholder={unit}
+          onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setVal('');}}}
+          style={{width:48,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+color,fontSize:10,outline:'none',textAlign:'center'}}/>
+        <span style={{fontSize:9,color:'#6b7280'}}>{unit}</span>
+        <button onClick={confirmer} disabled={!val}
+          style={{padding:'2px 6px',borderRadius:4,background:val?color:'#e5e7eb',color:'#fff',fontSize:9,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+        <button onClick={()=>{setOpen(false);setVal('');}}
+          style={{padding:'2px 4px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:9,border:'none',cursor:'pointer'}}>✕</button>
+      </span>
+    );
+  };
+
   // 1. Paracétamol
   let doseP, posoP;
   if (pds>0&&pds<=33) {
@@ -2216,20 +2349,45 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
 
   return (
     <>
-      <Btn onClick={()=>ajouter('ANTALGIQUE\n\nParacétamol '+doseP+' PO\n→ '+posoP+'\n→ À avaler avec un grand verre d\'eau')}
-        bg="#f0fdf4" color="#16a34a" border="#bbf7d0">🩹 Paracétamol {doseP}</Btn>
+      {pds>0 && pds<=33 ? (
+        <BtnPosoManuelle emoji="🩹" label="Paracétamol" bg="#f0fdf4" color="#16a34a" border="#bbf7d0"
+          onConfirm={mg=>ajouter('ANTALGIQUE\n\nParacétamol '+mg+'mg PO\n→ toutes les 6h (max 4 prises/j)\n→ Sirop ou sachet selon disponibilité\n→ Ne pas dépasser 60mg/kg/j\n→ À avaler avec un grand verre d\'eau')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTALGIQUE\n\nParacétamol '+doseP+' PO\n→ '+posoP+'\n→ À avaler avec un grand verre d\'eau')}
+          bg="#f0fdf4" color="#16a34a" border="#bbf7d0">🩹 Paracétamol {doseP}</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+doseIbu+' PO\n→ '+posoIbu)}
-        bg="#fff7ed" color="#ea580c" border="#fed7aa">🔥 Ibuprofène</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="🔥" label="Ibuprofène" bg="#fff7ed" color="#ea580c" border="#fed7aa"
+          onConfirm={mg=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+mg+'mg PO\n→ ×3/jour au cours du repas\n→ Avec un grand verre d\'eau, ne pas prendre à jeun\n→ Durée max 5 jours')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+doseIbu+' PO\n→ '+posoIbu)}
+          bg="#fff7ed" color="#ea580c" border="#fed7aa">🔥 Ibuprofène</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+doseAmx+' PO\n→ '+posoAmx)}
-        bg="#eff6ff" color="#2563eb" border="#bfdbfe">💊 Amoxicilline</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="💊" label="Amoxicilline" bg="#eff6ff" color="#2563eb" border="#bfdbfe" unit="mg/j"
+          onConfirm={mgj=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+mgj+'mg/j PO\n→ en 2-3 prises — 6 à 7 jours')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+doseAmx+' PO\n→ '+posoAmx)}
+          bg="#eff6ff" color="#2563eb" border="#bfdbfe">💊 Amoxicilline</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+doseAug+' PO\n→ '+posoAug)}
-        bg="#eef2ff" color="#4f46e5" border="#c7d2fe">💊 Augmentin</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="💊" label="Augmentin" bg="#eef2ff" color="#4f46e5" border="#c7d2fe" unit="mg/j"
+          onConfirm={mgj=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+mgj+'mg/j PO\n→ en 3 prises — 7 jours')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+doseAug+' PO\n→ '+posoAug)}
+          bg="#eef2ff" color="#4f46e5" border="#c7d2fe">💊 Augmentin</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan PO\n→ '+posoTio)}
-        bg="#fefce8" color="#a16207" border="#fde68a">💧 Tiorfan</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="💧" label="Tiorfan" bg="#fefce8" color="#a16207" border="#fde68a"
+          onConfirm={mg=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan '+mg+'mg PO\n→ ×3/jour avant les repas, jusqu\'à amélioration (max 7 jours)')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan PO\n→ '+posoTio)}
+          bg="#fefce8" color="#a16207" border="#fde68a">💧 Tiorfan</Btn>
+      )}
 
       <Btn onClick={()=>ajouter('LAVAGE NASAL\n\nSérum salé physiologique\n→ Lavage nasal selon âge, unidoses ×4-6/jour si nourrisson\n→ DRP avant chaque tétée/repas si encombrement')}
         bg="#eff6ff" color="#0891b2" border="#a5f3fc">💦 Sérum salé (DRP)</Btn>
@@ -2237,8 +2395,13 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
       <Btn onClick={()=>ajouter('SOINS LOCAUX\n\nBiseptine\n→ Application locale 1x/jour sur la plaie après lavage\n→ Pansement simple')}
         bg="#fdf2f8" color="#be185d" border="#fbcfe8">🩹 Biseptine</Btn>
 
-      <Btn onClick={()=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) PO\n→ '+posoVog)}
-        bg="#f5f3ff" color="#7c3aed" border="#ddd6fe">🤢 Vogalène</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="🤢" label="Vogalène" bg="#f5f3ff" color="#7c3aed" border="#ddd6fe" unit="mg/j"
+          onConfirm={mgj=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) '+mgj+'mg/j PO\n→ en 2-3 prises, en suppositoire ou sirop selon âge')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) PO\n→ '+posoVog)}
+          bg="#f5f3ff" color="#7c3aed" border="#ddd6fe">🤢 Vogalène</Btn>
+      )}
 
       <Btn onClick={()=>ajouter('ANTIHISTAMINIQUE\n\nAerius (desloratadine)\n→ '+posoAer)}
         bg="#ecfeff" color="#0e7490" border="#a5f3fc">🤧 Aerius</Btn>
