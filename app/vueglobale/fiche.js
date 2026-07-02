@@ -241,18 +241,20 @@ function BUBtn({ baseVal, history, onAdd }) {
   );
 }
 
-function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
+function QualBtn({ label, fk, options, baseVal, history, onAdd, inverse }) {
   const [open, setOpen] = useState(false);
   const latest = history.length ? history[history.length-1] : null;
   const cur = latest ? latest.val : baseVal;
-  const isPos = cur==='Positif'||cur?.includes('barre');
-  const color = cur ? (isPos?'#ef4444':'#16a34a') : '#9ca3af';
+  // Cas normal : Positif = anormal = rouge. Tétanotop est inversé : Positif =
+  // immunisé = bon signe = vert ; Négatif = pas immunisé = rappel nécessaire = rouge.
+  const isAbnormal = inverse ? cur==='Négatif' : (cur==='Positif'||cur?.includes('barre'));
+  const color = cur ? (isAbnormal?'#ef4444':'#16a34a') : '#9ca3af';
   const [icon, ...rest] = label.split(' ');
   const texte = rest.join(' ');
 
   return (
     <div style={{position:'relative'}}>
-      <div style={{background:isPos?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(isPos?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6}}>
+      <div style={{background:isAbnormal?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(isAbnormal?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6}}>
         <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
         <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3,minWidth:0}}>
@@ -270,13 +272,16 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'6px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',display:'flex',flexWrap:'wrap',gap:4,minWidth:140}}
           onMouseDown={e=>e.stopPropagation()}>
-          {options.map(opt=>(
-            <button key={opt} onMouseDown={e=>{e.preventDefault();onAdd(fk,label,opt,'');setOpen(false);}}
-              style={{padding:'4px 10px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:11,fontWeight:600,
-                color:opt==='Positif'||opt.includes('barre')?'#ef4444':'#16a34a'}}>
-              {opt}
-            </button>
-          ))}
+          {options.map(opt=>{
+            const optAbnormal = inverse ? opt==='Négatif' : (opt==='Positif'||opt.includes('barre'));
+            return (
+              <button key={opt} onMouseDown={e=>{e.preventDefault();onAdd(fk,label,opt,'');setOpen(false);}}
+                style={{padding:'4px 10px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:11,fontWeight:600,
+                  color:optAbnormal?'#ef4444':'#16a34a'}}>
+                {opt}
+              </button>
+            );
+          })}
           <button onMouseDown={e=>{e.preventDefault();setOpen(false);}}
             style={{padding:'4px 8px',borderRadius:5,background:'#f3f4f6',color:'#9ca3af',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
         </div>
@@ -570,7 +575,7 @@ ${ordonnance||'--'}
       <BUBtn key={c.fk} baseVal={c.base} history={localConst.filter(x=>x.key==='bu_resultat')} onAdd={addConst}/>
     );
     return (
-      <QualBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} options={c.options} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst}/>
+      <QualBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} options={c.options} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst} inverse={c.fk==='tdr_tet'}/>
     );
   }
 
