@@ -1978,24 +1978,17 @@ function AerosolSelector({onAjouter, onAjouterPlusieurs, prescriptions, poidsIni
   );
 
   return (
-    <div style={{background:'#f0f9ff',borderRadius:8,padding:'8px 12px',border:'1.5px solid #bae6fd',marginBottom:4}}>
-      <div style={{fontSize:11,color:'#0891b2',fontWeight:700,marginBottom:6}}>
-        💨 Aérosols — Salbutamol (Ventoline) ×3 + Ipratropium (Atrovent) ×1
-      </div>
-      <div style={{fontSize:10,color:'#6b7280',marginBottom:8}}>
-        &lt;16kg → Ventoline 2.5mg + Atrovent 0.25mg &nbsp;|&nbsp; ≥16kg → Ventoline 5mg + Atrovent 0.5mg
-      </div>
-      <div style={{display:'flex',alignItems:'center',gap:8}}>
-        <label style={{fontSize:11,color:'#374151',fontWeight:500}}>Poids</label>
-        <input value={poids} onChange={e=>setPoids(e.target.value)} placeholder="kg" type="number"
-          style={{width:60,padding:'4px 8px',borderRadius:6,border:'1.5px solid #bae6fd',fontSize:12,outline:'none',textAlign:'center'}}/>
-        <span style={{fontSize:11,color:'#6b7280'}}>kg</span>
-        {ventoline&&<span style={{fontSize:11,fontWeight:600,color:'#0891b2'}}>→ Ventoline {ventoline} ×3 + Atrovent {atrovent} ×1</span>}
-        <button onClick={prescrire} disabled={!ventoline}
-          style={{padding:'5px 14px',borderRadius:6,background:ventoline?'#0891b2':'#e5e7eb',color:ventoline?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
-          Prescrire
-        </button>
-      </div>
+    <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:8}}>
+      <span style={{fontSize:11,color:'#0891b2',fontWeight:700}}>💨 Ventoline ×3 + Atrovent ×1</span>
+      <label style={{fontSize:11,color:'#374151',fontWeight:500}}>Poids</label>
+      <input value={poids} onChange={e=>setPoids(e.target.value)} placeholder="kg" type="number"
+        style={{width:60,padding:'4px 8px',borderRadius:6,border:'1.5px solid #bae6fd',fontSize:12,outline:'none',textAlign:'center'}}/>
+      <span style={{fontSize:11,color:'#6b7280'}}>kg</span>
+      {ventoline&&<span style={{fontSize:11,fontWeight:600,color:'#0891b2'}}>→ Ventoline {ventoline} ×3 + Atrovent {atrovent} ×1</span>}
+      <button onClick={prescrire} disabled={!ventoline}
+        style={{padding:'5px 14px',borderRadius:6,background:ventoline?'#0891b2':'#e5e7eb',color:ventoline?'#fff':'#9ca3af',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}}>
+        Prescrire
+      </button>
     </div>
   );
 }
