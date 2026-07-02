@@ -84,7 +84,7 @@ export default function NouveauPatient() {
     tdr_palu_fait:false, tdr_palu_rupture:false, tdr_palu_resultat:'',
     tdr_dengue_fait:false, tdr_dengue_rupture:false, tdr_dengue_resultat:'',
     douleur_zones:[], ecg_fait:false,
-    vomissement:null, tache_peau:null,
+    vomissement:null, tache_peau:null, drepanocytose:null,
     bu_fait:false, bhcg_fait:false, bhcg_pas_regles:false, bhcg_menopausee:false,
     autre_motif:'', douleur_autre:'', soins_type:'',
   });
@@ -220,6 +220,16 @@ export default function NouveauPatient() {
     // Asthme modéré — prescription nébulisation retirée de l'automatisation
     // (risque de confusion si consultation pour OAP chez un patient au terrain asthmatique)
     // À prescrire manuellement par le médecin après examen clinique.
+    // Douleur + drépanocytose connue : mentionné directement dans le motif affiché
+    // (badge vue globale), avec la localisation, pour une visibilité immédiate.
+    let autreMotifFinal = f.autre_motif;
+    if (f.symptome==='douleur' && f.drepanocytose===true) {
+      const localisations = f.douleur_zones.map(id=>{
+        if (id==='autre') return f.douleur_autre||'autre';
+        return (ZONES_DOULEUR.find(z=>z.id===id)||{}).l;
+      }).filter(Boolean).join(', ');
+      autreMotifFinal = 'Douleur — Drép\u2019' + (localisations?' — '+localisations:'');
+    }
     const patient = {
       sexe:f.sexe, ddn:ddnToISO(f.ddn), age:String(calcAge(f.ddn)??f.age??''), ipp:f.ipp,
       fc:f.fc, sat:f.sat, temp:f.temp, tas:f.tas, tad:f.tad, pam:pam?String(pam):'',
@@ -233,7 +243,8 @@ export default function NouveauPatient() {
       douleur_zones:JSON.stringify(f.douleur_zones), ecg_fait:f.ecg_fait,
       vomissement:f.vomissement!==null?String(f.vomissement):'',
       tache_peau:f.tache_peau!==null?String(f.tache_peau):'',
-      drp_fait:f.drp_fait, autre_motif:f.autre_motif, douleur_autre:f.douleur_autre, soins_type:f.soins_type,
+      drepanocytose:f.drepanocytose!==null?String(f.drepanocytose):'',
+      drp_fait:f.drp_fait, autre_motif:autreMotifFinal, douleur_autre:f.douleur_autre, soins_type:f.soins_type,
       crp_resultat:f.crp_resultat, tdr_palu_resultat:f.tdr_palu_resultat, tdr_dengue_resultat:f.tdr_dengue_resultat,
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
@@ -579,6 +590,11 @@ export default function NouveauPatient() {
 
         {f.symptome==='douleur' && (
           <div style={card}>
+            <label style={lbl}>Drepanocytose connue ? *</label>
+            <div style={{display:'flex',gap:8,marginBottom:16}}>
+              <Btn onClick={()=>set('drepanocytose',true)}  style={pSt(f.drepanocytose===true,'#dc2626')}>Oui</Btn>
+              <Btn onClick={()=>set('drepanocytose',false)} style={pSt(f.drepanocytose===false,'#16a34a')}>Non</Btn>
+            </div>
             <label style={lbl}>Localisation * (plusieurs choix)</label>
             <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
               {ZONES_DOULEUR.map(function(z) {

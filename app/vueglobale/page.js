@@ -341,7 +341,7 @@ export default function PageVueGlobale() {
   const enSalle=patients.filter(p=>p.statut!=='dehors');
 
   function labelSymptome(p) {
-    if (p?.symptome==='autre' && p?.autre_motif) return p.autre_motif;
+    if (p?.autre_motif) return p.autre_motif;
     const map = {
       coma:'Coma / Inconscience', detresse_respi:'Détresse respiratoire',
       asthme:'Asthme', douleur:'Douleur', fievre:'Fievre',
