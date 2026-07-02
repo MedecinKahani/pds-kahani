@@ -135,6 +135,20 @@ function ColC(v, k) {
   return n<mn||n>mx ? '#ef4444' : '#16a34a';
 }
 
+// Sépare l'émoticône du texte d'un label "🫀 FC" pour afficher l'icône dans
+// un petit carré blanc, distinct du texte (demande médicale : mieux mettre
+// l'icône en valeur que la coller au texte).
+function LabelIcon({label}) {
+  const [icon, ...rest] = label.split(' ');
+  const texte = rest.join(' ');
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:3,marginBottom:2}}>
+      <div style={{width:13,height:13,borderRadius:3,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,flexShrink:0,lineHeight:1}}>{icon}</div>
+      <span style={{fontSize:7,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5}}>{texte}</span>
+    </div>
+  );
+}
+
 function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   const [open, setOpen] = useState(false);
   const [val, setVal] = useState('');
@@ -146,7 +160,7 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   return (
     <div style={{position:'relative',display:'inline-block'}}>
       <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0,cursor:'default'}}>
-        <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{label}</div>
+        <LabelIcon label={label}/>
         <div style={{display:'flex',alignItems:'baseline',gap:3,flexWrap:'nowrap'}}>
           {latest&&baseVal&&<span style={{fontSize:12,color:'#94a3b8',textDecoration:'line-through',marginRight:3,fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
           <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums'}}>{cur||'—'}</span>
@@ -185,7 +199,7 @@ function BUBtn({ baseVal, history, onAdd }) {
   return (
     <div style={{position:'relative',display:'inline-block'}}>
       <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb'}}>
-        <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>BU</div>
+        <LabelIcon label="🧪 BU"/>
         <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'nowrap'}}>
           {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
           <span title={cur||''} style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
@@ -245,7 +259,7 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
   return (
     <div style={{position:'relative',display:'inline-block'}}>
       <div style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
-        <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{label}</div>
+        <LabelIcon label={label}/>
         <div style={{display:'flex',alignItems:'center',gap:3}}>
           {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through'}}>{baseVal}</span>}
           <span style={{fontSize:14,fontWeight:700,color,lineHeight:1}}>{cur||'—'}</span>
@@ -542,7 +556,10 @@ ${ordonnance||'--'}
       // PAM : cas spécial avec couleur et alerte
       if (c.fk==='pam') return (
         <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
-          <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label} <span style={{fontWeight:400}}>auto</span></div>
+          <div style={{display:'flex',alignItems:'center',gap:3,marginBottom:2}}>
+            <div style={{width:13,height:13,borderRadius:3,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,flexShrink:0,lineHeight:1}}>{c.label.split(' ')[0]}</div>
+            <span style={{fontSize:7,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5}}>{c.label.split(' ').slice(1).join(' ')} <span style={{fontWeight:400,textTransform:'none'}}>auto</span></span>
+          </div>
           <div style={{display:'flex',alignItems:'baseline',gap:3}}>
             <span style={{fontSize:13,fontWeight:700,color:pamColor,lineHeight:1}}>{pamVal||'—'}</span>
             {pamVal&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
@@ -553,7 +570,7 @@ ${ordonnance||'--'}
       // Poids / Taille : valeur simple non éditable
       return (
         <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'3px 7px',border:'1px solid #e5e7eb',minWidth:0}}>
-          <div style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,marginBottom:2}}>{c.label}</div>
+          <LabelIcon label={c.label}/>
           <div style={{display:'flex',alignItems:'baseline',gap:3}}>
             <span style={{fontSize:13,fontWeight:700,color:'#374151',lineHeight:1}}>{c.base||'—'}</span>
             {c.base&&<span style={{fontSize:8,color:'#9ca3af'}}>{c.unit}</span>}
