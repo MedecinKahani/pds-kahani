@@ -238,6 +238,7 @@ export default function PageVueGlobale() {
   const [fichesSortie,setFichesSortie] = useState(null); // patient en cours de sortie
   const [showSortis,setShowSortis] = useState(false);
   const [patientsSortis,setPatientsSortis] = useState([]);
+  const [agents,setAgents] = useState([]); // présence temps réel, tous postes confondus
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
@@ -255,6 +256,20 @@ export default function PageVueGlobale() {
     setUser(u);load();
     const iv=setInterval(load,8000);
     return()=>clearInterval(iv);
+  },[]);
+
+  // Présence temps réel : battement régulier + lecture de la liste des agents connectés.
+  useEffect(()=>{
+    function battement() {
+      fetch('/api/presence',{method:'POST'}).catch(()=>{});
+    }
+    function chargerAgents() {
+      fetch('/api/presence').then(r=>r.json()).then(d=>setAgents(d.agents||[])).catch(()=>{});
+    }
+    battement(); chargerAgents();
+    const ivBattement=setInterval(battement,20000);
+    const ivAgents=setInterval(chargerAgents,10000);
+    return()=>{clearInterval(ivBattement);clearInterval(ivAgents);};
   },[]);
 
   async function patch(id,data){
@@ -460,13 +475,26 @@ export default function PageVueGlobale() {
     );
   }
 
+  const ROLE_PAR_POSTE = {_doc:'medecin', _med:'medecin', _ide:'ide', _as:'as'};
+
   function Poste({id,label,color}){
-    const showNom=(id==='_doc'&&user.role==='medecin')||(id==='_ide'&&user.role==='ide')||(id==='_as'&&user.role==='as');
+    const role = ROLE_PAR_POSTE[id];
+    const connectes = agents.filter(a=>a.role===role);
     return(
       <div style={{flex:1,background:'#fff',border:'1.5px solid #e5e7eb',borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:5,padding:'8px'}}>
         <div style={{width:9,height:9,borderRadius:'50%',background:color}}/>
         <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{label}</span>
-        {showNom&&<span style={{fontSize:11,color:color,fontWeight:500,textAlign:'center'}}>{id==='_doc'?'Dr '+user.nom:user.nom}</span>}
+        {connectes.length>0 ? (
+          <div style={{display:'flex',flexDirection:'column',gap:1,alignItems:'center'}}>
+            {connectes.map(a=>(
+              <span key={a.matricule} style={{fontSize:11,color,fontWeight:500,textAlign:'center'}}>
+                {role==='medecin'?'Dr '+a.nom:a.nom}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span style={{fontSize:10,color:'#d1d5db',fontStyle:'italic'}}>Personne connecté</span>
+        )}
       </div>
     );
   }
