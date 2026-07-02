@@ -419,9 +419,12 @@ export default function PageVueGlobale() {
                       background:ippCopied?'#f0fdf4':'#f9fafb',
                       color:ippCopied?'#16a34a':'#111827',
                       maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                    {ippCopied ? '✓ Copié' : 'IPP '+(p.ipp||'—')} <span style={{color:ippCopied?'#16a34a':c,fontSize:11}}>{sexeSymbol}</span>
+                    {ippCopied ? '✓ Copié' : 'IPP '+(p.ipp||'—')}
                   </div>
-                  <div style={{color:'#6b7280',fontSize:9,marginTop:1}}>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()+'· ':''}{p.age} ans</div>
+                  <div style={{color:'#6b7280',fontSize:9,marginTop:1,display:'flex',alignItems:'center',gap:3}}>
+                    <span>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()+'· ':''}{p.age} ans</span>
+                    {sexeSymbol&&<span style={{fontSize:15,fontWeight:800,color:c,lineHeight:1}}>{sexeSymbol}</span>}
+                  </div>
                 </div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 3px'}}>
