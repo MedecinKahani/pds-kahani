@@ -392,7 +392,7 @@ export default function PageVueGlobale() {
       if (!p?.ipp) return;
       navigator.clipboard.writeText(p.ipp);
       setIppCopied(true);
-      setTimeout(()=>setIppCopied(false), 2000);
+      setTimeout(()=>setIppCopied(false), 10000);
     }
 
     return(
