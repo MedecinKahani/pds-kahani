@@ -1491,6 +1491,20 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Kétoprofène 100mg IM (Profenid)', voie:'IM', color:'#6b7280', cat:'Antalgique'},
     {label:'Vaccin Repevax IM', voie:'IM', color:'#6b7280', cat:'Autres'},
   ];
+  // Liste à valider par l'équipe médicale — proposition initiale, pas une vraie
+  // statistique d'usage (10 molécules les plus fréquentes en pédiatrie).
+  const FREQUENTS_PEDIATRIE = [
+    {label:'Paracétamol 15mg/kg PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Ibuprofène 10mg/kg PO (Nurofen)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Amoxicilline 50mg/kg/j PO (Clamoxyl)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Amox+Ac Clav 100mg/60ml PO (Augmentin)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
+    {label:'Racécadotril 100mg PO (Tiorfan)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Sels réhydratation PO (Adiaril)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Cétirizine PO (Zyrtec)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
+    {label:'Paracétamol 15mg/kg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Ceftriaxone 50mg/kg IV (Rocéphine)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
+    {label:'Budésonide 0.5mg nébulisation (Pulmicort)', voie:'RESPI', color:'#64748b', cat:'Respiratoire'},
+  ];
   const VOIES = {
     adulte: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
@@ -1598,28 +1612,28 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     pediatrie: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
         '__CAT__Antalgique',
-        'Ibuprofène 10mg/kg PO', 'Paracétamol 15mg/kg PO', 'Paracétamol 100mg sachet PO',
-        'Paracétamol 200mg sachet PO', 'Paracétamol 300mg sachet PO',
+        'Ibuprofène 10mg/kg PO (Nurofen)', 'Paracétamol 15mg/kg PO (Doliprane)', 'Paracétamol 100mg sachet PO (Doliprane)',
+        'Paracétamol 200mg sachet PO (Doliprane)', 'Paracétamol 300mg sachet PO (Doliprane)',
         '__CAT__Anti-infectieux',
-        'Albendazole 4% PO (Zentel)', 'Amox+Ac Clav 100mg/60ml PO', 'Amoxicilline 50mg/kg/j PO',
+        'Albendazole 4% PO (Zentel)', 'Amox+Ac Clav 100mg/60ml PO (Augmentin)', 'Amoxicilline 50mg/kg/j PO (Clamoxyl)',
         'Artéméther-Luméfantrine selon poids PO (Coartem)', 'Azithromycine 250mg PO (Zithromax)',
-        'Cefixime 40mg/5ml PO', 'Ivermectine PO',
+        'Cefixime 40mg/5ml PO (Oroken)', 'Ivermectine PO (Stromectol)',
         '__CAT__Digestif',
-        'Métoclopramide sirop PO', 'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO',
+        'Métoclopramide sirop PO (Primpéran)', 'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO (Adiaril)',
         '__CAT__Allergologie / Corticoïdes',
-        'Cétirizine PO', 'Dexchlorphéniramine PO', 'Prednisolone 5mg PO',
+        'Cétirizine PO (Zyrtec)', 'Dexchlorphéniramine PO (Polaramine)', 'Prednisolone 5mg PO (Solupred)',
         '__CAT__Autres',
-        'Lévonorgestrel 1.5mg PO',
+        'Lévonorgestrel 1.5mg PO (Norlevo)',
       ]},
       {voie:'IV', label:'Voie IV', color:'#2563eb', items:[
         '__CAT__Antalgique',
         'Morphine 0.1mg/kg IV [STP]', 'Paracétamol 15mg/kg IV (Perfalgan)',
         '__CAT__Anti-infectieux',
-        'Ceftriaxone 50mg/kg IV', 'Ceftriaxone 100mg/kg IV',
+        'Ceftriaxone 50mg/kg IV (Rocéphine)', 'Ceftriaxone 100mg/kg IV (Rocéphine)',
         '__CAT__Cardio-vasculaire',
         'Furosémide 1mg/kg IV (Lasilix)',
         '__CAT__Neuro-sédation',
-        'Clonazépam 0.02mg/kg IV (Rivotril)', 'Diazépam rectal IV (Valium)', 'Kétamine IV', 'Midazolam IV (Hypnovel)',
+        'Clonazépam 0.02mg/kg IV (Rivotril)', 'Diazépam rectal IV (Valium)', 'Kétamine IV (Kétalar)', 'Midazolam IV (Hypnovel)',
         'Phénobarbital IV (Gardénal)',
         '__CAT__Allergologie / Corticoïdes',
         'Dexaméthasone 0.15mg/kg IV', 'Méthylprednisolone IV (Solumedrol)',
@@ -1629,9 +1643,10 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Calcium gluconate 10% IV', 'Glucose 10% IV', 'Glucose 30% IV', 'Magnésium sulfate IV', 'NaCl 0.9% IV',
         'Ringer Lactate IV', 'Vitamine B1 IV',
       ]},
+      {voie:'HYDRATATION', label:'Hydratation IV', color:'#0891b2', special:'hydratation'},
       {voie:'IM', label:'Voie IM', color:'#6b7280', items:[
         '__CAT__Anti-infectieux',
-        'Ceftriaxone 50mg/kg IM', 'Ceftriaxone 100mg/kg IM',
+        'Ceftriaxone 50mg/kg IM (Rocéphine)', 'Ceftriaxone 100mg/kg IM (Rocéphine)',
         '__CAT__Neuro-sédation',
         'Phénobarbital IM (Gardénal)',
         '__CAT__Réanimation / Antidotes',
@@ -1691,7 +1706,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
 
         const voiesSpeciales = sousVoies.filter(v=>v.special); // ex: HYDRATATION, MORPHINE
         const voiesAvecItems = sousVoies.filter(v=>v.items);
-        const favoris = tab==='adulte' ? FREQUENTS_ADULTE.filter(f=>groupe.voies.includes(f.voie)) : [];
+        const favoris = tab==='adulte' ? FREQUENTS_ADULTE.filter(f=>groupe.voies.includes(f.voie)) : FREQUENTS_PEDIATRIE.filter(f=>groupe.voies.includes(f.voie));
 
         // Ordre des catégories : personnalisé pour IV (widgets intercalés), défaut ailleurs
         const ordre = ORDRE_CATEGORIES_PAR_GROUPE[voieOuverte] || ORDRE_CATEGORIES_DEFAUT;
@@ -1743,6 +1758,47 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           return null;
         }
 
+        // Rendu d'un bouton médicament : en pédiatrie, aucune dose n'est proposée
+        // d'emblée (mg/kg ou mg fixe, hors paracétamol sachet) — saisie manuelle
+        // systématique (sécurité). En adulte, comportement inchangé (dose fixe affichée).
+        function renderMedButton(item, v, rouge) {
+          const isPO = v.voie==='PO';
+          if (tab==='pediatrie') {
+            const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
+            if (matchMgKg) {
+              const [, nomMed, , parJour, suffixe] = matchMgKg;
+              return (
+                <DoseManuelleButton key={item} nomMed={nomMed} parJour={parJour} suffixe={suffixe}
+                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+              );
+            }
+            if (item.startsWith('Budésonide')) {
+              return (
+                <DoseDosetteButton key={item} item={item} voie={v} rouge={rouge} onAjouter={onAjouter}/>
+              );
+            }
+            const matchMgFixe = item.match(/^(.+?) (\d+(?:\.\d+)?)mg(?!\/)(\s.*)?$/);
+            if (matchMgFixe && matchMgFixe[1] !== 'Paracétamol') {
+              const [, nomMed, , suffixe] = matchMgFixe;
+              return (
+                <DoseManuelleButton key={item} nomMed={nomMed} parJour={null} suffixe={suffixe}
+                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
+              );
+            }
+          }
+          return (
+            <button key={item} onClick={()=>onAjouter(isPO?item+' ×1':item,'therapeutique')}
+              onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
+              onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+              style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
+                background:rouge?'#fef2f2':v.color+'12',
+                color:rouge?'#dc2626':v.color,
+                border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
+              {item}
+            </button>
+          );
+        }
+
         function renderCategorieFavoris(cat) {
           const items = favorisParCat[cat];
           if(!items || !items.length) return null;
@@ -1750,18 +1806,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(f.label));
             if(deja) return null;
             const rouge=ROUGE.some(s=>f.label.includes(s));
-            const isPO = f.voie==='PO';
-            return (
-              <button key={f.label} onClick={()=>onAjouter(isPO?f.label+' ×1':f.label,'therapeutique')}
-                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                  background:rouge?'#fef2f2':f.color+'12',
-                  color:rouge?'#dc2626':f.color,
-                  border:'1.5px solid '+(rouge?'#fecaca':f.color+'44')}}>
-                {f.label}
-              </button>
-            );
+            return renderMedButton(f.label, {voie:f.voie, color:f.color}, rouge);
           }).filter(Boolean);
           if(!rendus.length) return null;
           return (
@@ -1779,51 +1824,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
             const deja=prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith(item.split('__')[0]));
             if(deja) return null;
             const rouge=ROUGE.some(s=>item.includes(s));
-            const isPO = v.voie==='PO';
-            const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
-
-            // Pédiatrie : aucune dose au poids (mg/kg) n'est calculée automatiquement,
-            // y compris paracétamol/perfalgan — saisie manuelle systématique (sécurité).
-            if (matchMgKg) {
-              const [, nomMed, , parJour, suffixe] = matchMgKg;
-              return (
-                <DoseManuelleButton key={item} nomMed={nomMed} parJour={parJour} suffixe={suffixe}
-                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
-              );
-            }
-
-            // Budésonide nébulisation : dosettes à dosage fixe (0.5mg/1mg), on garde le choix
-            // mais le nombre de dosettes est saisi manuellement (pas de quantité imposée).
-            if (item.startsWith('Budésonide')) {
-              return (
-                <DoseDosetteButton key={item} item={item} voie={v} rouge={rouge} onAjouter={onAjouter}/>
-              );
-            }
-
-            // Dose fixe non calculée au poids (hors paracétamol en sachet, conservé tel quel) :
-            // même principe que mg/kg, saisie manuelle plutôt que dose imposée d'emblée.
-            const matchMgFixe = item.match(/^(.+?) (\d+(?:\.\d+)?)mg(?!\/)(\s.*)?$/);
-            if (matchMgFixe && matchMgFixe[1] !== 'Paracétamol') {
-              const [, nomMed, , suffixe] = matchMgFixe;
-              return (
-                <DoseManuelleButton key={item} nomMed={nomMed} parJour={null} suffixe={suffixe}
-                  voie={v} rouge={rouge} isPO={isPO} onAjouter={onAjouter}/>
-              );
-            }
-
-            const itemAffiche = item;
-            const texteEnregistre = item;
-            return (
-              <button key={item} onClick={()=>onAjouter(isPO?texteEnregistre+' ×1':texteEnregistre,'therapeutique')}
-                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.85)';}}
-                onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
-                style={{padding:'4px 8px',borderRadius:5,fontSize:11,fontWeight:600,cursor:'pointer',
-                  background:rouge?'#fef2f2':v.color+'12',
-                  color:rouge?'#dc2626':v.color,
-                  border:'1.5px solid '+(rouge?'#fecaca':v.color+'44')}}>
-                {itemAffiche}
-              </button>
-            );
+            return renderMedButton(item, v, rouge);
           }).filter(Boolean);
           if(!rendus.length) return null;
           return (
