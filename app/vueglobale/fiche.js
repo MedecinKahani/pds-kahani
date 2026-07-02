@@ -143,12 +143,13 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   const latest = history.length ? history[history.length-1] : null;
   const cur = latest ? latest.val : baseVal;
   const color = cur&&cur!=='--' ? (ColC(cur,fk)||'#111827') : '#9ca3af';
+  const abnormal = color==='#ef4444';
   const [icon, ...rest] = label.split(' ');
   const texte = rest.join(' ');
 
   return (
     <div style={{position:'relative'}}>
-      <div style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,cursor:'default',display:'flex',alignItems:'center',gap:6}}>
+      <div style={{background:abnormal?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(abnormal?'#fecaca':'#e5e7eb'),minWidth:0,cursor:'default',display:'flex',alignItems:'center',gap:6}}>
         <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
         <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
         <div style={{flex:1,display:'flex',alignItems:'baseline',justifyContent:'center',gap:3,minWidth:0}}>
@@ -251,7 +252,7 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd }) {
 
   return (
     <div style={{position:'relative'}}>
-      <div style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,display:'flex',alignItems:'center',gap:6}}>
+      <div style={{background:isPos?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(isPos?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6}}>
         <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
         <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3,minWidth:0}}>
@@ -549,7 +550,7 @@ ${ordonnance||'--'}
     if (c.type==='fixed') {
       // PAM : cas spécial avec couleur et alerte
       if (c.fk==='pam') return (
-        <div key={c.fk} style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',minWidth:0,display:'flex',alignItems:'center',gap:6}}>
+        <div key={c.fk} style={{background:pamColor==='#ef4444'?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(pamColor==='#ef4444'?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6}}>
           <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{c.label.split(' ')[0]}</div>
           <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{c.label.split(' ').slice(1).join(' ')} <span style={{fontWeight:400,textTransform:'none'}}>auto</span></span>
           <div style={{flex:1,display:'flex',alignItems:'baseline',justifyContent:'center',gap:3,minWidth:0}}>
