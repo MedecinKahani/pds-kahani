@@ -1467,7 +1467,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Phloroglucinol 80mg PO (Spasfon)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
-    {label:'Tramadol 100mg PO', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Tramadol 50mg PO (Topalgic)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Tramadol 100mg IV (Topalgic)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     // Nébulisation
     {label:'MEOPA', voie:'RESPI', color:'#0891b2', cat:'Respiratoire'},
