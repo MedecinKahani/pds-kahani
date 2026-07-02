@@ -1688,7 +1688,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}}>
         {GROUPES_VOIE.map(g=>(
           <button key={g.id} onClick={()=>{setVoieOuverte(vo=>vo===g.id?null:g.id);setVoieListeComplete(false);}}
-            style={{padding:'8px 18px',borderRadius:8,fontSize:12,fontWeight:800,letterSpacing:0.3,textTransform:'uppercase',cursor:'pointer',
+            style={{padding:'8px 18px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',
               border:'2px solid '+(voieOuverte===g.id?'#374151':'#d1d5db'),
               background:voieOuverte===g.id?'#374151':'#fff',
               color:voieOuverte===g.id?'#fff':'#374151'}}>
