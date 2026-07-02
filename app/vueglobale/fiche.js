@@ -1497,10 +1497,10 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   // statistique d'usage (10 molécules les plus fréquentes en pédiatrie).
   const FREQUENTS_PEDIATRIE = [
     {label:'Paracétamol 15mg/kg PO (Doliprane suspension buvable, dose-poids)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
-    {label:'Paracétamol 100mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
-    {label:'Paracétamol 200mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
-    {label:'Paracétamol 300mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
-    {label:'Paracétamol 500mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 100mg sachet (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 200mg sachet (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 300mg sachet (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 500mg sachet (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Ibuprofène 10mg/kg PO (Nurofen)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Phloroglucinol 80mg PO (Spasfon)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Amoxicilline 50mg/kg/j PO (Clamoxyl)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
@@ -1629,8 +1629,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     pediatrie: [
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
         '__CAT__Antalgique',
-        'Ibuprofène 10mg/kg PO (Nurofen)', 'Paracétamol 15mg/kg PO (Doliprane)', 'Paracétamol 100mg sachet PO (Doliprane)',
-        'Paracétamol 200mg sachet PO (Doliprane)', 'Paracétamol 300mg sachet PO (Doliprane)', 'Paracétamol 500mg sachet PO (Doliprane)',
+        'Ibuprofène 10mg/kg PO (Nurofen)', 'Paracétamol 15mg/kg PO (Doliprane)', 'Paracétamol 100mg sachet (Doliprane)',
+        'Paracétamol 200mg sachet (Doliprane)', 'Paracétamol 300mg sachet (Doliprane)', 'Paracétamol 500mg sachet (Doliprane)',
         'Phloroglucinol 80mg PO (Spasfon)',
         '__CAT__Anti-infectieux',
         'Albendazole 4% PO (Zentel)', 'Amox+Ac Clav 100mg/60ml PO (Augmentin)', 'Amoxicilline 50mg/kg/j PO (Clamoxyl)',
