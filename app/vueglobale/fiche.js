@@ -1468,7 +1468,6 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Prednisolone 20mg PO (Solupred)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
     {label:'Tramadol 50mg PO (Topalgic)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
-    {label:'Tramadol 100mg IV (Topalgic)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     // Nébulisation
     {label:'MEOPA', voie:'RESPI', color:'#0891b2', cat:'Respiratoire'},
     // Auriculaire
@@ -1483,6 +1482,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Phloroglucinol 40mg IV (Spasfon)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Tramadol 100mg IV (Topalgic)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     // IM
     {label:'Adrénaline 0.5mg IM', voie:'IM', color:'#6b7280', cat:'Réanimation / Antidotes'},
     {label:'Adrénaline 1mg IM', voie:'IM', color:'#6b7280', cat:'Réanimation / Antidotes'},
@@ -1542,8 +1542,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Kétoprofène 100mg IV (Profenid)', 'Nalbuphine 20mg IV (Nubain)', 'Néfopam 20mg IV (Acupan)',
         'Paracétamol 1g IV (Perfalgan)', 'Paracétamol 500mg IV (Perfalgan)', 'Phloroglucinol 40mg IV (Spasfon)', 'Tramadol 100mg IV (Topalgic)',
         '__CAT__Anti-infectieux',
-        'Amoxicilline 1g IV', 'Amoxicilline 2g IV', 'Amoxicilline/Ac. clavulanique 1g IV (Augmentin)',
-        'Amoxicilline/Ac. clavulanique 2g IV (Augmentin)', 'Ceftriaxone 1g IV', 'Ceftriaxone 2g IV', 'Métronidazole 500mg IV',
+        'Amoxicilline 500mg IV', 'Amoxicilline 1g IV', 'Amoxicilline 2g IV', 'Amoxicilline/Ac. clavulanique 500mg IV (Augmentin)',
+        'Amoxicilline/Ac. clavulanique 1g IV (Augmentin)', 'Amoxicilline/Ac. clavulanique 2g IV (Augmentin)', 'Ceftriaxone 1g IV', 'Ceftriaxone 2g IV', 'Métronidazole 500mg IV',
         '__CAT__Cardio-vasculaire',
         'Adénosine 6mg IV (Krenosin)', 'Amiodarone 150mg IV (Cordarone)', 'Digoxine 0.5mg IV',
         'Énoxaparine 4000UI IV (Lovenox)', 'Fondaparinux 2.5mg IV (Arixtra)', 'Furosémide 20mg IV (Lasilix)',
