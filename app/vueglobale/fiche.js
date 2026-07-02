@@ -1188,7 +1188,9 @@ function AutreLibre({categorie, onAjouter}) {
     <button onClick={()=>setOpen(true)}
       onMouseEnter={e=>e.currentTarget.style.filter='brightness(0.88)'}
       onMouseLeave={e=>e.currentTarget.style.filter='none'}
-      style={{padding:'5px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'1.5px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:'pointer'}}>
+      style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:6,
+        padding:'6px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'1.5px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:'pointer'}}>
+      <span style={{width:7,height:7,borderRadius:'50%',background:'#f59e0b',flexShrink:0}}/>
       + Autre prescription, saisie libre
     </button>
   );
@@ -1495,12 +1497,19 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   // statistique d'usage (10 molécules les plus fréquentes en pédiatrie).
   const FREQUENTS_PEDIATRIE = [
     {label:'Paracétamol 15mg/kg PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 100mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 200mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 300mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 500mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Ibuprofène 10mg/kg PO (Nurofen)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Phloroglucinol 80mg PO (Spasfon)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Amoxicilline 50mg/kg/j PO (Clamoxyl)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
     {label:'Amox+Ac Clav 100mg/60ml PO (Augmentin)', voie:'PO', color:'#16a34a', cat:'Anti-infectieux'},
     {label:'Racécadotril 100mg PO (Tiorfan)', voie:'PO', color:'#16a34a', cat:'Digestif'},
     {label:'Sels réhydratation PO (Adiaril)', voie:'PO', color:'#16a34a', cat:'Digestif'},
+    {label:'Métopimazine suspension buvable PO (Vogalène)', voie:'PO', color:'#16a34a', cat:'Digestif'},
     {label:'Cétirizine PO (Zyrtec)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
+    {label:'Prednisolone 5mg PO (Solupred)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Paracétamol 15mg/kg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Kétoprofène 1mg/kg IV (Profenid)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Morphine 0.1mg/kg IV [STP]', voie:'IV', color:'#2563eb', cat:'Antalgique'},
@@ -1621,13 +1630,15 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       {voie:'PO', label:'Voie orale', color:'#16a34a', items:[
         '__CAT__Antalgique',
         'Ibuprofène 10mg/kg PO (Nurofen)', 'Paracétamol 15mg/kg PO (Doliprane)', 'Paracétamol 100mg sachet PO (Doliprane)',
-        'Paracétamol 200mg sachet PO (Doliprane)', 'Paracétamol 300mg sachet PO (Doliprane)',
+        'Paracétamol 200mg sachet PO (Doliprane)', 'Paracétamol 300mg sachet PO (Doliprane)', 'Paracétamol 500mg sachet PO (Doliprane)',
+        'Phloroglucinol 80mg PO (Spasfon)',
         '__CAT__Anti-infectieux',
         'Albendazole 4% PO (Zentel)', 'Amox+Ac Clav 100mg/60ml PO (Augmentin)', 'Amoxicilline 50mg/kg/j PO (Clamoxyl)',
         'Artéméther-Luméfantrine selon poids PO (Coartem)', 'Azithromycine 250mg PO (Zithromax)',
         'Cefixime 40mg/5ml PO (Oroken)', 'Ivermectine PO (Stromectol)',
         '__CAT__Digestif',
-        'Métoclopramide sirop PO (Primpéran)', 'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO (Adiaril)',
+        'Métoclopramide sirop PO (Primpéran)', 'Métopimazine suspension buvable PO (Vogalène)',
+        'Racécadotril 100mg PO (Tiorfan)', 'Sels réhydratation PO (Adiaril)',
         '__CAT__Allergologie / Corticoïdes',
         'Cétirizine PO (Zyrtec)', 'Dexchlorphéniramine PO (Polaramine)', 'Prednisolone 5mg PO (Solupred)',
         '__CAT__Autres',
@@ -1772,6 +1783,12 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           'Cardio-vasculaire': '#db2777',
           'Allergologie / Corticoïdes': '#6b7280',
         };
+        // En pédiatrie spécifiquement : Réanimation/Antidotes en rouge (urgence),
+        // Allergologie/Corticoïdes en bleu (distinct du gris utilisé en adulte).
+        const COULEUR_CATEGORIE_PEDIATRIE = {
+          'Réanimation / Antidotes': '#dc2626',
+          'Allergologie / Corticoïdes': '#2563eb',
+        };
         const COULEUR_CATEGORIE_DEFAUT = '#2563eb';
 
         // Rendu d'un bouton médicament : en pédiatrie, aucune dose n'est proposée
@@ -1779,7 +1796,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         // systématique (sécurité). En adulte, comportement inchangé (dose fixe affichée).
         function renderMedButton(item, v, rouge, cat) {
           const isPO = v.voie==='PO';
-          const couleur = rouge ? '#dc2626' : (COULEUR_CATEGORIE[cat] || COULEUR_CATEGORIE_DEFAUT);
+          const palette = tab==='pediatrie' ? {...COULEUR_CATEGORIE, ...COULEUR_CATEGORIE_PEDIATRIE} : COULEUR_CATEGORIE;
+          const couleur = rouge ? '#dc2626' : (palette[cat] || COULEUR_CATEGORIE_DEFAUT);
           if (tab==='pediatrie') {
             const matchMgKg = item.match(/^(.+?) (\d+(?:\.\d+)?)mg\/kg(\/j)?(\s.*)?$/);
             if (matchMgKg) {
