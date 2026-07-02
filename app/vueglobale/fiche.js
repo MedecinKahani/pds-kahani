@@ -1877,7 +1877,7 @@ function DoseManuelleButton({nomMed, parJour, suffixe, voie, rouge, isPO, onAjou
           background:rouge?'#fef2f2':voie.color+'12',
           color:rouge?'#dc2626':voie.color,
           border:'1.5px solid '+(rouge?'#fecaca':voie.color+'44')}}>
-        {nomMed}{suffixe||''} — dose à saisir
+        {nomMed}{suffixe||''}
       </button>
     );
   }
@@ -2204,6 +2204,33 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
     </button>
   );
 
+  // Bouton à saisie manuelle : pas de dose proposée d'emblée (sécurité pédiatrie),
+  // clic ouvre un champ mg, la valeur saisie est injectée dans le texte de l'ordonnance.
+  const BtnPosoManuelle = ({emoji,label,bg,color,border,unit='mg',onConfirm}) => {
+    const [open, setOpen] = useState(false);
+    const [val, setVal] = useState('');
+    function confirmer() { if(!val) return; onConfirm(val); setVal(''); setOpen(false); }
+    if(!open) return (
+      <button onClick={()=>setOpen(true)}
+        style={{padding:'3px 8px',borderRadius:5,background:bg,color,fontSize:10,fontWeight:600,border:'1px solid '+border,cursor:'pointer'}}>
+        {emoji} {label}
+      </button>
+    );
+    return (
+      <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'2px 6px',borderRadius:5,background:bg,border:'1.5px solid '+color}}>
+        <span style={{fontSize:10,fontWeight:600,color}}>{emoji} {label}</span>
+        <input autoFocus value={val} onChange={e=>setVal(e.target.value)} type="number" placeholder={unit}
+          onKeyDown={e=>{if(e.key==='Enter') confirmer(); if(e.key==='Escape'){setOpen(false);setVal('');}}}
+          style={{width:48,padding:'2px 4px',borderRadius:4,border:'1.5px solid '+color,fontSize:10,outline:'none',textAlign:'center'}}/>
+        <span style={{fontSize:9,color:'#6b7280'}}>{unit}</span>
+        <button onClick={confirmer} disabled={!val}
+          style={{padding:'2px 6px',borderRadius:4,background:val?color:'#e5e7eb',color:'#fff',fontSize:9,fontWeight:700,border:'none',cursor:'pointer'}}>✓</button>
+        <button onClick={()=>{setOpen(false);setVal('');}}
+          style={{padding:'2px 4px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:9,border:'none',cursor:'pointer'}}>✕</button>
+      </span>
+    );
+  };
+
   // 1. Paracétamol
   let doseP, posoP;
   if (pds>0&&pds<=33) {
@@ -2272,17 +2299,37 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
       <Btn onClick={()=>ajouter('ANTALGIQUE\n\nParacétamol '+doseP+' PO\n→ '+posoP+'\n→ À avaler avec un grand verre d\'eau')}
         bg="#f0fdf4" color="#16a34a" border="#bbf7d0">🩹 Paracétamol {doseP}</Btn>
 
-      <Btn onClick={()=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+doseIbu+' PO\n→ '+posoIbu)}
-        bg="#fff7ed" color="#ea580c" border="#fed7aa">🔥 Ibuprofène</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="🔥" label="Ibuprofène" bg="#fff7ed" color="#ea580c" border="#fed7aa"
+          onConfirm={mg=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+mg+'mg PO\n→ ×3/jour au cours du repas\n→ Avec un grand verre d\'eau, ne pas prendre à jeun\n→ Durée max 5 jours')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTI-INFLAMMATOIRE\n\nIbuprofène '+doseIbu+' PO\n→ '+posoIbu)}
+          bg="#fff7ed" color="#ea580c" border="#fed7aa">🔥 Ibuprofène</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+doseAmx+' PO\n→ '+posoAmx)}
-        bg="#eff6ff" color="#2563eb" border="#bfdbfe">💊 Amoxicilline</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="💊" label="Amoxicilline" bg="#eff6ff" color="#2563eb" border="#bfdbfe" unit="mg/j"
+          onConfirm={mgj=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+mgj+'mg/j PO\n→ en 2-3 prises — 6 à 7 jours')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline '+doseAmx+' PO\n→ '+posoAmx)}
+          bg="#eff6ff" color="#2563eb" border="#bfdbfe">💊 Amoxicilline</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+doseAug+' PO\n→ '+posoAug)}
-        bg="#eef2ff" color="#4f46e5" border="#c7d2fe">💊 Augmentin</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="💊" label="Augmentin" bg="#eef2ff" color="#4f46e5" border="#c7d2fe" unit="mg/j"
+          onConfirm={mgj=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+mgj+'mg/j PO\n→ en 3 prises — 7 jours')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIBIOTIQUE\n\nAmoxicilline/Acide clavulanique (Augmentin) '+doseAug+' PO\n→ '+posoAug)}
+          bg="#eef2ff" color="#4f46e5" border="#c7d2fe">💊 Augmentin</Btn>
+      )}
 
-      <Btn onClick={()=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan PO\n→ '+posoTio)}
-        bg="#fefce8" color="#a16207" border="#fde68a">💧 Tiorfan</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="💧" label="Tiorfan" bg="#fefce8" color="#a16207" border="#fde68a"
+          onConfirm={mg=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan '+mg+'mg PO\n→ ×3/jour avant les repas, jusqu\'à amélioration (max 7 jours)')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIDIARRHÉIQUE\n\nTiorfan PO\n→ '+posoTio)}
+          bg="#fefce8" color="#a16207" border="#fde68a">💧 Tiorfan</Btn>
+      )}
 
       <Btn onClick={()=>ajouter('LAVAGE NASAL\n\nSérum salé physiologique\n→ Lavage nasal selon âge, unidoses ×4-6/jour si nourrisson\n→ DRP avant chaque tétée/repas si encombrement')}
         bg="#eff6ff" color="#0891b2" border="#a5f3fc">💦 Sérum salé (DRP)</Btn>
@@ -2290,8 +2337,13 @@ function OrdonnancesRapides({p, ordonnance, setOrdonnance, dbSave}) {
       <Btn onClick={()=>ajouter('SOINS LOCAUX\n\nBiseptine\n→ Application locale 1x/jour sur la plaie après lavage\n→ Pansement simple')}
         bg="#fdf2f8" color="#be185d" border="#fbcfe8">🩹 Biseptine</Btn>
 
-      <Btn onClick={()=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) PO\n→ '+posoVog)}
-        bg="#f5f3ff" color="#7c3aed" border="#ddd6fe">🤢 Vogalène</Btn>
+      {!adulte && pds>0 ? (
+        <BtnPosoManuelle emoji="🤢" label="Vogalène" bg="#f5f3ff" color="#7c3aed" border="#ddd6fe" unit="mg/j"
+          onConfirm={mgj=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) '+mgj+'mg/j PO\n→ en 2-3 prises, en suppositoire ou sirop selon âge')}/>
+      ) : (
+        <Btn onClick={()=>ajouter('ANTIÉMÉTIQUE\n\nMétopimazine (Vogalène) PO\n→ '+posoVog)}
+          bg="#f5f3ff" color="#7c3aed" border="#ddd6fe">🤢 Vogalène</Btn>
+      )}
 
       <Btn onClick={()=>ajouter('ANTIHISTAMINIQUE\n\nAerius (desloratadine)\n→ '+posoAer)}
         bg="#ecfeff" color="#0e7490" border="#a5f3fc">🤧 Aerius</Btn>
