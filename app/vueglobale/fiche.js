@@ -1598,7 +1598,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL__',
         '__CAT__Asthme',
-        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
+        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)', 'Sérum physiologique nébulisation',
         '__CAT__Antalgique',
         'MEOPA',
         '__CAT__Réanimation / Antidotes',
@@ -1664,7 +1664,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL__',
         '__CAT__Asthme',
-        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
+        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)', 'Sérum physiologique nébulisation',
         '__CAT__Antalgique',
         'MEOPA',
         '__CAT__Réanimation / Antidotes',
