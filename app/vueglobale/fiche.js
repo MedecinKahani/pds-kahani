@@ -1496,7 +1496,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   // Liste à valider par l'équipe médicale — proposition initiale, pas une vraie
   // statistique d'usage (10 molécules les plus fréquentes en pédiatrie).
   const FREQUENTS_PEDIATRIE = [
-    {label:'Paracétamol 15mg/kg PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
+    {label:'Paracétamol 15mg/kg PO (Doliprane suspension buvable, dose-poids)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Paracétamol 100mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Paracétamol 200mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     {label:'Paracétamol 300mg sachet PO (Doliprane)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
