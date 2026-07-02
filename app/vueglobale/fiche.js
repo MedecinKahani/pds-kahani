@@ -1667,6 +1667,8 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
         '__CAT__Antalgique',
         'MEOPA',
+        '__CAT__Réanimation / Antidotes',
+        'Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
       ]},
     ],
   };
