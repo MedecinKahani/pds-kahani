@@ -1438,7 +1438,7 @@ function TransmissionIDE({p, user, transmissions, setTransmissions}) {
 
 function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
   const age = parseFloat(patient?.age);
-  const estEnfant = !isNaN(age) && age < 16;
+  const estEnfant = !isNaN(age) && age < 12;
   const [tab, setTab] = useState(estEnfant ? 'pediatrie' : 'adulte');
   useEffect(()=>{ if(estEnfant) setTab('pediatrie'); }, [estEnfant]);
   const [voieOuverte, setVoieOuverte] = useState(null);
@@ -1711,7 +1711,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           );
         })}
       </div>
-      {estEnfant && <div style={{fontSize:10,color:'#9ca3af',marginBottom:8}}>Patient &lt; 16 ans — doses adulte masquées</div>}
+      {estEnfant && <div style={{fontSize:10,color:'#9ca3af',marginBottom:8}}>Patient &lt; 12 ans — doses adulte masquées</div>}
 
       {/* 4 groupes : Per os (+ Respiratoire, Auriculaire), IV (+ Hydratation, Morphine), IM (+ SC), Nébulisation */}
       {/* Chacun 1/4 de la largeur, couleur propre au groupe une fois sélectionné + émoticône pour distinguer d'un coup d'œil */}
