@@ -1502,7 +1502,6 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Cétirizine PO (Zyrtec)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Paracétamol 15mg/kg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Ceftriaxone 50mg/kg IV (Rocéphine)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
-    {label:'Budésonide 0.5mg nébulisation (Pulmicort)', voie:'RESPI', color:'#64748b', cat:'Asthme'},
   ];
   const VOIES = {
     adulte: [
@@ -1662,9 +1661,9 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
         'Vaccin antitétanique SC', 'Vaccin Hépatite B SC (Engerix B10)', 'Vaccin ROR SC (Priorix)',
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
-        '__AEROSOL__',
+        '__AEROSOL_PED__',
         '__CAT__Asthme',
-        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)', 'Sérum physiologique nébulisation',
+        'Sérum physiologique nébulisation', 'DRP',
         '__CAT__Antalgique',
         'MEOPA',
         '__CAT__Réanimation / Antidotes',
@@ -1728,7 +1727,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           const map = {};
           let catCourante = null;
           for (const it of items) {
-            if (it === '__AEROSOL__') { (map['__AEROSOL__']=map['__AEROSOL__']||[]).push(it); continue; }
+            if (it === '__AEROSOL__' || it === '__AEROSOL_PED__') { (map[it]=map[it]||[]).push(it); continue; }
             if (it.startsWith('__CAT__')) { catCourante = it.replace('__CAT__',''); map[catCourante]=map[catCourante]||[]; continue; }
             if (catCourante) map[catCourante].push(it);
           }
@@ -1851,12 +1850,16 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
           );
         }
 
-        // Nébuliseur : widget hors catégorisation (RESPI seulement), affiché en tête
+        // Nébuliseur : widget hors catégorisation (RESPI seulement), affiché en tête.
+        // Adulte : sélecteur poids -> dose calculée. Pédiatrie : Ventoline/Atrovent
+        // séparés, choix manuel de dose (pas de poids, pas de calcul auto).
         const aerosolPresent = completParCat['__AEROSOL__'];
+        const aerosolPedPresent = completParCat['__AEROSOL_PED__'];
 
         return (
           <div style={{maxHeight:'40vh',overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
             {aerosolPresent && <AerosolSelector onAjouter={onAjouter} onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions} poidsInitial={patient?.poids}/>}
+            {aerosolPedPresent && <AerosolPediatrieSelector onAjouterPlusieurs={onAjouterPlusieurs} prescriptions={prescriptions}/>}
 
             {ordre.map(slot=>slot.startsWith('__')
               ? renderWidget(slot)
@@ -1962,6 +1965,59 @@ function DoseDosetteButton({item, couleur, rouge, onAjouter}) {
       <button onClick={()=>{setOpen(false);setQte('');}}
         style={{padding:'2px 5px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
     </span>
+  );
+}
+
+function DoseChoixNebu({label, molecule, doses, seances, color, onAjouterPlusieurs}) {
+  const [open, setOpen] = useState(false);
+
+  function choisir(dose) {
+    const items = [];
+    for (let i=1; i<=seances; i++) {
+      items.push({texte:`${molecule} ${dose} nébulisation (${label}) — Séance ${i}/${seances}`, categorie:'therapeutique'});
+    }
+    onAjouterPlusieurs(items);
+    setOpen(false);
+  }
+
+  if (!open) return (
+    <button onClick={()=>setOpen(true)}
+      onMouseEnter={e=>{e.currentTarget.style.filter='brightness(0.9)';}}
+      onMouseLeave={e=>{e.currentTarget.style.filter='none';}}
+      style={{padding:'8px 16px',borderRadius:8,fontSize:12,fontWeight:700,cursor:'pointer',
+        background:color+'12',color,border:'1.5px solid '+color+'55'}}>
+      💨 {label} {seances>1?`×${seances}`:''}
+    </button>
+  );
+
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',gap:6,padding:'6px 10px',borderRadius:8,background:color+'12',border:'1.5px solid '+color}}>
+      <span style={{fontSize:11,fontWeight:700,color}}>{label} :</span>
+      {doses.map(d=>(
+        <button key={d} onClick={()=>choisir(d)}
+          style={{padding:'5px 12px',borderRadius:6,fontSize:12,fontWeight:700,cursor:'pointer',background:color,color:'#fff',border:'none'}}>
+          {d}
+        </button>
+      ))}
+      <button onClick={()=>setOpen(false)}
+        style={{padding:'3px 7px',borderRadius:4,background:'#f3f4f6',color:'#6b7280',fontSize:10,border:'none',cursor:'pointer'}}>✕</button>
+    </span>
+  );
+}
+
+function AerosolPediatrieSelector({onAjouterPlusieurs, prescriptions}) {
+  const dejaVento = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Salbutamol'));
+  const dejaAtro = prescriptions.find(r=>!r.fait&&!r.nonRealise&&r.texte.startsWith('Ipratropium'));
+
+  if (dejaVento && dejaAtro) return (
+    <div style={{fontSize:11,color:'#9ca3af',padding:'4px 8px',fontStyle:'italic'}}>Aérosols déjà prescrits</div>
+  );
+
+  return (
+    <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+      {!dejaVento && <DoseChoixNebu label="Ventoline" molecule="Salbutamol" doses={['2.5mg','5mg']} seances={3} color="#0891b2" onAjouterPlusieurs={onAjouterPlusieurs}/>}
+      {!dejaAtro && <DoseChoixNebu label="Atrovent" molecule="Ipratropium" doses={['0.5mg','0.25mg']} seances={1} color="#0891b2" onAjouterPlusieurs={onAjouterPlusieurs}/>}
+    </div>
   );
 }
 
