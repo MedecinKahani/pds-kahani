@@ -146,6 +146,40 @@ function BoutonStats({ router }) {
   );
 }
 
+function GuideSortiePopup({ prenom, onFermer }) {
+  return (
+    <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10001,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div style={{background:'#fff',borderRadius:16,width:520,maxHeight:'85vh',overflowY:'auto',padding:'24px',boxShadow:'0 24px 64px rgba(0,0,0,0.25)'}}>
+        <div style={{fontWeight:800,fontSize:16,color:'#111827',marginBottom:14}}>📁 Où enregistrer le fichier de sortie</div>
+
+        <div style={{fontSize:13,color:'#374151',lineHeight:1.7}}>
+          <p>Bonjour {prenom||''},</p>
+          <p>Les documents de sortie doivent être enregistrés dans un dossier accessible à la secrétaire, qui les intégrera plus tard dans DxCare.</p>
+          <p>Pour cela, je vous montre le chemin à parcourir pour le premier patient. Par la suite, le chemin sera automatique et il suffira d'enregistrer en un clic dans le bon dossier.</p>
+          <p><strong>Pour votre premier patient</strong>, cliquez sur "Sortie" puis sélectionnez la modalité de sortie (RAD ? Transfert ? GAV ?).</p>
+          <p>Un nouvel onglet apparaît et vous propose d'imprimer. Sélectionnez l'imprimante et appuyez sur <strong>"Enregistrer en PDF"</strong>.</p>
+          <p>Vous devez ensuite trouver le dossier <strong>"Sortie PDS"</strong>, accessible à la secrétaire. Voici le chemin :</p>
+          <p style={{background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:8,padding:'10px 12px',fontFamily:'monospace',fontSize:12}}>
+            Bureau → Service C (partagé) → Services médicaux → Dispensaire Kahani → Sortie PDS
+          </p>
+          <p>Enregistrez le fichier ici. Les prochaines sorties proposeront automatiquement ce même dossier "Sortie PDS".</p>
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:20}}>
+          <button onClick={()=>onFermer(false)}
+            style={{padding:'12px',borderRadius:10,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:700,border:'none',cursor:'pointer'}}>
+            J'ai compris — Bon courage !
+          </button>
+          <button onClick={()=>onFermer(true)}
+            style={{padding:'8px',borderRadius:10,background:'none',color:'#6b7280',fontSize:12,fontWeight:500,border:'none',cursor:'pointer',textDecoration:'underline'}}>
+            Revoir ce message à la prochaine sortie
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OverlaySortie({ patient, onClose, onConfirm }) {
   const [modalite, setModalite] = React.useState('');
   const [moyen, setMoyen] = React.useState('');
@@ -236,6 +270,8 @@ export default function PageVueGlobale() {
   const [showSortis,setShowSortis] = useState(false);
   const [patientsSortis,setPatientsSortis] = useState([]);
   const [agents,setAgents] = useState([]); // présence temps réel, tous postes confondus
+  const [guideSortieAAfficher,setGuideSortieAAfficher] = useState(false);
+  const [guideSortieVisible,setGuideSortieVisible] = useState(false);
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
@@ -254,6 +290,22 @@ export default function PageVueGlobale() {
     const iv=setInterval(load,8000);
     return()=>clearInterval(iv);
   },[]);
+
+  // Guide "où enregistrer le PDF de sortie" : affiché une fois au médecin,
+  // lors de sa première sortie patient (voir GuideSortiePopup plus bas).
+  useEffect(()=>{
+    fetch('/api/guide-sortie').then(r=>r.json()).then(d=>{
+      if(d.afficher) setGuideSortieAAfficher(true);
+    }).catch(()=>{});
+  },[]);
+  useEffect(()=>{
+    if(fichesSortie && guideSortieAAfficher) setGuideSortieVisible(true);
+  },[fichesSortie]);
+  function fermerGuideSortie(revoir) {
+    fetch('/api/guide-sortie',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revoir})}).catch(()=>{});
+    setGuideSortieVisible(false);
+    if(!revoir) setGuideSortieAAfficher(false);
+  }
 
   // Présence temps réel : lecture de la liste des agents connectés (le battement
   // lui-même est envoyé globalement depuis le layout racine, sur toutes les pages).
@@ -705,8 +757,13 @@ export default function PageVueGlobale() {
         </div>
       )}
 
+      {/* GUIDE PREMIERE SORTIE (medecin) */}
+      {fichesSortie && guideSortieVisible && (
+        <GuideSortiePopup prenom={user?.nom} onFermer={fermerGuideSortie}/>
+      )}
+
       {/* OVERLAY SORTIE */}
-      {fichesSortie&&(
+      {fichesSortie && !guideSortieVisible && (
         <OverlaySortie
           patient={fichesSortie}
           onClose={()=>setFichesSortie(null)}
