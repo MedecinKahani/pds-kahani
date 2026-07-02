@@ -338,15 +338,15 @@ export default function NouveauPatient() {
           <div style={{fontWeight:700,fontSize:14,color:'#111827',marginBottom:12}}>Motif *</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             {[
-              {id:'coma',l:'Trouble de la conscience'},
-              {id:'avc',l:'Paralysie / Suspicion AVC'},
-              {id:'detresse_respi',l:'Difficulte respiratoire'},
-              {id:'plaie',l:'Plaie'},
-              {id:'fievre',l:'Fievre'},
-              {id:'vertige',l:'Vertige / Malaise'},
-              {id:'douleur',l:'Douleur'},
-              {id:'soins_ide',l:'Soins infirmiers'},
-              {id:'autre',l:'Autre'},
+              {id:'coma',l:'😵 Trouble de la conscience'},
+              {id:'avc',l:'🧠 Paralysie / Suspicion AVC'},
+              {id:'detresse_respi',l:'🫁 Difficulte respiratoire'},
+              {id:'plaie',l:'🩹 Plaie'},
+              {id:'fievre',l:'🌡️ Fievre'},
+              {id:'vertige',l:'💫 Vertige / Malaise'},
+              {id:'douleur',l:'😣 Douleur'},
+              {id:'soins_ide',l:'💉 Soins infirmiers'},
+              {id:'autre',l:'❓ Autre'},
             ].map(function(s) {
               return (
                 <Btn key={s.id} onClick={()=>set('symptome',s.id)}
