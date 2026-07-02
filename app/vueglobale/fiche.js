@@ -41,7 +41,7 @@ const GROUPES_VOIE = [
 // été demandé (Hydratation et Titration morphine intercalées entre les
 // catégories médicamenteuses, plutôt que systématiquement en tête).
 const ORDRE_CATEGORIES_DEFAUT = [
-  'Antalgique', 'Anti-infectieux', 'Cardio-vasculaire', 'Respiratoire',
+  'Asthme', 'Antalgique', 'Anti-infectieux', 'Cardio-vasculaire', 'Respiratoire',
   'Neuro-sédation', 'Digestif', 'Allergologie / Corticoïdes',
   'Réanimation / Antidotes', 'Métabolique / Solutés', 'Anesthésie locale', 'Autres',
 ];
@@ -1469,7 +1469,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Propranolol 10mg PO', voie:'PO', color:'#16a34a', cat:'Cardio-vasculaire'},
     {label:'Tramadol 50mg PO (Topalgic)', voie:'PO', color:'#16a34a', cat:'Antalgique'},
     // Nébulisation
-    {label:'MEOPA', voie:'RESPI', color:'#0891b2', cat:'Respiratoire'},
+    {label:'MEOPA', voie:'RESPI', color:'#0891b2', cat:'Antalgique'},
     // Auriculaire
     {label:'Ofloxacine solution auriculaire (Oflocet)', voie:'AURICULAIRE', color:'#a855f7', cat:'Anti-infectieux'},
     // IV
@@ -1502,7 +1502,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Cétirizine PO (Zyrtec)', voie:'PO', color:'#16a34a', cat:'Allergologie / Corticoïdes'},
     {label:'Paracétamol 15mg/kg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Ceftriaxone 50mg/kg IV (Rocéphine)', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
-    {label:'Budésonide 0.5mg nébulisation (Pulmicort)', voie:'RESPI', color:'#64748b', cat:'Respiratoire'},
+    {label:'Budésonide 0.5mg nébulisation (Pulmicort)', voie:'RESPI', color:'#64748b', cat:'Asthme'},
   ];
   const VOIES = {
     adulte: [
@@ -1597,9 +1597,12 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL__',
-        '__CAT__Respiratoire',
+        '__CAT__Asthme',
+        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
+        '__CAT__Antalgique',
+        'MEOPA',
+        '__CAT__Réanimation / Antidotes',
         'Adrénaline 1mg nébulisation — laryngite enfant (1amp + 4ml NaCl 0.9%)',
-        'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)', 'MEOPA',
       ]},
       {voie:'AURICULAIRE', label:'Auriculaire', color:'#a855f7', items:[
         '__CAT__Anti-infectieux',
@@ -1660,8 +1663,9 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
       ]},
       {voie:'RESPI', label:'Respiratoire', color:'#64748b', items:[
         '__AEROSOL__',
-        '__CAT__Respiratoire',
+        '__CAT__Asthme',
         'Budésonide 0.5mg nébulisation (Pulmicort)', 'Budésonide 1mg nébulisation (Pulmicort)',
+        '__CAT__Antalgique',
         'MEOPA',
       ]},
     ],
