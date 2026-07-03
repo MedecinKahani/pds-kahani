@@ -258,7 +258,7 @@ export default function PageVueGlobale() {
   const [guideSortieAAfficher,setGuideSortieAAfficher] = useState(false);
   const [guideSortieVisible,setGuideSortieVisible] = useState(false);
   const [acteIdeCible,setActeIdeCible] = useState(null); // null | 'nouveau' | patient existant (soins IDE deja enregistre par l'AS)
-  const [acteIde,setActeIde] = useState({ipp:'',sexe:'',type:'',note:''});
+  const [acteIde,setActeIde] = useState({ipp:'',sexe:'',type:'',note:'',tel:'',ville:''});
   const [acteIdeEnvoi,setActeIdeEnvoi] = useState(false);
 
   const load = useCallback(async()=>{
@@ -324,31 +324,43 @@ export default function PageVueGlobale() {
   }
 
   function ouvrirNouvelActeIde() {
-    setActeIde({ipp:'',sexe:'',type:'',note:''});
+    setActeIde({ipp:'',sexe:'',type:'',note:'',tel:'',ville:''});
     setActeIdeCible('nouveau');
   }
   function ouvrirActeIdeExistant(p) {
-    setActeIde({ipp:p.ipp||'',sexe:p.sexe||'',type:p.soins_type||'',note:p.note_acte||''});
+    setActeIde({ipp:p.ipp||'',sexe:p.sexe||'',type:p.soins_type||'',note:p.note_acte||'',tel:p.tel||'',ville:p.ville||''});
     setActeIdeCible(p);
   }
   async function soumettreActeIde() {
     if (!acteIde.ipp.trim() || !acteIde.type) return;
+    if (acteIde.type==='bio' && !acteIde.tel.trim()) return;
     setActeIdeEnvoi(true);
+    let idPourPrelev;
     if (acteIdeCible === 'nouveau') {
+      idPourPrelev = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2));
       await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
         action:'acteIdeDirect',
-        patient:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null }
+        patient:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null, tel:acteIde.tel.trim()||null, ville:acteIde.ville.trim()||null }
       })});
     } else {
+      idPourPrelev = acteIdeCible.id;
       const id = acteIdeCible.id;
       await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-        action:'update', id, patch:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null }
+        action:'update', id, patch:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null, tel:acteIde.tel.trim()||null, ville:acteIde.ville.trim()||null }
       })});
       await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ action:'discharge', id })});
     }
+    // Prélèvement : alimente aussi la liste "Patients prélevés" (tél pour rappel si le labo signale une anomalie)
+    if (acteIde.type==='bio') {
+      await fetch('/api/prelev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        id:idPourPrelev, ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null,
+        tel:acteIde.tel.trim(), ville:acteIde.ville.trim()||null,
+        ts:Date.now(), faitPar:user?.nom||user?.matricule,
+      })});
+    }
     setActeIdeEnvoi(false);
     setActeIdeCible(null);
-    setActeIde({ipp:'',sexe:'',type:'',note:''});
+    setActeIde({ipp:'',sexe:'',type:'',note:'',tel:'',ville:''});
     load();
   }
   async function terminerSoinIde(id) {
@@ -857,15 +869,29 @@ export default function PageVueGlobale() {
 
             <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Précision (optionnel)</label>
             <input value={acteIde.note} onChange={e=>setActeIde({...acteIde,note:e.target.value})} placeholder="Ex: Vitamine B12, pansement..."
-              style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 14px',boxSizing:'border-box'}}/>
+              style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 10px',boxSizing:'border-box'}}/>
+
+            {acteIde.type==='bio' && (
+              <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:10,padding:'10px 12px',marginBottom:14}}>
+                <div style={{fontSize:10,color:'#1e40af',marginBottom:8,lineHeight:1.4}}>
+                  🧪 Prélèvement : coordonnées nécessaires pour rappeler le patient si le labo signale une anomalie. Ajouté à la liste "Patients prélevés".
+                </div>
+                <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Téléphone *</label>
+                <input value={acteIde.tel} onChange={e=>setActeIde({...acteIde,tel:e.target.value})} type="tel"
+                  style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 8px',boxSizing:'border-box'}}/>
+                <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Village / Quartier</label>
+                <input value={acteIde.ville} onChange={e=>setActeIde({...acteIde,ville:e.target.value})}
+                  style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 0',boxSizing:'border-box'}}/>
+              </div>
+            )}
 
             <div style={{display:'flex',gap:8}}>
-              <button onClick={()=>{setActeIdeCible(null);setActeIde({ipp:'',sexe:'',type:'',note:''});}}
+              <button onClick={()=>{setActeIdeCible(null);setActeIde({ipp:'',sexe:'',type:'',note:'',tel:'',ville:''});}}
                 style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:13,cursor:'pointer'}}>
                 Annuler
               </button>
-              <button onClick={soumettreActeIde} disabled={acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type}
-                style={{flex:1,padding:'10px',borderRadius:8,background:(acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type)?'#93c5fd':'#3b82f6',color:'#fff',border:'none',fontSize:13,fontWeight:600,cursor:(acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type)?'not-allowed':'pointer'}}>
+              <button onClick={soumettreActeIde} disabled={acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type||(acteIde.type==='bio'&&!acteIde.tel.trim())}
+                style={{flex:1,padding:'10px',borderRadius:8,background:(acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type||(acteIde.type==='bio'&&!acteIde.tel.trim()))?'#93c5fd':'#3b82f6',color:'#fff',border:'none',fontSize:13,fontWeight:600,cursor:(acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type||(acteIde.type==='bio'&&!acteIde.tel.trim()))?'not-allowed':'pointer'}}>
                 {acteIdeEnvoi?'Enregistrement...':'Enregistrer'}
               </button>
             </div>
