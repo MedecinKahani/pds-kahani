@@ -808,7 +808,7 @@ export default function PageVueGlobale() {
                     <span style={{color:'#6b7280'}}>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})():'—'}</span>
                     <span style={{fontWeight:700}}>IPP {p.ipp||'—'}</span>
                     <span style={{color:'#6b7280'}}>
-                      sorti le {p.sortie?new Date(parseInt(p.sortie)).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'--'} à {p.sortie?new Date(parseInt(p.sortie)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace(':','h'):'--'}
+                      sorti le {p.sortie?new Date(parseInt(p.sortie)).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'--'} à {p.sortie?new Date(parseInt(p.sortie)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace(':','h'):'--'}
                     </span>
                   </div>
                   <button onClick={async()=>{
