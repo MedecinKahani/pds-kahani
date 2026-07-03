@@ -150,7 +150,7 @@ export default function NouveauPatient() {
     }
     if (s==='plaie') {
       const p1ok = heure>=19||heure<6;
-      if (f.plaie_depuis==='>24h') return {place:'dehors', label:'Dehors', urgence:false, msg:'Plaie ancienne — Faire patienter'};
+      if (f.plaie_depuis==='>8h') return {place:'dehors', label:'Dehors', urgence:false, msg:'Plaie ancienne — Faire patienter'};
       const b1libre = !occupees.includes('brancard1');
       const b2libre = !occupees.includes('brancard2');
       // B1 libre : B2 disponible pour plaie (déchocage non saturé)
@@ -482,8 +482,8 @@ export default function NouveauPatient() {
           <div style={card}>
             <label style={lbl}>Depuis quand ? *</label>
             <div style={{display:'flex',gap:8,marginBottom:12}}>
-              <Btn onClick={()=>set('plaie_depuis','<24h')} style={pSt(f.plaie_depuis==='<24h')}>Moins de 24h</Btn>
-              <Btn onClick={()=>set('plaie_depuis','>24h')} style={pSt(f.plaie_depuis==='>24h','#6b7280')}>Plus de 24h</Btn>
+              <Btn onClick={()=>set('plaie_depuis','<8h')} style={pSt(f.plaie_depuis==='<8h')}>Moins de 8h</Btn>
+              <Btn onClick={()=>set('plaie_depuis','>8h')} style={pSt(f.plaie_depuis==='>8h','#6b7280')}>Plus de 8h</Btn>
             </div>
             <label style={lbl}>Carnet vaccinal ? *</label>
             <div style={{display:'flex',gap:6,flexDirection:'column',marginBottom:12}}>
