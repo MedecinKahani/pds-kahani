@@ -131,21 +131,6 @@ function BoutonPanne({ router, user }) {
   );
 }
 
-function BoutonStats({ router }) {
-  const style = {padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'};
-
-  return (
-    <div style={{position:'relative',display:'inline-block'}}>
-      <button onClick={()=>router.push('/stats-mensuelles')} style={style}>
-        Statistiques
-      </button>
-      <button onClick={()=>router.push('/preleves')} style={style}>
-        🧪 Prélevés
-      </button>
-    </div>
-  );
-}
-
 function GuideSortiePopup({ prenom, onFermer }) {
   return (
     <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10001,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
@@ -579,7 +564,10 @@ export default function PageVueGlobale() {
           <span style={{fontSize:12,color:'#9ca3af',marginRight:4}}>{user?.nom}</span>
           <button onClick={()=>{setFicheOuverte(null);setFichesSortie(null);setShowSortis(false);window.location.href='/nouveau-patient';}} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
           <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Ajouter collègue</button>
-          {(user.role==='medecin'||user.role==='secretaire')&&<BoutonStats router={router}/>}
+          {(user.role==='medecin'||user.role==='secretaire')&&(
+            <button onClick={()=>router.push('/stats-mensuelles')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Statistiques</button>
+          )}
+          <button onClick={()=>router.push('/preleves')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>🧪 Prélevés</button>
           <BoutonPanne router={router} user={user}/>
           <button onClick={async()=>{
             setShowSortis(true);
