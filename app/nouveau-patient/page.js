@@ -53,7 +53,7 @@ function prefPlace(pref, occ) {
 
 // Resout une liste de candidats vers UNE seule localisation concrete.
 // L'AS ne doit jamais voir plusieurs options ("Lit 1 ou Lit 2...") — seulement
-// celle choisie. Le bouton "Enregistrer sur un autre emplacement" reste
+// celle choisie. Le bouton "Choisir un autre emplacement" reste
 // disponible pour un choix manuel si besoin.
 function placer(candidats, occ) {
   const place = prefPlace(candidats, occ);
@@ -715,8 +715,8 @@ export default function NouveauPatient() {
             {saving?'Enregistrement...':(placement?'Enregistrer — '+placement.label:'Enregistrer le patient')}
           </Btn>
           {canSubmit && !saving && !showAutreEmplacement && (
-            <Btn onClick={()=>setShowAutreEmplacement(true)} style={{width:'100%',padding:'12px',borderRadius:12,fontSize:13,fontWeight:600,background:'#fff',color:'#6b7280',border:'1.5px solid #e5e7eb'}}>
-              Enregistrer sur un autre emplacement
+            <Btn onClick={()=>setShowAutreEmplacement(true)} style={{width:'100%',padding:'12px',borderRadius:12,fontSize:13,fontWeight:700,background:'#eff6ff',color:'#1d4ed8',border:'1.5px solid #bfdbfe'}}>
+              ✎ Choisir un autre emplacement
             </Btn>
           )}
           {canSubmit && !saving && showAutreEmplacement && (
