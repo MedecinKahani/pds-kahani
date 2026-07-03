@@ -88,6 +88,26 @@ export async function POST(req) {
       return Response.json({ ok: true });
     }
 
+    if (action === 'acteIdeDirect') {
+      const { patient: p } = body;
+      const id = genId();
+      const now = Date.now();
+      const patient = {
+        ...p,
+        id,
+        arrivee: now,
+        sortie: now,
+        statut: 'sorti',
+        symptome: 'soins_ide',
+      };
+      await kv.hset(`archive:${id}`, patient);
+      await kv.expire(`archive:${id}`, 86400); // 24h
+      await incrementerCompteurs(patient);
+      await logAudit(id, 'acteIdeDirect', session.matricule, { soins_type: patient.soins_type || null, ipp: patient.ipp || null });
+      const all = await getAllPatients();
+      return Response.json({ ok: true, patients: all });
+    }
+
     if (action === 'discharge') {
       const { id, modalite_sortie, moyen_sortie } = body;
       const patient = await kv.hgetall(`patient:${id}`);

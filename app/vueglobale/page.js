@@ -257,6 +257,9 @@ export default function PageVueGlobale() {
   const [agents,setAgents] = useState([]); // présence temps réel, tous postes confondus
   const [guideSortieAAfficher,setGuideSortieAAfficher] = useState(false);
   const [guideSortieVisible,setGuideSortieVisible] = useState(false);
+  const [showActeIde,setShowActeIde] = useState(false);
+  const [acteIde,setActeIde] = useState({ipp:'',sexe:'',type:'',note:''});
+  const [acteIdeEnvoi,setActeIdeEnvoi] = useState(false);
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
@@ -318,6 +321,23 @@ export default function PageVueGlobale() {
       await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id})});
     }
     setSel(null);setDiag('');setOrient('');load();
+  }
+
+  async function soumettreActeIde() {
+    if (!acteIde.ipp.trim() || !acteIde.type) return;
+    setActeIdeEnvoi(true);
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      action:'acteIdeDirect',
+      patient:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null }
+    })});
+    setActeIdeEnvoi(false);
+    setShowActeIde(false);
+    setActeIde({ipp:'',sexe:'',type:'',note:''});
+    load();
+  }
+  async function terminerSoinIde(id) {
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id})});
+    load();
   }
 
   if(!user)return null;
@@ -692,10 +712,16 @@ export default function PageVueGlobale() {
 
           {/* SOINS INFIRMIERS */}
           <div style={{marginTop:12,paddingTop:10,borderTop:'1px solid #f3f4f6'}}>
-            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-              <div style={{width:8,height:8,borderRadius:'50%',background:soinsIDE.length>0?'#3b82f6':'#e5e7eb'}}/>
-              <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Soins IDE</span>
-              {soinsIDE.length>0&&<span style={{background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{soinsIDE.length}</span>}
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{width:8,height:8,borderRadius:'50%',background:soinsIDE.length>0?'#3b82f6':'#e5e7eb'}}/>
+                <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Soins IDE</span>
+                {soinsIDE.length>0&&<span style={{background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{soinsIDE.length}</span>}
+              </div>
+              <button onClick={()=>setShowActeIde(true)}
+                style={{padding:'4px 10px',borderRadius:6,background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,border:'1px solid #bfdbfe',cursor:'pointer'}}>
+                + Ajouter acte IDE
+              </button>
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:6}}>
               {soinsIDE.length===0&&<div style={{fontSize:11,color:'#9ca3af',fontStyle:'italic'}}>Aucun patient</div>}
@@ -722,7 +748,7 @@ export default function PageVueGlobale() {
                         <option value="">Installer...</option>
                         {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
                       </select>
-                      <button onClick={()=>setFichesSortie(p)} style={{padding:'3px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',fontSize:9,fontWeight:600,cursor:'pointer',border:'1px solid #e5e7eb',flexShrink:0}}>Sortie</button>
+                      <button onClick={()=>terminerSoinIde(p.id)} style={{padding:'3px 7px',borderRadius:5,background:'#f0fdf4',color:'#16a34a',fontSize:9,fontWeight:600,cursor:'pointer',border:'1px solid #bbf7d0',flexShrink:0}}>Fait</button>
                     </div>
                   </div>
                 );
@@ -775,6 +801,58 @@ export default function PageVueGlobale() {
             load();
           }}
         />
+      )}
+
+      {/* MODAL AJOUTER ACTE IDE (patient sans passage AS : prelevement, injection... venu directement) */}
+      {showActeIde && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:10002,padding:16}}
+          onClick={()=>setShowActeIde(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:14,padding:20,width:'100%',maxWidth:400}}>
+            <div style={{fontWeight:700,fontSize:15,color:'#111827',marginBottom:4}}>💉 Ajouter acte IDE</div>
+            <div style={{fontSize:11,color:'#6b7280',marginBottom:14,lineHeight:1.4}}>
+              Pour un patient venu directement pour un prélèvement ou une injection, sans passage par l'accueil. Enregistré directement pour les statistiques, pas d'impression.
+            </div>
+
+            <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>IPP *</label>
+            <input value={acteIde.ipp} onChange={e=>setActeIde({...acteIde,ipp:e.target.value})} autoFocus
+              style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 10px',boxSizing:'border-box'}}/>
+
+            <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Sexe</label>
+            <div style={{display:'flex',gap:6,margin:'4px 0 10px'}}>
+              <button onClick={()=>setActeIde({...acteIde,sexe:'M'})} type="button"
+                style={{flex:1,padding:'9px',borderRadius:7,border:'1.5px solid '+(acteIde.sexe==='M'?'#3b82f6':'#e5e7eb'),background:acteIde.sexe==='M'?'#eff6ff':'#fff',color:acteIde.sexe==='M'?'#3b82f6':'#374151',fontWeight:600,fontSize:13,cursor:'pointer'}}>♂</button>
+              <button onClick={()=>setActeIde({...acteIde,sexe:'F'})} type="button"
+                style={{flex:1,padding:'9px',borderRadius:7,border:'1.5px solid '+(acteIde.sexe==='F'?'#ec4899':'#e5e7eb'),background:acteIde.sexe==='F'?'#fdf2f8':'#fff',color:acteIde.sexe==='F'?'#ec4899':'#374151',fontWeight:600,fontSize:13,cursor:'pointer'}}>♀</button>
+            </div>
+
+            <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Acte réalisé *</label>
+            <div style={{display:'flex',flexDirection:'column',gap:6,margin:'4px 0 10px'}}>
+              {[['bio','Biologie (prise de sang, ECBU...)'],['injection','Injection (IM, SC, IV...)'],['autre','Autre soin']].map(item=>(
+                <button key={item[0]} onClick={()=>setActeIde({...acteIde,type:item[0]})} type="button"
+                  style={{padding:'10px',borderRadius:8,fontWeight:600,fontSize:13,textAlign:'left',cursor:'pointer',
+                    background:acteIde.type===item[0]?'#3b82f6':'#f9fafb',color:acteIde.type===item[0]?'#fff':'#374151',
+                    border:'2px solid '+(acteIde.type===item[0]?'#3b82f6':'#e5e7eb')}}>
+                  {item[1]}
+                </button>
+              ))}
+            </div>
+
+            <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Précision (optionnel)</label>
+            <input value={acteIde.note} onChange={e=>setActeIde({...acteIde,note:e.target.value})} placeholder="Ex: Vitamine B12, pansement..."
+              style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 14px',boxSizing:'border-box'}}/>
+
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>{setShowActeIde(false);setActeIde({ipp:'',sexe:'',type:'',note:''});}}
+                style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:13,cursor:'pointer'}}>
+                Annuler
+              </button>
+              <button onClick={soumettreActeIde} disabled={acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type}
+                style={{flex:1,padding:'10px',borderRadius:8,background:(acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type)?'#93c5fd':'#3b82f6',color:'#fff',border:'none',fontSize:13,fontWeight:600,cursor:(acteIdeEnvoi||!acteIde.ipp.trim()||!acteIde.type)?'not-allowed':'pointer'}}>
+                {acteIdeEnvoi?'Enregistrement...':'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* OVERLAY PATIENTS SORTIS */}
