@@ -257,7 +257,7 @@ export default function PageVueGlobale() {
   const [agents,setAgents] = useState([]); // présence temps réel, tous postes confondus
   const [guideSortieAAfficher,setGuideSortieAAfficher] = useState(false);
   const [guideSortieVisible,setGuideSortieVisible] = useState(false);
-  const [showActeIde,setShowActeIde] = useState(false);
+  const [acteIdeCible,setActeIdeCible] = useState(null); // null | 'nouveau' | patient existant (soins IDE deja enregistre par l'AS)
   const [acteIde,setActeIde] = useState({ipp:'',sexe:'',type:'',note:''});
   const [acteIdeEnvoi,setActeIdeEnvoi] = useState(false);
 
@@ -323,15 +323,31 @@ export default function PageVueGlobale() {
     setSel(null);setDiag('');setOrient('');load();
   }
 
+  function ouvrirNouvelActeIde() {
+    setActeIde({ipp:'',sexe:'',type:'',note:''});
+    setActeIdeCible('nouveau');
+  }
+  function ouvrirActeIdeExistant(p) {
+    setActeIde({ipp:p.ipp||'',sexe:p.sexe||'',type:p.soins_type||'',note:p.note_acte||''});
+    setActeIdeCible(p);
+  }
   async function soumettreActeIde() {
     if (!acteIde.ipp.trim() || !acteIde.type) return;
     setActeIdeEnvoi(true);
-    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      action:'acteIdeDirect',
-      patient:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null }
-    })});
+    if (acteIdeCible === 'nouveau') {
+      await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        action:'acteIdeDirect',
+        patient:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null }
+      })});
+    } else {
+      const id = acteIdeCible.id;
+      await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        action:'update', id, patch:{ ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, soins_type:acteIde.type, note_acte:acteIde.note.trim()||null }
+      })});
+      await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ action:'discharge', id })});
+    }
     setActeIdeEnvoi(false);
-    setShowActeIde(false);
+    setActeIdeCible(null);
     setActeIde({ipp:'',sexe:'',type:'',note:''});
     load();
   }
@@ -718,7 +734,7 @@ export default function PageVueGlobale() {
                 <span style={{fontWeight:700,fontSize:13,color:'#374151'}}>Soins IDE</span>
                 {soinsIDE.length>0&&<span style={{background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{soinsIDE.length}</span>}
               </div>
-              <button onClick={()=>setShowActeIde(true)}
+              <button onClick={ouvrirNouvelActeIde}
                 style={{padding:'4px 10px',borderRadius:6,background:'#eff6ff',color:'#3b82f6',fontSize:11,fontWeight:700,border:'1px solid #bfdbfe',cursor:'pointer'}}>
                 + Ajouter acte IDE
               </button>
@@ -735,7 +751,7 @@ export default function PageVueGlobale() {
                   {id:'pansement',l:'P1'},
                 ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
                 return (
-                  <div key={p.id} onClick={()=>setFicheOuverte(p)}
+                  <div key={p.id} onClick={()=>ouvrirActeIdeExistant(p)}
                     style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px 10px',flexShrink:0,cursor:'pointer'}}
                     onMouseEnter={e=>e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'}
                     onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
@@ -803,14 +819,16 @@ export default function PageVueGlobale() {
         />
       )}
 
-      {/* MODAL AJOUTER ACTE IDE (patient sans passage AS : prelevement, injection... venu directement) */}
-      {showActeIde && (
+      {/* MODAL ACTE IDE (nouveau : sans passage AS — ou complement d'un soin deja enregistre par l'AS) */}
+      {acteIdeCible && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:10002,padding:16}}
-          onClick={()=>setShowActeIde(false)}>
+          onClick={()=>setActeIdeCible(null)}>
           <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:14,padding:20,width:'100%',maxWidth:400}}>
-            <div style={{fontWeight:700,fontSize:15,color:'#111827',marginBottom:4}}>💉 Ajouter acte IDE</div>
+            <div style={{fontWeight:700,fontSize:15,color:'#111827',marginBottom:4}}>💉 {acteIdeCible==='nouveau'?'Ajouter acte IDE':'Soin IDE — IPP '+(acteIdeCible.ipp||'?')}</div>
             <div style={{fontSize:11,color:'#6b7280',marginBottom:14,lineHeight:1.4}}>
-              Pour un patient venu directement pour un prélèvement ou une injection, sans passage par l'accueil. Enregistré directement pour les statistiques, pas d'impression.
+              {acteIdeCible==='nouveau'
+                ? "Pour un patient venu directement pour un prélèvement ou une injection, sans passage par l'accueil. Enregistré directement pour les statistiques, pas d'impression."
+                : "Complétez l'acte réalisé puis validez. Enregistré directement pour les statistiques, pas d'impression."}
             </div>
 
             <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>IPP *</label>
@@ -842,7 +860,7 @@ export default function PageVueGlobale() {
               style={{width:'100%',padding:'9px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 14px',boxSizing:'border-box'}}/>
 
             <div style={{display:'flex',gap:8}}>
-              <button onClick={()=>{setShowActeIde(false);setActeIde({ipp:'',sexe:'',type:'',note:''});}}
+              <button onClick={()=>{setActeIdeCible(null);setActeIde({ipp:'',sexe:'',type:'',note:''});}}
                 style={{flex:1,padding:'10px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:13,cursor:'pointer'}}>
                 Annuler
               </button>
