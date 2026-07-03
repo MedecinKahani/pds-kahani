@@ -18,7 +18,7 @@ function ddnToISO(ddn) {
 const NOM_EMPL = {
   brancard1:'Brancard 1', brancard2:'Brancard 2',
   fauteuil1:'Fauteuil 1', fauteuil2:'Fauteuil 2',
-  obs1:'Observation 1', obs2:'Observation 2', obs3:'O3 (lit bébé)',
+  obs1:'Lit obs', obs2:'Fauteuil obs', obs3:'Lit bébé obs',
   lit1:'Lit 1', lit2:'Lit 2',
   dehors:'Dehors',
 };
@@ -157,7 +157,10 @@ export default function NouveauPatient() {
       // Le seuil de sat détermine la place ; asthme_connu n'est plus utilisé que pour
       // l'annotation "ATCD asthme" sur la vignette (voir labelSymptome).
       if (!isNaN(sat) && sat<95) return {...placer(['brancard1','brancard2','fauteuil1'],occupees), urgence:true, msg:'Alerter médecin — Commencer oxygène'};
-      if (f.parle_ok===true)  return {...placer(['fauteuil2'],occupees), urgence:false, msg:'Surveillance saturation'};
+      if (f.parle_ok===true) {
+        if (f.asthme_connu===true) return {...placer(['obs2'],occupees), urgence:false, msg:'ETP vidéo asthme — Nébulisation sous air'};
+        return {...placer(['fauteuil2'],occupees), urgence:false, msg:'Surveillance saturation'};
+      }
       if (f.parle_ok===false) return {...placer(['fauteuil1','brancard1','brancard2'],occupees), urgence:true, msg:'Ne parle pas correctement — Alerter médecin — Oxygène si besoin'};
       return null;
     }
@@ -168,7 +171,7 @@ export default function NouveauPatient() {
       // B1 libre : B2 disponible pour plaie (déchocage non saturé)
       if (b1libre) return {place:'brancard2', label:'Brancard 2', urgence:false, msg:'Plaie recente — Brancard 2'};
       // B1 occupé : ne pas utiliser B2 (garder le déchocage disponible) — O3 en attendant
-      if (o3libre) return {place:'obs3', label:'O3 (lit bébé)', urgence:false, msg:'Brancard 1 occupé — O3 en attendant libération du déchocage pour suture'};
+      if (o3libre) return {place:'obs3', label:NOM_EMPL.obs3, urgence:false, msg:'Brancard 1 occupé — O3 en attendant libération du déchocage pour suture'};
       return {...placer(['obs1','obs2'],occupees), urgence:false, msg:'Brancard 1 et O3 occupés — En observation en attendant libération'};
     }
     if (s==='fievre') {
