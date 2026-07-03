@@ -358,13 +358,24 @@ export default function PageVueGlobale() {
         ts:Date.now(), faitPar:user?.nom||user?.matricule,
       })});
     }
+    // Récap "à coter dans DxCare" — IPP + type d'acte, rien de clinique
+    await fetch('/api/actes-ide',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      id:(crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)),
+      ipp:acteIde.ipp.trim(), sexe:acteIde.sexe||null, type:acteIde.type, note:acteIde.note.trim()||null,
+      ts:Date.now(), faitPar:user?.nom||user?.matricule,
+    })});
     setActeIdeEnvoi(false);
     setActeIdeCible(null);
     setActeIde({ipp:'',sexe:'',type:'',note:'',tel:'',ville:''});
     load();
   }
-  async function terminerSoinIde(id) {
-    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id})});
+  async function terminerSoinIde(p) {
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'discharge',id:p.id})});
+    await fetch('/api/actes-ide',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      id:(crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)),
+      ipp:p.ipp||null, sexe:p.sexe||null, type:p.soins_type||null, note:p.note_acte||null,
+      ts:Date.now(), faitPar:user?.nom||user?.matricule,
+    })});
     load();
   }
 
@@ -616,6 +627,7 @@ export default function PageVueGlobale() {
             <button onClick={()=>router.push('/stats-mensuelles')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Statistiques</button>
           )}
           <button onClick={()=>router.push('/preleves')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>🧪 Prélevés</button>
+          <button onClick={()=>router.push('/actes-ide')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>💉 Actes IDE</button>
           <BoutonPanne router={router} user={user}/>
           <button onClick={async()=>{
             setShowSortis(true);
@@ -776,7 +788,7 @@ export default function PageVueGlobale() {
                         <option value="">Installer...</option>
                         {placesLibres.map(x=><option key={x.id} value={x.id}>{x.l}</option>)}
                       </select>
-                      <button onClick={()=>terminerSoinIde(p.id)} style={{padding:'3px 7px',borderRadius:5,background:'#f0fdf4',color:'#16a34a',fontSize:9,fontWeight:600,cursor:'pointer',border:'1px solid #bbf7d0',flexShrink:0}}>Fait</button>
+                      <button onClick={()=>terminerSoinIde(p)} style={{padding:'3px 7px',borderRadius:5,background:'#f0fdf4',color:'#16a34a',fontSize:9,fontWeight:600,cursor:'pointer',border:'1px solid #bbf7d0',flexShrink:0}}>Fait</button>
                     </div>
                   </div>
                 );
