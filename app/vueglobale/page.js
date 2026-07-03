@@ -580,12 +580,9 @@ export default function PageVueGlobale() {
 
           </div>
         ):(
-          <div style={{margin:5,borderRadius:8,border:'1.5px dashed '+c,background:cbg,flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'12px 6px 8px'}}>
-            <span style={{fontSize:22,fontWeight:800,color:c,lineHeight:1,flexShrink:0}}>{label}</span>
-            <div style={{flex:1,width:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
-              {TYPE_ICONE[id] && React.createElement(TYPE_ICONE[id], {size:56, color:c, strokeWidth:1.6, style:{opacity:0.55}})}
-            </div>
-            <span style={{fontSize:10,color:c+'99',flexShrink:0}}>{LEGENDES[id]}</span>
+          <div style={{margin:5,borderRadius:8,border:'1.5px dashed '+c,background:cbg,flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'8px 4px',gap:6}}>
+            {TYPE_ICONE[id] && React.createElement(TYPE_ICONE[id], {size:44, color:c, strokeWidth:1.6, style:{opacity:0.55}})}
+            <span style={{fontSize:11,color:c+'cc',textAlign:'center'}}>{LEGENDES[id]}</span>
           </div>
         )}
       </div>
