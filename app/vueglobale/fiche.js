@@ -124,6 +124,9 @@ const SOINS_ROWS = [
     {id:'pose_spu', label:'Pose sonde urinaire', color:'#6b7280'},
     {id:'retrait_implant', label:'Retrait implant', color:'#6b7280'},
   ],
+  [
+    {id:'video_etp', label:'▶️ Vidéo éducation thérapeutique - TV', color:'#16a34a'},
+  ],
 ];
 
 // ─── Bandeau constantes ───────────────────────────────────────────────────────
