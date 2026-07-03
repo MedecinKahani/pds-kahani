@@ -619,15 +619,15 @@ export default function PageVueGlobale() {
     <div style={{height:'100vh',background:'#f3f4f6',display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <nav style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'0 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',height:52,flexShrink:0}}>
         <div style={{fontWeight:700,fontSize:16,color:'#111827'}}>PDS Kahani</div>
-        <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <span style={{fontSize:12,color:'#9ca3af',marginRight:4}}>{user?.nom}</span>
-          <button onClick={()=>{setFicheOuverte(null);setFichesSortie(null);setShowSortis(false);window.location.href='/nouveau-patient';}} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer'}}>+ Nouveau patient</button>
-          <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Ajouter collègue</button>
+        <div style={{display:'flex',gap:8,alignItems:'center',overflowX:'auto',flexShrink:1,minWidth:0}}>
+          <span style={{fontSize:12,color:'#9ca3af',marginRight:4,flexShrink:0}}>{user?.nom}</span>
+          <button onClick={()=>{setFicheOuverte(null);setFichesSortie(null);setShowSortis(false);window.location.href='/nouveau-patient';}} style={{padding:'7px 16px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,border:'none',cursor:'pointer',flexShrink:0}}>+ Nouveau patient</button>
+          <button onClick={()=>router.push('/admin')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>Ajouter collègue</button>
           {(user.role==='medecin'||user.role==='secretaire')&&(
-            <button onClick={()=>router.push('/stats-mensuelles')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Statistiques</button>
+            <button onClick={()=>router.push('/stats-mensuelles')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>Statistiques</button>
           )}
-          <button onClick={()=>router.push('/preleves')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>🧪 Prélevés</button>
-          <button onClick={()=>router.push('/actes-ide')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>💉 Actes IDE</button>
+          <button onClick={()=>router.push('/preleves')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>🧪 Prélevés</button>
+          <button onClick={()=>router.push('/actes-ide')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>💉 Actes IDE</button>
           <BoutonPanne router={router} user={user}/>
           <button onClick={async()=>{
             setShowSortis(true);
@@ -637,8 +637,8 @@ export default function PageVueGlobale() {
             const sortis=(d.patients||[]).filter(p=>p.statut==='sorti'&&parseInt(p.sortie)>cutoff)
               .sort((a,b)=>parseInt(b.sortie)-parseInt(a.sortie));
             setPatientsSortis(sortis);
-          }} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Patients sortis</button>
-          <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer'}}>Deconnexion</button>
+          }} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>Patients sortis</button>
+          <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>Deconnexion</button>
         </div>
       </nav>
 
