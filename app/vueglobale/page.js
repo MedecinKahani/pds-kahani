@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import { IconBed, IconArmchair, IconBabyCarriage } from '@tabler/icons-react';
 
 function safeJSON(val, fallback=[]) {
   if(!val) return fallback;
@@ -41,6 +42,12 @@ const BG = {
   obs1:'#eff6ff', obs2:'#f0fdf4', obs3:'#eff6ff',
   lit1:'#eff6ff', lit2:'#eff6ff', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
   brancard1:'#fef2f2', brancard2:'#fef2f2'
+};
+const TYPE_ICONE = {
+  obs1:IconBed, obs2:IconArmchair, obs3:IconBabyCarriage,
+  lit1:IconBed, lit2:IconBed,
+  fauteuil1:IconArmchair, fauteuil2:IconArmchair,
+  brancard1:IconBed, brancard2:IconBed,
 };
 
 function fmtLocalDate(d) {
@@ -573,9 +580,10 @@ export default function PageVueGlobale() {
 
           </div>
         ):(
-          <div style={{margin:5,borderRadius:8,border:'1.5px dashed '+c,background:cbg,flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:100,gap:4}}>
-            <span style={{fontSize:24,fontWeight:800,color:c}}>{label}</span>
-            <span style={{fontSize:10,color:c+'99'}}>{LEGENDES[id]}</span>
+          <div style={{margin:5,borderRadius:8,border:'1.5px dashed '+c,background:cbg,flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'6px 4px',gap:4}}>
+            <span style={{fontSize:22,fontWeight:800,color:c,lineHeight:1}}>{label}</span>
+            {TYPE_ICONE[id] && React.createElement(TYPE_ICONE[id], {size:34, color:c, strokeWidth:1.8, style:{opacity:0.55,margin:'2px 0'}})}
+            <span style={{fontSize:10,color:c+'99',marginTop:'auto'}}>{LEGENDES[id]}</span>
           </div>
         )}
       </div>
