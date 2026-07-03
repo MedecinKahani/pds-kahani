@@ -586,7 +586,8 @@ export default function PageVueGlobale() {
             const r=await fetch('/api/patients?all=1');
             const d=await r.json();
             const cutoff=Date.now()-24*3600*1000;
-            const sortis=(d.patients||[]).filter(p=>p.statut==='sorti'&&parseInt(p.sortie)>cutoff);
+            const sortis=(d.patients||[]).filter(p=>p.statut==='sorti'&&parseInt(p.sortie)>cutoff)
+              .sort((a,b)=>parseInt(b.sortie)-parseInt(a.sortie));
             setPatientsSortis(sortis);
           }} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'}}>Patients sortis</button>
           <button onClick={()=>{sessionStorage.clear();router.push('/login');}} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:12,border:'1px solid #e5e7eb',cursor:'pointer'}}>Deconnexion</button>
@@ -800,11 +801,15 @@ export default function PageVueGlobale() {
             <div style={{flex:1,overflowY:'auto',padding:12}}>
               {patientsSortis.length===0&&<div style={{color:'#9ca3af',textAlign:'center',padding:'2rem',fontSize:13}}>Aucun patient sorti dans les dernières 24h</div>}
               {patientsSortis.map(p=>(
-                <div key={p.id} style={{background:'#f9fafb',borderRadius:10,padding:'12px 14px',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
-                  <div>
-                    <div style={{fontWeight:700,color:'#111827',fontSize:13}}>IPP {p.ipp||'—'}</div>
-                    <div style={{fontSize:11,color:'#6b7280',marginTop:2}}>{p.symptome||'--'} · {p.modalite_sortie||'Sorti'}{p.moyen_sortie?' — '+p.moyen_sortie:''}</div>
-                    <div style={{fontSize:10,color:'#9ca3af',marginTop:1}}>Sorti à {p.sortie?new Date(parseInt(p.sortie)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'-'}</div>
+                <div key={p.id} style={{background:'#f9fafb',borderRadius:10,padding:'10px 14px',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,fontSize:13,color:'#111827',flexWrap:'wrap'}}>
+                    <span style={{fontWeight:700}}>{p.sexe==='M'?'♂':p.sexe==='F'?'♀':'—'}</span>
+                    <span>{p.age?p.age+' ans':'—'}</span>
+                    <span style={{color:'#6b7280'}}>{p.ddn?(()=>{const[y,m,d]=p.ddn.split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})():'—'}</span>
+                    <span style={{fontWeight:700}}>IPP {p.ipp||'—'}</span>
+                    <span style={{color:'#6b7280'}}>
+                      sorti le {p.sortie?new Date(parseInt(p.sortie)).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'--'} à {p.sortie?new Date(parseInt(p.sortie)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace(':','h'):'--'}
+                    </span>
                   </div>
                   <button onClick={async()=>{
                     // Vérifier si l'emplacement est libre
