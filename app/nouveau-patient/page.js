@@ -132,7 +132,7 @@ export default function NouveauPatient() {
   const satCrit = !isNaN(sat) && sat<90;
   const pamCrit = pam!==null  && pam<65;
   const satAlt  = !isNaN(sat) && sat<95 && sat>=90;
-  const fcAlt   = !isNaN(fc)  && (adulte?(fc<50||fc>90):fc>fcMax*0.9);
+  const fcAlt   = !isNaN(fc)  && (adulte?(fc<50||fc>105):fc>fcMax*0.9);
   const tasAlt  = !isNaN(tas) && tas>200;
   const urgence = fcCrit||satCrit||pamCrit;
   const alerte  = !urgence&&(satAlt||fcAlt||tasAlt);
