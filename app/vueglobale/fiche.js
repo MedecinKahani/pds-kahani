@@ -2700,7 +2700,7 @@ function SutureSection({p, save}) {
 
 function DeplacerBtn({p, onUpdate, patients=[]}) {
   const [open,setOpen]=useState(false);
-  const EMPL=[{id:'brancard1',l:'B1 — Brancard 1',c:'#ef4444'},{id:'brancard2',l:'B2 — Brancard 2',c:'#ef4444'},{id:'fauteuil1',l:'F1 — Fauteuil 1',c:'#16a34a'},{id:'fauteuil2',l:'F2 — Fauteuil 2',c:'#16a34a'},{id:'obs1',l:'O1 — Observation 1',c:'#3b82f6'},{id:'obs2',l:'O2 — Observation 2',c:'#3b82f6'},{id:'lit1',l:'L1 — Lit 1',c:'#3b82f6'},{id:'lit2',l:'L2 — Lit 2',c:'#3b82f6'},{id:'pansement',l:'P1 — Pansement',c:'#f59e0b'},{id:'dehors',l:'Dehors',c:'#9ca3af'}];
+  const EMPL=[{id:'brancard1',l:'B1 — Brancard 1',c:'#ef4444'},{id:'brancard2',l:'B2 — Brancard 2',c:'#ef4444'},{id:'fauteuil1',l:'F1 — Fauteuil 1',c:'#16a34a'},{id:'fauteuil2',l:'F2 — Fauteuil 2',c:'#16a34a'},{id:'obs1',l:'O1 — Observation 1',c:'#3b82f6'},{id:'obs2',l:'O2 — Observation 2',c:'#3b82f6'},{id:'obs3',l:'O3 — Observation 3 (lit bébé)',c:'#3b82f6'},{id:'lit1',l:'L1 — Lit 1',c:'#3b82f6'},{id:'lit2',l:'L2 — Lit 2',c:'#3b82f6'},{id:'dehors',l:'Dehors',c:'#9ca3af'}];
   const cur=EMPL.find(e=>e.id===p.emplacement);
   return(
     <div style={{position:'relative'}}>

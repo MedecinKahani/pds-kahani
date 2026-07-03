@@ -2,16 +2,16 @@
 import { useState, useEffect } from 'react';
 
 const COULEURS = {
-  pansement:'#f59e0b', obs1:'#9ca3af', obs2:'#16a34a',
+  obs1:'#9ca3af', obs2:'#16a34a', obs3:'#9ca3af',
   lit1:'#9ca3af', lit2:'#9ca3af', fauteuil1:'#16a34a', fauteuil2:'#16a34a',
   brancard1:'#ef4444', brancard2:'#ef4444',
 };
 const BG_VIDE = {
-  pansement:'#fffbeb', obs1:'#f9fafb', obs2:'#f0fdf4',
+  obs1:'#f9fafb', obs2:'#f0fdf4', obs3:'#f9fafb',
   lit1:'#f9fafb', lit2:'#f9fafb', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
   brancard1:'#fef2f2', brancard2:'#fef2f2',
 };
-const LEGENDES = {pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
+const LEGENDES = {obs1:'Lit obs',obs2:'Fauteuil obs',obs3:'Lit bébé obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
 const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
 
 function duree(ts) {
@@ -95,8 +95,7 @@ export default function VueEnsemble() {
 
       <div style={{flex:1,padding:'1rem',display:'flex',flexDirection:'column',gap:10,minHeight:0}}>
 
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8,flexShrink:0,height:'28%'}}>
-          <Case id="pansement" label="P1" p={P('pansement')}/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,flexShrink:0,height:'28%'}}>
           <Poste label="IDE" color="#6b7280"/>
           <Poste label="Medecin" color="#0d9488"/>
           <Poste label="AS" color="#f59e0b"/>
@@ -106,6 +105,7 @@ export default function VueEnsemble() {
           <div style={{border:'2px solid #16a34a66',borderRadius:14,padding:6,display:'flex',flexDirection:'column',gap:6,width:'25%',flexShrink:0}}>
             <Case id="obs1" label="O1" p={P('obs1')}/>
             <Case id="obs2" label="O2" p={P('obs2')}/>
+            <Case id="obs3" label="O3" p={P('obs3')}/>
           </div>
           <div style={{border:'2px solid #9ca3af66',borderRadius:14,padding:6,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:6,flex:1}}>
             <Case id="lit2" label="L2" p={P('lit2')}/>

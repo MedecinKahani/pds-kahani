@@ -20,25 +20,25 @@ function hasAnomalie(p){return['sat','fc','ta_sys','ta_dia','temp'].some(k=>p[k]
 function duree(ts){const m=Math.floor((Date.now()-parseInt(ts))/60000);return m<60?m+'min':'H'+Math.floor(m/60);}
 
 const statutColor = {attente_medecin:'#f59e0b',en_cours:'#0d9488',vu:'#10b981',transfert:'#8b5cf6'};
-const LEGENDES = {pansement:'Pansement',obs1:'Lit obs',obs2:'Fauteuil obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
+const LEGENDES = {obs1:'Lit obs',obs2:'Fauteuil obs',obs3:'Lit bébé obs',lit1:'Lit 1',lit2:'Lit 2',fauteuil1:'Fauteuil 1',fauteuil2:'Fauteuil 2',brancard1:'Brancard 1',brancard2:'Brancard 2'};
 
 const C = {
-  pansement:'#f59e0b', obs1:'#8b5cf6', obs2:'#8b5cf6',
+  obs1:'#8b5cf6', obs2:'#8b5cf6', obs3:'#8b5cf6',
   lit1:'#3b82f6', lit2:'#3b82f6', fauteuil1:'#16a34a', fauteuil2:'#16a34a',
   brancard1:'#ef4444', brancard2:'#ef4444'
 };
 const C_BG = {
-  pansement:'#fffbeb', obs1:'#f5f3ff', obs2:'#f5f3ff',
+  obs1:'#f5f3ff', obs2:'#f5f3ff', obs3:'#f5f3ff',
   lit1:'#f8fbff', lit2:'#f8fbff', fauteuil1:'#f8fff9', fauteuil2:'#f8fff9',
   brancard1:'#fff8f8', brancard2:'#fff8f8'
 };
 const C_DIV = {
-  pansement:'#fde68a', obs1:'#ddd6fe', obs2:'#ddd6fe',
+  obs1:'#ddd6fe', obs2:'#ddd6fe', obs3:'#ddd6fe',
   lit1:'#bfdbfe', lit2:'#bfdbfe', fauteuil1:'#bbf7d0', fauteuil2:'#bbf7d0',
   brancard1:'#fecaca', brancard2:'#fecaca'
 };
 const BG = {
-  pansement:'#fffbeb', obs1:'#eff6ff', obs2:'#f0fdf4',
+  obs1:'#eff6ff', obs2:'#f0fdf4', obs3:'#eff6ff',
   lit1:'#eff6ff', lit2:'#eff6ff', fauteuil1:'#f0fdf4', fauteuil2:'#f0fdf4',
   brancard1:'#fef2f2', brancard2:'#fef2f2'
 };
@@ -655,9 +655,6 @@ export default function PageVueGlobale() {
               minHeight:0,
               position:'relative',
             }}>
-              <div style={{gridColumn:1,gridRow:1,display:'flex'}}>
-                <Case id="pansement" label="P1"/>
-              </div>
               <div style={{gridColumn:2,gridRow:1,display:'flex'}}>
                 <Poste id="_ide" label="IDE" color="#3b82f6"/>
               </div>
@@ -669,12 +666,13 @@ export default function PageVueGlobale() {
               </div>
 
               <div style={{
-                gridColumn:1, gridRow:'2/4',
+                gridColumn:1, gridRow:'1/4',
                 border:'2px solid #16a34a99',borderRadius:12,
                 display:'flex',flexDirection:'column',gap:6,padding:6
               }}>
                 <Case id="obs1" label="O1"/>
                 <Case id="obs2" label="O2"/>
+                <Case id="obs3" label="O3"/>
               </div>
 
               <div style={{
@@ -714,9 +712,8 @@ export default function PageVueGlobale() {
               const placesLibres=[
                 {id:'brancard1',l:'B1'},{id:'brancard2',l:'B2'},
                 {id:'fauteuil1',l:'F1'},{id:'fauteuil2',l:'F2'},
-                {id:'obs1',l:'O1'},{id:'obs2',l:'O2'},
+                {id:'obs1',l:'O1'},{id:'obs2',l:'O2'},{id:'obs3',l:'O3'},
                 {id:'lit1',l:'L1'},{id:'lit2',l:'L2'},
-                {id:'pansement',l:'P1'},
               ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
               return(
               <div key={p.id} onClick={()=>setFicheOuverte(p)}
@@ -770,9 +767,8 @@ export default function PageVueGlobale() {
                 const placesLibres=[
                   {id:'brancard1',l:'B1'},{id:'brancard2',l:'B2'},
                   {id:'fauteuil1',l:'F1'},{id:'fauteuil2',l:'F2'},
-                  {id:'obs1',l:'O1'},{id:'obs2',l:'O2'},
+                  {id:'obs1',l:'O1'},{id:'obs2',l:'O2'},{id:'obs3',l:'O3'},
                   {id:'lit1',l:'L1'},{id:'lit2',l:'L2'},
-                  {id:'pansement',l:'P1'},
                 ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
                 return (
                   <div key={p.id} onClick={()=>ouvrirActeIdeExistant(p)}

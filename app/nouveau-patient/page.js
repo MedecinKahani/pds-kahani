@@ -33,9 +33,9 @@ const card = {background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',paddi
 const EMPLACEMENTS = [
   {id:'brancard1',l:'Brancard 1',c:'#ef4444'},{id:'brancard2',l:'Brancard 2',c:'#ef4444'},
   {id:'fauteuil1',l:'Fauteuil 1',c:'#16a34a'},{id:'fauteuil2',l:'Fauteuil 2',c:'#16a34a'},
-  {id:'obs1',l:'Observation 1',c:'#3b82f6'},{id:'obs2',l:'Observation 2',c:'#3b82f6'},
+  {id:'obs1',l:'Observation 1',c:'#3b82f6'},{id:'obs2',l:'Observation 2',c:'#3b82f6'},{id:'obs3',l:'Observation 3 (lit bébé)',c:'#3b82f6'},
   {id:'lit1',l:'Lit 1',c:'#3b82f6'},{id:'lit2',l:'Lit 2',c:'#3b82f6'},
-  {id:'pansement',l:'Pansement',c:'#f59e0b'},{id:'dehors',l:'Dehors',c:'#9ca3af'},
+  {id:'dehors',l:'Dehors',c:'#9ca3af'},
 ];
 
 function prefPlace(pref, occ) {
@@ -124,7 +124,6 @@ export default function NouveauPatient() {
     const s = f.symptome;
     const B = prefPlace(['brancard1','brancard2'], occupees);
     const Blabel = B==='brancard1'?'Brancard 1':'Brancard 2';
-    const heure = new Date().getHours();
     if (urgence) return {place:B, label:Blabel, urgence:true, msg:'Constantes critiques — Prevenir médecin EN URGENCE'};
     if (alerte)  return {place:B, label:Blabel, urgence:true, msg:'Constantes anormales — Prevenir médecin immédiatement'};
     if (s==='coma') {
@@ -149,16 +148,15 @@ export default function NouveauPatient() {
       return null;
     }
     if (s==='plaie') {
-      const p1ok = heure>=19||heure<6;
       if (f.plaie_depuis==='>8h') return {place:'dehors', label:'Dehors', urgence:false, msg:'Plaie ancienne — Faire patienter'};
       const b1libre = !occupees.includes('brancard1');
-      const b2libre = !occupees.includes('brancard2');
+      const o3libre = !occupees.includes('obs3');
       // B1 libre : B2 disponible pour plaie (déchocage non saturé)
       if (b1libre) return {place:'brancard2', label:'Brancard 2', urgence:false, msg:'Plaie recente — Brancard 2'};
-      // B1 occupé : ne pas utiliser B2 (garder le déchocage disponible)
-      if (p1ok) return {place:'pansement', label:'Pansement', urgence:false, msg:'Brancard 1 occupé — Salle de pansement (nuit)'};
+      // B1 occupé : ne pas utiliser B2 (garder le déchocage disponible) — O3 en attendant
+      if (o3libre) return {place:'obs3', label:'O3 (lit bébé)', urgence:false, msg:'Brancard 1 occupé — O3 en attendant libération du déchocage pour suture'};
       const obs = prefPlace(['obs1','obs2'], occupees);
-      return {place:obs, label:obs==='obs1'?'Observation 1':'Observation 2', urgence:false, msg:'Brancard 1 occupé — En observation en attendant libération'};
+      return {place:obs, label:obs==='obs1'?'Observation 1':'Observation 2', urgence:false, msg:'Brancard 1 et O3 occupés — En observation en attendant libération'};
     }
     if (s==='fievre') {
       const ancienne = ['3j','>3j'].includes(f.fievre_depuis);
