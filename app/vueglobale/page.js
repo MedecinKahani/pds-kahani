@@ -405,6 +405,7 @@ export default function PageVueGlobale() {
         if(zones && zones.length>0) label += ' — '+zones.slice(0,2).map(z=>z.replace(/_/g,' ')).join(', ');
       } catch(e){}
     }
+    if(p?.symptome==='detresse_respi' && p?.asthme_connu==='true') label += ' (ATCD asthme)';
     if(p?.symptome_autre) label = p.symptome_autre;
     return label;
   }

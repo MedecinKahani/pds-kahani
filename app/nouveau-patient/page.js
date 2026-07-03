@@ -15,6 +15,14 @@ function ddnToISO(ddn) {
   return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : ddn;
 }
 
+const NOM_EMPL = {
+  brancard1:'Brancard 1', brancard2:'Brancard 2',
+  fauteuil1:'Fauteuil 1', fauteuil2:'Fauteuil 2',
+  obs1:'Observation 1', obs2:'Observation 2', obs3:'O3 (lit bébé)',
+  lit1:'Lit 1', lit2:'Lit 2',
+  dehors:'Dehors',
+};
+
 const Btn = memo(function Btn({onClick,style,disabled,children}) {
   return (
     <button onClick={onClick} disabled={disabled}
@@ -41,6 +49,15 @@ const EMPLACEMENTS = [
 function prefPlace(pref, occ) {
   for (const id of pref) { if (!occ.includes(id)) return id; }
   return pref[pref.length-1];
+}
+
+// Resout une liste de candidats vers UNE seule localisation concrete.
+// L'AS ne doit jamais voir plusieurs options ("Lit 1 ou Lit 2...") — seulement
+// celle choisie. Le bouton "Enregistrer sur un autre emplacement" reste
+// disponible pour un choix manuel si besoin.
+function placer(candidats, occ) {
+  const place = prefPlace(candidats, occ);
+  return {place, label:NOM_EMPL[place]||place};
 }
 
 function BtnOuiNon({valeur,onChange,labelOui,labelNon,couleurOui,couleurNon}) {
@@ -109,13 +126,13 @@ export default function NouveauPatient() {
   const tad = parseFloat(f.tad);
   const pam = f.tas&&f.tad ? Math.round(tad+(tas-tad)/3) : null;
   const fcMax = !age?100:age<(1/12)?180:age<1?160:age<2?150:age<5?140:age<12?130:120;
-  const fcMin = !age?60:age<(1/12)?100:age<1?100:age<2?90:age<5?80:age<12?70:60;
+  const fcMin = !age?45:age<(1/12)?100:age<1?100:age<2?90:age<5?80:age<12?70:45;
 
   const fcCrit  = !isNaN(fc)  && (fc>fcMax||fc<fcMin);
   const satCrit = !isNaN(sat) && sat<90;
   const pamCrit = pam!==null  && pam<65;
   const satAlt  = !isNaN(sat) && sat<95 && sat>=90;
-  const fcAlt   = !isNaN(fc)  && (adulte?fc>120:fc>fcMax*0.9);
+  const fcAlt   = !isNaN(fc)  && (adulte?(fc<50||fc>90):fc>fcMax*0.9);
   const tasAlt  = !isNaN(tas) && tas>200;
   const urgence = fcCrit||satCrit||pamCrit;
   const alerte  = !urgence&&(satAlt||fcAlt||tasAlt);
@@ -123,7 +140,7 @@ export default function NouveauPatient() {
   function getPlacement() {
     const s = f.symptome;
     const B = prefPlace(['brancard1','brancard2'], occupees);
-    const Blabel = B==='brancard1'?'Brancard 1':'Brancard 2';
+    const Blabel = NOM_EMPL[B];
     if (urgence) return {place:B, label:Blabel, urgence:true, msg:'Constantes critiques — Prevenir médecin EN URGENCE'};
     if (alerte)  return {place:B, label:Blabel, urgence:true, msg:'Constantes anormales — Prevenir médecin immédiatement'};
     if (s==='coma') {
@@ -133,18 +150,15 @@ export default function NouveauPatient() {
     }
     if (s==='avc') {
       if (f.avc_depuis==='<4h') return {place:B, label:Blabel, urgence:true, msg:'AVC < 4h — Alerter médecin EN URGENCE — Brancard 1 — ECG + Dextro obligatoires'};
-      if (f.avc_depuis==='>4h') return {place:prefPlace(['lit1','lit2','brancard2'],occupees), label:'Lit 1 (ou Lit 2, Brancard 2)', urgence:false, msg:'Avertir médecin — Lit 1 ou 2 — ECG + Dextro obligatoires'};
+      if (f.avc_depuis==='>4h') return {...placer(['lit1','lit2','brancard2'],occupees), urgence:false, msg:'Avertir médecin — ECG + Dextro obligatoires'};
       return null;
     }
     if (s==='detresse_respi') {
-      if (f.asthme_connu===true) {
-        if (f.parle_ok===false) return {place:prefPlace(['fauteuil1'],occupees), label:'Fauteuil 1', urgence:true, msg:'Alerter médecin — Oxygène — Nébulisation selon poids — Scopé'};
-        if (f.parle_ok===true)  return {place:prefPlace(['obs1','obs2'],occupees), label:'Observation 1', urgence:false, msg:'Nebulisation sous air selon poids — ETP asthme TV'};
-      }
-      if (f.asthme_connu===false) {
-        if (f.parle_ok===false) return {place:B, label:Blabel, urgence:true, msg:'Prevenir médecin — Oxygène si sat < 95%'};
-        if (f.parle_ok===true)  return {place:prefPlace(['lit1','lit2'],occupees), label:'Lit 1 (ou Lit 2)', urgence:false, msg:'Surveillance saturation'};
-      }
+      // Le seuil de sat détermine la place ; asthme_connu n'est plus utilisé que pour
+      // l'annotation "ATCD asthme" sur la vignette (voir labelSymptome).
+      if (!isNaN(sat) && sat<95) return {...placer(['brancard1','brancard2','fauteuil1'],occupees), urgence:true, msg:'Alerter médecin — Commencer oxygène'};
+      if (f.parle_ok===true)  return {...placer(['fauteuil2'],occupees), urgence:false, msg:'Surveillance saturation'};
+      if (f.parle_ok===false) return {...placer(['fauteuil1','brancard1','brancard2'],occupees), urgence:true, msg:'Ne parle pas correctement — Alerter médecin — Oxygène si besoin'};
       return null;
     }
     if (s==='plaie') {
@@ -155,22 +169,20 @@ export default function NouveauPatient() {
       if (b1libre) return {place:'brancard2', label:'Brancard 2', urgence:false, msg:'Plaie recente — Brancard 2'};
       // B1 occupé : ne pas utiliser B2 (garder le déchocage disponible) — O3 en attendant
       if (o3libre) return {place:'obs3', label:'O3 (lit bébé)', urgence:false, msg:'Brancard 1 occupé — O3 en attendant libération du déchocage pour suture'};
-      const obs = prefPlace(['obs1','obs2'], occupees);
-      return {place:obs, label:obs==='obs1'?'Observation 1':'Observation 2', urgence:false, msg:'Brancard 1 et O3 occupés — En observation en attendant libération'};
+      return {...placer(['obs1','obs2'],occupees), urgence:false, msg:'Brancard 1 et O3 occupés — En observation en attendant libération'};
     }
     if (s==='fievre') {
       const ancienne = ['3j','>3j'].includes(f.fievre_depuis);
-      if (ancienne) return {place:prefPlace(['lit1','lit2','fauteuil2'],occupees), label:'Lit 1 (ou Lit 2, Fauteuil 2)', urgence:false, msg:'Fievre > 3j — Installer en salle'};
-      if (s==='soins_ide') return {place:'dehors', label:'Dehors', urgence:false, msg:'File attente soins IDE'};
-    return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
+      if (ancienne) return {...placer(['lit1','lit2','fauteuil2'],occupees), urgence:false, msg:'Fievre > 3j — Installer en salle'};
+      return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
     }
-    if (s==='vertige') return {place:prefPlace(['lit1','lit2','brancard2','brancard1'],occupees), label:'Lit 1 (ou Lit 2, Brancard 2)', urgence:false, msg:'Allonger le patient'};
+    if (s==='vertige') return {...placer(['lit1','lit2','brancard2','brancard1'],occupees), urgence:false, msg:'Allonger le patient'};
     if (s==='douleur') {
       const z = f.douleur_zones;
       if (z.includes('thorax')) return {place:B, label:Blabel, urgence:true, msg:'ECG obligatoire — Prevenir médecin'};
       if (z.includes('tete')&&(f.vomissement===true||f.tache_peau===true)) return {place:B, label:Blabel, urgence:true, msg:'Alerter médecin immédiatement'};
-      if (z.includes('tete')) return {place:prefPlace(['lit1','lit2'],occupees), label:'Lit 1 (ou Lit 2)', urgence:false, msg:'Surveiller'};
-      if (f.sexe==='F'&&z.includes('abdomen')) return {place:prefPlace(['lit1','lit2','brancard2'],occupees), label:'Lit 1 (ou Lit 2, Brancard 2)', urgence:false, msg:'BU + bHCG — Prevenir médecin'};
+      if (z.includes('tete')) return {...placer(['lit1','lit2'],occupees), urgence:false, msg:'Surveiller'};
+      if (f.sexe==='F'&&z.includes('abdomen')) return {...placer(['lit1','lit2','brancard2'],occupees), urgence:false, msg:'BU + bHCG — Prevenir médecin'};
       return {place:'dehors', label:'Dehors', urgence:false, msg:'Constantes normales — Faire patienter'};
     }
     return {place:'dehors', label:'Dehors', urgence:false, msg:'Faire patienter'};
