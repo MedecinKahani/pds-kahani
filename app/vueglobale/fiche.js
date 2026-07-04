@@ -420,11 +420,14 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     onUpdate?.();
   }
 
+  const CHAMPS_DIRECTS_VIGNETTE = ['fc','sat','temp','tas','tad','dextro','hemocue'];
   function addConst(key, label, val, unit, extra={}) {
     const updated = [...localConst, {key,label,val,unit,ts:Date.now()}];
     setLocalConst(updated);
+    const patch = {constantes_post:JSON.stringify(updated), ...extra};
+    if (CHAMPS_DIRECTS_VIGNETTE.includes(key)) patch[key] = val;
     fetch('/api/patients', {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'update',id:p.id,patch:{constantes_post:JSON.stringify(updated),...extra}})});
+      body:JSON.stringify({action:'update',id:p.id,patch})});
   }
 
   function getLatest(key) {
