@@ -152,7 +152,7 @@ function GuideSortiePopup({ prenom, onFermer }) {
           <p>Un nouvel onglet apparaît et vous propose d'imprimer. Sélectionnez l'imprimante et appuyez sur <strong>"Enregistrer en PDF"</strong>.</p>
           <p>Vous devez ensuite trouver le dossier <strong>"Sortie PDS"</strong>, accessible à la secrétaire. Voici le chemin :</p>
           <p style={{background:'#f9fafb',border:'1px solid #e5e7eb',borderRadius:8,padding:'10px 12px',fontFamily:'monospace',fontSize:12}}>
-            Bureau → Service C (partagé) → Services médicaux → Dispensaire Kahani → Sortie PDS
+            Bureau → Service → Statistiques médicales → Dispensaire Kahani → Sortie PDS
           </p>
           <p>Enregistrez le fichier ici. Les prochaines sorties proposeront automatiquement ce même dossier "Sortie PDS".</p>
         </div>
