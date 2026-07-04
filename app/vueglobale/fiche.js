@@ -161,20 +161,20 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
           {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8,color:'#9ca3af',flexShrink:0}}>{unit}</span>}
         </div>
         <button
-          onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
+          onClick={e=>{e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
           onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
           onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
           style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>✎</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',minWidth:120}}
-          onMouseDown={e=>e.stopPropagation()}>
+          onClick={e=>e.stopPropagation()}>
           <div style={{fontSize:10,color:'#6b7280',marginBottom:5}}>Nouvelle valeur ({unit})</div>
           <div style={{display:'flex',gap:4}}>
             <input ref={inputRef} value={val} onChange={e=>setVal(e.target.value)}
               onKeyDown={e=>{if(e.key==='Enter'&&val){onAdd(fk,label,val,unit);setOpen(false);}if(e.key==='Escape')setOpen(false);}}
               style={{width:60,fontSize:13,border:'1.5px solid #0d9488',borderRadius:5,padding:'3px 6px',outline:'none'}}/>
-            <button onMouseDown={e=>{e.preventDefault();if(val){onAdd(fk,label,val,unit);setOpen(false);}}}
+            <button onClick={e=>{e.stopPropagation();if(val){onAdd(fk,label,val,unit);setOpen(false);}}}
               style={{background:'#0d9488',color:'#fff',border:'none',borderRadius:5,padding:'3px 8px',cursor:'pointer',fontSize:12,fontWeight:600}}>✓</button>
           </div>
         </div>
@@ -200,14 +200,14 @@ function BUBtn({ baseVal, history, onAdd }) {
           <span title={cur||''} style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help',whiteSpace:'nowrap'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
         </div>
         <button
-          onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);setSel({});}}
+          onClick={e=>{e.stopPropagation();setOpen(o=>!o);setSel({});}}
           onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
           onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
           style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>✎</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'10px 12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',minWidth:280}}
-          onMouseDown={e=>e.stopPropagation()}>
+          onClick={e=>e.stopPropagation()}>
           <div style={{fontSize:10,fontWeight:700,color:'#3b82f6',marginBottom:8}}>Bandelette urinaire</div>
           {PARAMS.map(([k,l])=>(
             <div key={k} style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
@@ -217,7 +217,7 @@ function BUBtn({ baseVal, history, onAdd }) {
               </div>
               <span style={{fontSize:11,fontWeight:500,color:'#374151',width:55,flexShrink:0}}>{l}</span>
               {sel[k]&&CROIX.map(v=>(
-                <button key={v} onMouseDown={e=>{e.preventDefault();setSel(prev=>({...prev,[k]:v}));}}
+                <button key={v} onClick={()=>setSel(prev=>({...prev,[k]:v}))}
                   style={{padding:'2px 7px',borderRadius:4,fontSize:10,fontWeight:600,cursor:'pointer',
                     border:'1.5px solid '+(sel[k]===v?'#3b82f6':'#e5e7eb'),
                     background:sel[k]===v?'#3b82f6':'#fff',
@@ -229,13 +229,12 @@ function BUBtn({ baseVal, history, onAdd }) {
             Paramètres non cochés = Négatif
           </div>
           <div style={{display:'flex',gap:6}}>
-            <button onMouseDown={e=>{
-              e.preventDefault();
+            <button onClick={()=>{
               const parts = PARAMS.map(([k,l])=>sel[k]?`${l} ${sel[k]}`:`${l} Nég`).join(' / ');
               onAdd('bu_resultat','BU',parts,'');
               setOpen(false);
             }} style={{flex:1,padding:'6px',borderRadius:6,background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:600,border:'none',cursor:'pointer'}}>Valider</button>
-            <button onMouseDown={e=>{e.preventDefault();setOpen(false);}}
+            <button onClick={()=>setOpen(false)}
               style={{padding:'6px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',fontSize:11,border:'none',cursor:'pointer'}}>✕</button>
           </div>
         </div>
@@ -267,25 +266,25 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd, inverse }) {
           </span>
         </div>
         <button
-          onMouseDown={e=>{e.preventDefault();e.stopPropagation();setOpen(o=>!o);}}
+          onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}
           onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
           onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
           style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>✎</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'6px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',display:'flex',flexWrap:'wrap',gap:4,minWidth:140}}
-          onMouseDown={e=>e.stopPropagation()}>
+          onClick={e=>e.stopPropagation()}>
           {options.map(opt=>{
             const optAbnormal = inverse ? opt==='Négatif' : (opt==='Positif'||opt.includes('barre'));
             return (
-              <button key={opt} onMouseDown={e=>{e.preventDefault();onAdd(fk,label,opt,'');setOpen(false);}}
+              <button key={opt} onClick={()=>{onAdd(fk,label,opt,'');setOpen(false);}}
                 style={{padding:'4px 10px',borderRadius:5,border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:11,fontWeight:600,
                   color:optAbnormal?'#ef4444':'#16a34a'}}>
                 {opt}
               </button>
             );
           })}
-          <button onMouseDown={e=>{e.preventDefault();setOpen(false);}}
+          <button onClick={()=>setOpen(false)}
             style={{padding:'4px 8px',borderRadius:5,background:'#f3f4f6',color:'#9ca3af',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
         </div>
       )}
