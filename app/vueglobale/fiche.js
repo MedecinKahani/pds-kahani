@@ -13,6 +13,55 @@ function useDebounce(fn, delay) {
   return (...args) => { clearTimeout(t.current); t.current = setTimeout(() => fn(...args), delay); };
 }
 
+// ─── Côtation DxCare automatique ────────────────────────────────────────────
+// Chaque fois qu'une prescription (examen/thérapeutique/soin) est marquée
+// "fait" dans la fiche patient, on regarde si elle correspond à un acte de
+// la nomenclature de côtation DxCare (cf. liste IDE). Si oui, on l'ajoute
+// automatiquement au cahier "Actes IDE à coter" (/actes-ide) — l'IDE n'a
+// plus besoin de s'en souvenir manuellement patient par patient.
+const DXCARE_ACTES = [
+  ['ECG',                          t=>/^ECG\b/.test(t)],
+  ['Glycémie capillaire',          t=>/^Dextro\b/.test(t)],
+  ['Hemocue',                      t=>/^Hémocue\b/.test(t)],
+  ['Bandelette urinaire',          t=>/^BU\b/.test(t)],
+  ['Beta HCG',                     t=>/^bHCG urinaire\b/.test(t)],
+  ['Tetanotop',                    t=>/^Tétanotop\b/.test(t)],
+  ['Actim CRP',                    t=>/^CRP( rapide| test)?\b/.test(t)],
+  ['Test OptiMAL',                 t=>/^TDR Paludisme\b/.test(t)],
+  ['TROD Dengue',                  t=>/^TDR Dengue\b/.test(t)],
+  ['ECBU (vacutest vert)',         t=>/ECBU/.test(t)],
+  ['Prélèvement veineux',          t=>/Mamoudzou|Bio délocalisée|\bNFS\b|\bIono\b|Créatinine|\bBHC\b|Lipase|Hémoculture|Sérologie|Bactério|Gaz du sang|Tropo|D-Dimère|BNP/.test(t)],
+  ['DRP',                          t=>/^DRP$/.test(t)],
+  ['Pansement simple',             t=>/^Pansement simple\b/.test(t)],
+  ['Pansement complexe',           t=>/^Pansement complexe\b/.test(t)],
+  ['Pose de perfusion',            t=>/^(VVP|KTO)\b/.test(t)],
+  ['Vaccin',                       t=>/[Vv]accin/.test(t)],
+  ['Education à la santé',         t=>/[ée]ducation th[ée]rapeutique|[ée]ducation à la sant[ée]/i.test(t)],
+  ['Aérosol',                      t=>/[Aa]érosol|Nébulisation|Ventoline|Salbutamol|Ipratropium/i.test(t)],
+  ['Injection insuline',           (t,c)=>c==='therapeutique'&&/[Ii]nsuline/.test(t)],
+  ['Injection intraveineuse directe', (t,c)=>c==='therapeutique'&&/\bIV\b/.test(t)],
+  ['Injection intramusculaire',    (t,c)=>c==='therapeutique'&&/\bIM\b/.test(t)],
+  ['Injection sous cutanée',       (t,c)=>c==='therapeutique'&&/\bSC\b/.test(t)],
+  ['Injection intradermique',      (t,c)=>c==='therapeutique'&&/\bID\b/.test(t)],
+  ['Distribution de traitement',   (t,c)=>c==='therapeutique'&&/\bPO\b/.test(t)],
+];
+
+function matchActeDxCare(texte, categorie) {
+  if (!texte) return null;
+  const found = DXCARE_ACTES.find(([,fn])=>fn(texte, categorie));
+  return found ? found[0] : null;
+}
+
+function signalerActeDxCare(texte, categorie, p, user) {
+  const acte = matchActeDxCare(texte, categorie);
+  if (!acte) return;
+  fetch('/api/actes-ide', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    id:(crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)),
+    ipp:p.ipp||null, sexe:p.sexe||null, type:acte, note:null,
+    ts:Date.now(), faitPar:user?.nom||user?.matricule,
+  })}).catch(()=>{});
+}
+
 const EXAMEN_NORMAL_ADULTE = `Neurologique : Glasgow 15, pas de déficit sensitivo-moteur, pas de signe méningé.
 Cardio-vasculaire : bruits du cœur réguliers, pouls périphériques perçus, pas d'œdème des membres inférieurs.
 Pulmonaire : eupnéique, murmures vésiculaires présents et symétriques, pas de signe de lutte.
@@ -447,6 +496,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     }
     rx[idx]={...rx[idx],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
     setPrescriptions(rx);
+    signalerActeDxCare(rx[idx].texte, rx[idx].categorie, p, user);
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
   }
@@ -456,6 +506,7 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     const rx=[...prescriptions];
     rx[idx]={...rx[idx],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
     setPrescriptions(rx);
+    signalerActeDxCare(rx[idx].texte, rx[idx].categorie, p, user);
     // Sauvegarder tél + ville dans le patient
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx),tel:prelevTel,ville:prelevVille}})});
@@ -826,6 +877,7 @@ ${ordonnance||'--'}
                                   const rx=[...prescriptions];
                                   rx[gi]={...rx[gi],fait:true,resultat:val,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
                                   setPrescriptions(rx);
+                                  signalerActeDxCare(rx[gi].texte, rx[gi].categorie, p, user);
                                   fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
                                     body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
                                   addConst(fk,label,val,'');
@@ -1023,6 +1075,7 @@ function PrescrItemMedecin({r, gi, prescriptions, setPrescriptions, p, user, sup
   function cocher() {
     const rx=[...prescriptions];
     rx[gi]={...rx[gi],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
+    signalerActeDxCare(rx[gi].texte, rx[gi].categorie, p, user);
     sauvegarder(rx);
   }
 
