@@ -188,7 +188,7 @@ function ColC(v, k) {
   return n<mn||n>mx ? '#ef4444' : '#16a34a';
 }
 
-function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
+function ConstBtn({ label, fk, unit, baseVal, history, onAdd, big }) {
   const [open, setOpen] = useState(false);
   const [val, setVal] = useState('');
   const inputRef = useRef(null);
@@ -198,22 +198,23 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   const abnormal = color==='#ef4444';
   const [icon, ...rest] = label.split(' ');
   const texte = rest.join(' ');
+  const s = big ? 1.9 : 1;
 
   return (
     <div style={{position:'relative'}}>
-      <div style={{background:abnormal?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(abnormal?'#fecaca':'#e5e7eb'),minWidth:0,cursor:'default',display:'flex',alignItems:'center',gap:6}}>
-        <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
-        <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
-        <div style={{flex:1,display:'flex',alignItems:'baseline',justifyContent:'center',gap:3,minWidth:0}}>
-          {latest&&baseVal&&<span style={{fontSize:11,color:'#94a3b8',textDecoration:'line-through',fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
-          <span style={{fontSize:13,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums',whiteSpace:'nowrap'}}>{cur||'—'}</span>
-          {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8,color:'#9ca3af',flexShrink:0}}>{unit}</span>}
+      <div style={{background:abnormal?'#fef2f2':'#f3f4f6',borderRadius:6,padding:5*s+'px '+8*s+'px',border:'1px solid '+(abnormal?'#fecaca':'#e5e7eb'),minWidth:0,cursor:'default',display:'flex',alignItems:'center',gap:6*s}}>
+        <div style={{width:16*s,height:16*s,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9*s,flexShrink:0,lineHeight:1}}>{icon}</div>
+        <span style={{fontSize:8*s,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
+        <div style={{flex:1,display:'flex',alignItems:'baseline',justifyContent:'center',gap:3*s,minWidth:0}}>
+          {latest&&baseVal&&<span style={{fontSize:11*s,color:'#94a3b8',textDecoration:'line-through',fontVariantNumeric:'tabular-nums'}}>{baseVal}</span>}
+          <span style={{fontSize:13*s,fontWeight:700,color,lineHeight:1,fontVariantNumeric:'tabular-nums',whiteSpace:'nowrap'}}>{cur||'—'}</span>
+          {cur&&cur!=='--'&&cur!=='—'&&<span style={{fontSize:8*s,color:'#9ca3af',flexShrink:0}}>{unit}</span>}
         </div>
         <button
           onClick={e=>{e.stopPropagation();setOpen(o=>{if(!o)setTimeout(()=>inputRef.current?.focus(),50);return !o;});setVal('');}}
-          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
-          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
-          style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>✎</button>
+          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:'+11*s+'px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 '+5*s+'px;cursor:pointer;line-height:'+16*s+'px;flex-shrink:0;'}
+          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:'+11*s+'px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 '+5*s+'px;cursor:pointer;line-height:'+16*s+'px;flex-shrink:0;'}
+          style={{fontSize:11*s,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 '+5*s+'px',cursor:'pointer',lineHeight:16*s+'px',flexShrink:0}}>✎</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'8px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',minWidth:120}}
@@ -232,27 +233,28 @@ function ConstBtn({ label, fk, unit, baseVal, history, onAdd }) {
   );
 }
 
-function BUBtn({ baseVal, history, onAdd }) {
+function BUBtn({ baseVal, history, onAdd, big }) {
   const [open, setOpen] = useState(false);
   const latest = history.length ? history[history.length-1] : null;
   const cur = latest ? latest.val : baseVal;
   const PARAMS = [['leuco','Leuco'],['nitrite','Nitrite'],['sang','Sang'],['glucose','Glucose'],['cetone','Cétone']];
   const CROIX = ['+','++','+++'];
   const [sel, setSel] = useState({});
+  const s = big ? 1.9 : 1;
   return (
     <div style={{position:'relative'}}>
-      <div style={{background:'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid #e5e7eb',display:'flex',alignItems:'center',gap:6}}>
-        <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>🧪</div>
-        <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>BU</span>
-        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3,minWidth:0}}>
-          {latest&&baseVal&&<span style={{fontSize:9,color:'#c4c9d0',textDecoration:'line-through',maxWidth:50,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
-          <span title={cur||''} style={{fontSize:12,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help',whiteSpace:'nowrap'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
+      <div style={{background:'#f3f4f6',borderRadius:6,padding:5*s+'px '+8*s+'px',border:'1px solid #e5e7eb',display:'flex',alignItems:'center',gap:6*s}}>
+        <div style={{width:16*s,height:16*s,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9*s,flexShrink:0,lineHeight:1}}>🧪</div>
+        <span style={{fontSize:8*s,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>BU</span>
+        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3*s,minWidth:0}}>
+          {latest&&baseVal&&<span style={{fontSize:9*s,color:'#c4c9d0',textDecoration:'line-through',maxWidth:50*s,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{baseVal}</span>}
+          <span title={cur||''} style={{fontSize:12*s,fontWeight:700,color:cur?'#3b82f6':'#9ca3af',cursor:'help',whiteSpace:'nowrap'}}>{cur&&cur!=='—'?(cur.includes('Nég')&&!cur.includes('Leuco +')&&!cur.includes('Nitrite +')&&!cur.includes('Sang +')&&!cur.includes('Glucose +')&&!cur.includes('Cétone +')?'Négative':'Positive'):cur||'—'}</span>
         </div>
         <button
           onClick={e=>{e.stopPropagation();setOpen(o=>!o);setSel({});}}
-          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
-          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
-          style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>✎</button>
+          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:'+11*s+'px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 '+5*s+'px;cursor:pointer;line-height:'+16*s+'px;flex-shrink:0;'}
+          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:'+11*s+'px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 '+5*s+'px;cursor:pointer;line-height:'+16*s+'px;flex-shrink:0;'}
+          style={{fontSize:11*s,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 '+5*s+'px',cursor:'pointer',lineHeight:16*s+'px',flexShrink:0}}>✎</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,padding:'10px 12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',minWidth:280}}
@@ -292,7 +294,7 @@ function BUBtn({ baseVal, history, onAdd }) {
   );
 }
 
-function QualBtn({ label, fk, options, baseVal, history, onAdd, inverse }) {
+function QualBtn({ label, fk, options, baseVal, history, onAdd, inverse, big }) {
   const [open, setOpen] = useState(false);
   const latest = history.length ? history[history.length-1] : null;
   const cur = latest ? latest.val : baseVal;
@@ -302,23 +304,24 @@ function QualBtn({ label, fk, options, baseVal, history, onAdd, inverse }) {
   const color = cur ? (isAbnormal?'#ef4444':'#16a34a') : '#9ca3af';
   const [icon, ...rest] = label.split(' ');
   const texte = rest.join(' ');
+  const s = big ? 1.9 : 1;
 
   return (
     <div style={{position:'relative'}}>
-      <div style={{background:isAbnormal?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(isAbnormal?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6}}>
-        <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{icon}</div>
-        <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
-        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3,minWidth:0}}>
-          {latest&&baseVal&&<span style={{fontSize:10,color:'#c4c9d0',textDecoration:'line-through'}}>{baseVal}</span>}
-          <span style={{fontSize:cur==='Positif'||cur==='Négatif'?16:13,fontWeight:700,color,lineHeight:1,whiteSpace:'nowrap'}}>
+      <div style={{background:isAbnormal?'#fef2f2':'#f3f4f6',borderRadius:6,padding:5*s+'px '+8*s+'px',border:'1px solid '+(isAbnormal?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6*s}}>
+        <div style={{width:16*s,height:16*s,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9*s,flexShrink:0,lineHeight:1}}>{icon}</div>
+        <span style={{fontSize:8*s,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{texte}</span>
+        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:3*s,minWidth:0}}>
+          {latest&&baseVal&&<span style={{fontSize:10*s,color:'#c4c9d0',textDecoration:'line-through'}}>{baseVal}</span>}
+          <span style={{fontSize:(cur==='Positif'||cur==='Négatif'?16:13)*s,fontWeight:700,color,lineHeight:1,whiteSpace:'nowrap'}}>
             {cur==='Positif'?'+':cur==='Négatif'?'−':(cur||'—')}
           </span>
         </div>
         <button
           onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}
-          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
-          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:11px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 5px;cursor:pointer;line-height:16px;flex-shrink:0;'}
-          style={{fontSize:11,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 5px',cursor:'pointer',lineHeight:'16px',flexShrink:0}}>✎</button>
+          onMouseEnter={e=>e.currentTarget.style.cssText='font-size:'+11*s+'px;font-weight:700;color:#fff;background:#0d9488;border:1.5px solid #0d9488;border-radius:4px;padding:0 '+5*s+'px;cursor:pointer;line-height:'+16*s+'px;flex-shrink:0;'}
+          onMouseLeave={e=>e.currentTarget.style.cssText='font-size:'+11*s+'px;font-weight:700;color:#0d9488;background:transparent;border:1.5px solid #0d9488;border-radius:4px;padding:0 '+5*s+'px;cursor:pointer;line-height:'+16*s+'px;flex-shrink:0;'}
+          style={{fontSize:11*s,fontWeight:700,color:'#374151',background:'transparent',border:'1.5px solid #0d9488',borderRadius:4,padding:'0 '+5*s+'px',cursor:'pointer',lineHeight:16*s+'px',flexShrink:0}}>✎</button>
       </div>
       {open&&(
         <div style={{position:'absolute',top:'110%',left:0,zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,padding:'6px',boxShadow:'0 4px 16px rgba(0,0,0,0.12)',display:'flex',flexWrap:'wrap',gap:4,minWidth:140}}
@@ -607,28 +610,29 @@ ${ordonnance||'--'}
   ];
 
   function renderConst(c) {
+    const big = role==='as';
     if (c.type==='fixed') {
       // PAM : cas spécial avec couleur et alerte
       if (c.fk==='pam') return (
-        <div key={c.fk} style={{background:pamColor==='#ef4444'?'#fef2f2':'#f3f4f6',borderRadius:6,padding:'5px 8px',border:'1px solid '+(pamColor==='#ef4444'?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:6}}>
-          <div style={{width:16,height:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0,lineHeight:1}}>{c.label.split(' ')[0]}</div>
-          <span style={{fontSize:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{c.label.split(' ').slice(1).join(' ')} <span style={{fontWeight:400,textTransform:'none'}}>auto</span></span>
-          <div style={{flex:1,display:'flex',alignItems:'baseline',justifyContent:'center',gap:3,minWidth:0}}>
-            <span style={{fontSize:13,fontWeight:700,color:pamColor,lineHeight:1,whiteSpace:'nowrap'}}>{pamVal||'—'}</span>
-            {pamVal&&<span style={{fontSize:8,color:'#9ca3af',flexShrink:0}}>{c.unit}</span>}
+        <div key={c.fk} style={{background:pamColor==='#ef4444'?'#fef2f2':'#f3f4f6',borderRadius:6,padding:big?'9px 15px':'5px 8px',border:'1px solid '+(pamColor==='#ef4444'?'#fecaca':'#e5e7eb'),minWidth:0,display:'flex',alignItems:'center',gap:big?11:6}}>
+          <div style={{width:big?30:16,height:big?30:16,borderRadius:4,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:big?17:9,flexShrink:0,lineHeight:1}}>{c.label.split(' ')[0]}</div>
+          <span style={{fontSize:big?15:8,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:0.5,flexShrink:0}}>{c.label.split(' ').slice(1).join(' ')} <span style={{fontWeight:400,textTransform:'none'}}>auto</span></span>
+          <div style={{flex:1,display:'flex',alignItems:'baseline',justifyContent:'center',gap:big?6:3,minWidth:0}}>
+            <span style={{fontSize:big?25:13,fontWeight:700,color:pamColor,lineHeight:1,whiteSpace:'nowrap'}}>{pamVal||'—'}</span>
+            {pamVal&&<span style={{fontSize:big?15:8,color:'#9ca3af',flexShrink:0}}>{c.unit}</span>}
           </div>
-          {pamVal&&pamVal<65&&<span style={{fontSize:8,color:'#ef4444',fontWeight:700,flexShrink:0}}>⚠ Bas</span>}
+          {pamVal&&pamVal<65&&<span style={{fontSize:big?15:8,color:'#ef4444',fontWeight:700,flexShrink:0}}>⚠ Bas</span>}
         </div>
       );
     }
     if (c.type==='num' || (c.type==='fixed' && c.fk!=='pam')) return (
-      <ConstBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst}/>
+      <ConstBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst} big={big}/>
     );
     if (c.type==='bu') return (
-      <BUBtn key={c.fk} baseVal={c.base} history={localConst.filter(x=>x.key==='bu_resultat')} onAdd={addConst}/>
+      <BUBtn key={c.fk} baseVal={c.base} history={localConst.filter(x=>x.key==='bu_resultat')} onAdd={addConst} big={big}/>
     );
     return (
-      <QualBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} options={c.options} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst} inverse={c.fk==='tdr_tet'}/>
+      <QualBtn key={c.fk} label={c.label} fk={c.fk} unit={c.unit} options={c.options} baseVal={c.base} history={localConst.filter(x=>x.key===c.fk)} onAdd={addConst} inverse={c.fk==='tdr_tet'} big={big}/>
     );
   }
 
@@ -641,35 +645,35 @@ ${ordonnance||'--'}
       <div style={{flexShrink:0,background:'#fff',borderBottom:'1px solid #e5e7eb'}}>
 
         {/* Ligne 1 : identité */}
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'7px 14px',borderBottom:'0.5px solid #f0f0f0'}}>
-          <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-            <span style={{fontSize:12,color:'#6b7280'}}>{p.sexe==='M'?'♂':'♀'} · {p.age} ans</span>
-            {p.ddn&&<span style={{fontSize:11,color:'#9ca3af'}}>{(()=>{const[y,m,d]=(p.ddn||'').split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()}</span>}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:role==='as'?'12px 18px':'7px 14px',borderBottom:'0.5px solid #f0f0f0'}}>
+          <div style={{display:'flex',alignItems:'center',gap:role==='as'?16:10,flexWrap:'wrap'}}>
+            <span style={{fontSize:role==='as'?19:12,fontWeight:role==='as'?700:400,color:role==='as'?'#111827':'#6b7280'}}>{p.sexe==='M'?'♂':'♀'} · {p.age} ans</span>
+            {p.ddn&&<span style={{fontSize:role==='as'?15:11,color:'#9ca3af'}}>{(()=>{const[y,m,d]=(p.ddn||'').split('-');return d&&m&&y?`${d}/${m}/${y}`:p.ddn;})()}</span>}
             <span onMouseDown={e=>{e.preventDefault();if(p.ipp){navigator.clipboard.writeText(p.ipp);setIppCopied(true);setTimeout(()=>setIppCopied(false),10000);}}}
-              style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:6,padding:'2px 8px',border:'1px solid '+(ippCopied?'#0d9488':'#e5e7eb'),background:ippCopied?'#f0fdfa':'#f3f4f6',cursor:p.ipp?'pointer':'default',userSelect:'none'}}>
-              <span style={{fontSize:9,color:ippCopied?'#0d9488':'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
-              <span style={{fontSize:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
-              {ippCopied&&<span style={{fontSize:10,color:'#374151',fontWeight:700}}>✓</span>}
+              style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:6,padding:role==='as'?'4px 12px':'2px 8px',border:'1px solid '+(ippCopied?'#0d9488':'#e5e7eb'),background:ippCopied?'#f0fdfa':'#f3f4f6',cursor:p.ipp?'pointer':'default',userSelect:'none'}}>
+              <span style={{fontSize:role==='as'?13:9,color:ippCopied?'#0d9488':'#9ca3af',fontWeight:700,textTransform:'uppercase',letterSpacing:0.4}}>IPP</span>
+              <span style={{fontSize:role==='as'?18:12,fontWeight:700,color:ippCopied?'#0d9488':'#374151',fontFamily:'monospace'}}>{p.ipp||'—'}</span>
+              {ippCopied&&<span style={{fontSize:role==='as'?15:10,color:'#374151',fontWeight:700}}>✓</span>}
             </span>
             <button onMouseDown={e=>{e.preventDefault();openEditIdentite();}} title="Modifier l'identité"
-              style={{fontSize:13,background:'none',border:'none',cursor:'pointer',color:'#9ca3af',padding:'0 2px'}}>✎</button>
-            <span style={{fontSize:11,fontWeight:700,color:'#374151',background:'#f0fdfa',padding:'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
+              style={{fontSize:role==='as'?19:13,background:'none',border:'none',cursor:'pointer',color:'#9ca3af',padding:'0 2px'}}>✎</button>
+            <span style={{fontSize:role==='as'?16:11,fontWeight:700,color:'#374151',background:'#f0fdfa',padding:role==='as'?'4px 12px':'2px 8px',borderRadius:5,border:'0.5px solid #99f6e4'}}>
               {p.autre_motif ? p.autre_motif : p.symptome?.replace(/_/g,' ')}
             </span>
           </div>
-          <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
-            <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
+          <div style={{display:'flex',gap:role==='as'?10:6,alignItems:'center',flexShrink:0}}>
+            <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients} big={role==='as'}/>
             <button onClick={onClose} title="Fermer"
-              style={{background:'#fff',border:'2px solid #ef4444',width:30,height:30,borderRadius:'50%',cursor:'pointer',fontSize:16,fontWeight:700,color:'#ef4444',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+              style={{background:'#fff',border:'2px solid #ef4444',width:role==='as'?42:30,height:role==='as'?42:30,borderRadius:'50%',cursor:'pointer',fontSize:role==='as'?22:16,fontWeight:700,color:'#ef4444',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
           </div>
         </div>
 
         {/* Ligne 2 : constantes rangée 1 */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:3,padding:'4px 10px 2px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat('+(role==='as'?4:8)+',1fr)',gap:role==='as'?10:3,padding:role==='as'?'8px 14px 4px':'4px 10px 2px'}}>
           {CONSTANTES_R1.map(renderConst)}
         </div>
         {/* Ligne 3 : constantes rangée 2 */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:3,padding:'0 10px 5px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat('+(role==='as'?4:8)+',1fr)',gap:role==='as'?10:3,padding:role==='as'?'0 14px 10px':'0 10px 5px'}}>
           {CONSTANTES_R2.map(renderConst)}
         </div>
       </div>
@@ -2766,14 +2770,14 @@ function SutureSection({p, save}) {
   );
 }
 
-function DeplacerBtn({p, onUpdate, patients=[]}) {
+function DeplacerBtn({p, onUpdate, patients=[], big}) {
   const [open,setOpen]=useState(false);
   const EMPL=[{id:'brancard1',l:'B1 — Brancard 1',c:'#ef4444'},{id:'brancard2',l:'B2 — Brancard 2',c:'#ef4444'},{id:'fauteuil1',l:'F1 — Fauteuil 1',c:'#16a34a'},{id:'fauteuil2',l:'F2 — Fauteuil 2',c:'#16a34a'},{id:'obs1',l:'O1 — Observation 1',c:'#3b82f6'},{id:'obs2',l:'O2 — Observation 2',c:'#3b82f6'},{id:'obs3',l:'O3 — Observation 3 (lit bébé)',c:'#3b82f6'},{id:'lit1',l:'L1 — Lit 1',c:'#3b82f6'},{id:'lit2',l:'L2 — Lit 2',c:'#3b82f6'},{id:'dehors',l:'Dehors',c:'#9ca3af'}];
   const cur=EMPL.find(e=>e.id===p.emplacement);
   return(
     <div style={{position:'relative'}}>
       <button onClick={()=>setOpen(o=>!o)}
-        style={{padding:'4px 10px',borderRadius:7,border:'1px solid #e5e7eb',background:'#f9fafb',fontSize:11,fontWeight:600,color:'#374151',cursor:'pointer'}}>
+        style={{padding:big?'8px 18px':'4px 10px',borderRadius:7,border:'1px solid #e5e7eb',background:'#f9fafb',fontSize:big?18:11,fontWeight:700,color:'#374151',cursor:'pointer'}}>
         📍 {cur?.l||p.emplacement||'—'} {open?'▲':'▼'}
       </button>
       {open&&<div style={{position:'fixed',zIndex:9999,background:'#fff',border:'1px solid #e5e7eb',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',padding:8,minWidth:200}}>
