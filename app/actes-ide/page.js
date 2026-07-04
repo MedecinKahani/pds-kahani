@@ -10,7 +10,7 @@ export default function ActesIdePage() {
   const [copie, setCopie] = useState(null);
   const [envoiId, setEnvoiId] = useState(null);
   const [user, setUser] = useState(null);
-  const [voirTous, setVoirTous] = useState(false);
+  const [filtrerMoi, setFiltrerMoi] = useState(false);
 
   useEffect(() => {
     const s = sessionStorage.getItem('pds_user');
@@ -48,7 +48,7 @@ export default function ActesIdePage() {
   }
 
   const monNom = user?.nom || user?.matricule || '';
-  const affiches = voirTous ? actes : actes.filter(a=>!monNom || a.faitPar===monNom);
+  const affiches = filtrerMoi ? actes.filter(a=>!monNom || a.faitPar===monNom) : actes;
 
   return (
     <div style={{minHeight:'100vh',background:'#f3f4f6',fontFamily:'system-ui'}}>
@@ -56,7 +56,7 @@ export default function ActesIdePage() {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:10}}>
           <div>
             <h2 style={{fontSize:18,fontWeight:700,color:'#111827',margin:0}}>💉 Actes IDE à coter dans DxCare</h2>
-            <p style={{fontSize:12,color:'#6b7280',margin:'4px 0 0'}}>{voirTous?'Tous les actes en attente':'Vos actes en attente'} — cochez une fois saisi dans DxCare</p>
+            <p style={{fontSize:12,color:'#6b7280',margin:'4px 0 0'}}>{filtrerMoi?'Vos actes en attente':'Tous les actes en attente'} — à coter dans DxCare même si un(e) collègue a coché la réalisation</p>
           </div>
           <button onClick={()=>window.location.href='/vueglobale'}
             style={{padding:'8px 16px',borderRadius:8,background:'#f3f4f6',color:'#6b7280',fontSize:13,border:'1px solid #e5e7eb',cursor:'pointer'}}>
@@ -65,8 +65,8 @@ export default function ActesIdePage() {
         </div>
 
         <label style={{display:'flex',alignItems:'center',gap:6,marginBottom:14,fontSize:12,color:'#6b7280',cursor:'pointer'}}>
-          <input type="checkbox" checked={voirTous} onChange={e=>setVoirTous(e.target.checked)}/>
-          Voir aussi les actes des collègues
+          <input type="checkbox" checked={filtrerMoi} onChange={e=>setFiltrerMoi(e.target.checked)}/>
+          N'afficher que mes actes à moi
         </label>
 
         {loading && <div style={{textAlign:'center',color:'#9ca3af',padding:'3rem'}}>Chargement...</div>}
@@ -93,7 +93,7 @@ export default function ActesIdePage() {
                 {a.sexe && <span style={{fontSize:12,color:'#6b7280'}}>{a.sexe==='M'?'♂':'♀'}</span>}
                 {a.note && <span style={{fontSize:12,color:'#374151'}}>{a.note}</span>}
                 <span style={{fontSize:11,color:'#9ca3af'}}>{new Date(a.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',' à')}</span>
-                {voirTous && a.faitPar && <span style={{fontSize:11,color:'#9ca3af'}}>· {a.faitPar}</span>}
+                {a.faitPar && <span style={{fontSize:11,color:'#9ca3af'}}>· {a.faitPar}</span>}
               </div>
               <button onClick={()=>marquerCode(a.id)} disabled={envoiId===a.id}
                 style={{padding:'7px 12px',borderRadius:7,background:'#f0fdf4',color:'#16a34a',fontSize:12,fontWeight:600,border:'1px solid #bbf7d0',cursor:envoiId===a.id?'not-allowed':'pointer',flexShrink:0}}>
