@@ -609,7 +609,8 @@ ${ordonnance||'--'}
           </div>
           <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
             <DeplacerBtn p={p} onUpdate={onUpdate} patients={patients}/>
-            <button onClick={onClose} style={{background:'#f3f4f6',border:'1px solid #e5e7eb',width:26,height:26,borderRadius:'50%',cursor:'pointer',fontSize:14,color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+            <button onClick={onClose} title="Fermer"
+              style={{background:'#fff',border:'2px solid #ef4444',width:30,height:30,borderRadius:'50%',cursor:'pointer',fontSize:16,fontWeight:700,color:'#ef4444',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
           </div>
         </div>
 
