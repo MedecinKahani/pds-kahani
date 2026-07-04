@@ -1196,23 +1196,23 @@ function AutreLibre({categorie, onAjouter}) {
   const [val, setVal] = useState('');
   if (!open) return (
     <button onClick={()=>setOpen(true)}
-      onMouseEnter={e=>e.currentTarget.style.filter='brightness(0.88)'}
+      onMouseEnter={e=>e.currentTarget.style.filter='brightness(0.93)'}
       onMouseLeave={e=>e.currentTarget.style.filter='none'}
       style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:6,
-        padding:'6px 10px',borderRadius:6,background:'#f3f4f6',color:'#6b7280',border:'1.5px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:'pointer'}}>
+        padding:'7px 10px',borderRadius:6,background:'#fffbeb',color:'#b45309',border:'1.5px solid #f59e0b',fontSize:11,fontWeight:700,cursor:'pointer'}}>
       <span style={{width:7,height:7,borderRadius:'50%',background:'#f59e0b',flexShrink:0}}/>
       + Autre prescription, saisie libre
     </button>
   );
   return (
-    <div style={{display:'flex',gap:4,alignItems:'center'}}>
+    <div style={{width:'100%',display:'flex',gap:4,alignItems:'center'}}>
       <input value={val} onChange={e=>setVal(e.target.value)} placeholder="Préciser..." autoFocus
-        style={{padding:'4px 8px',borderRadius:5,border:'1px solid #e5e7eb',fontSize:11,outline:'none'}}
+        style={{flex:1,minWidth:0,padding:'5px 8px',borderRadius:5,border:'1.5px solid #f59e0b',fontSize:11,outline:'none'}}
         onKeyDown={e=>{if(e.key==='Enter'&&val.trim()){onAjouter(val.trim(),categorie);setVal('');setOpen(false);}}}/>
       <button onClick={()=>{if(val.trim()){onAjouter(val.trim(),categorie);setVal('');setOpen(false);}}}
-        style={{padding:'4px 8px',borderRadius:5,background:'#0d9488',color:'#fff',border:'none',fontSize:11,cursor:'pointer'}}>OK</button>
+        style={{flexShrink:0,padding:'5px 10px',borderRadius:5,background:'#0d9488',color:'#fff',border:'none',fontSize:11,fontWeight:600,cursor:'pointer'}}>OK</button>
       <button onClick={()=>{setOpen(false);setVal('');}}
-        style={{padding:'4px 6px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
+        style={{flexShrink:0,padding:'5px 7px',borderRadius:5,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:11,cursor:'pointer'}}>✕</button>
     </div>
   );
 }
@@ -1498,6 +1498,7 @@ function TheraSection({prescriptions, onAjouter, onAjouterPlusieurs, patient}) {
     {label:'Ceftriaxone 1g IV', voie:'IV', color:'#2563eb', cat:'Anti-infectieux'},
     {label:'Kétoprofène 100mg IV (Profenid)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Néfopam 20mg IV (Acupan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
+    {label:'Paracétamol 1g IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Paracétamol 500mg IV (Perfalgan)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Phloroglucinol 40mg IV (Spasfon)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
     {label:'Tramadol 100mg IV (Topalgic)', voie:'IV', color:'#2563eb', cat:'Antalgique'},
