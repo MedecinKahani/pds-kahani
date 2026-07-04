@@ -20,7 +20,11 @@ export default function ActesIdePage() {
 
   function charger() {
     setLoading(true);
-    fetch('/api/actes-ide').then(r=>r.json()).then(d=>{
+    fetch('/api/actes-ide').then(r=>{
+      if (r.status===401) { sessionStorage.clear(); window.location.href='/login?expire=1'; return null; }
+      return r.json();
+    }).then(d=>{
+      if (!d) return;
       setActes(d.actes||[]);
       setLoading(false);
     });

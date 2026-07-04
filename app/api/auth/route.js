@@ -18,7 +18,7 @@ export async function POST(req) {
       httpOnly: true, // inaccessible en JS côté navigateur, protège contre le vol via XSS
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 12 * 60 * 60, // 12h, aligné sur la durée du jeton
+      maxAge: 24 * 60 * 60, // 24h, aligné sur la durée du jeton
       path: '/',
     });
 

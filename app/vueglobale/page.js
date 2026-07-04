@@ -270,6 +270,7 @@ export default function PageVueGlobale() {
 
   const load = useCallback(async()=>{
     const r=await fetch('/api/patients');
+    if (r.status===401) { sessionStorage.clear(); window.location.href='/login?expire=1'; return []; }
     const d=await r.json();
     const ps=d.patients||[];
     setPatients(ps);

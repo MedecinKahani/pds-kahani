@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const ROLES = [
@@ -13,6 +13,11 @@ export default function Login() {
   const [role, setRole] = useState(null);
   const [matricule, setMatricule] = useState('');
   const [erreur, setErreur] = useState('');
+  useEffect(()=>{
+    if (typeof window!=='undefined' && new URLSearchParams(window.location.search).get('expire')) {
+      setErreur('Session expirée — reconnectez-vous');
+    }
+  },[]);
   const [chargement, setChargement] = useState(false);
   const router = useRouter();
 
