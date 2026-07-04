@@ -768,7 +768,7 @@ ${ordonnance||'--'}
                 {/* Bouton copie complète */}
                 {role!=='ide'&&(
                   <CopyBtn
-                    text={'PATIENT IPP '+(p.ipp||'?')+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+getVal('fc',p.fc)+'bpm | SpO2:'+getVal('sat',p.sat)+'% | T°:'+getVal('temp',p.temp)+'°C\nPAS:'+getVal('tas',p.tas)+' PAD:'+getVal('tad',p.tad)+' PAM:'+(pamVal||'--')+'mmHg\nDextro:'+getVal('dextro',p.dextro)+' | Hb:'+getVal('hemocue',p.hemocue)+'\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN CLINIQUE:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+prescriptions.map(r=>'- ['+(r.fait?'FAIT':r.nonRealise?'NON REALISE':'EN ATTENTE')+'] '+r.texte).join('\n')+'\n\nORDONNANCE:\n'+(ordonnance||'--')}
+                    text={'PATIENT IPP '+(p.ipp||'?')+' — '+p.age+' ans\n\nCONSTANTES:\nFC:'+getVal('fc',p.fc)+'bpm | SpO2:'+getVal('sat',p.sat)+'% | T°:'+getVal('temp',p.temp)+'°C\nPAS:'+getVal('tas',p.tas)+' PAD:'+getVal('tad',p.tad)+' PAM:'+(pamVal||'--')+'mmHg\nDextro:'+getVal('dextro',p.dextro)+' | Hb:'+getVal('hemocue',p.hemocue)+'\n\nMOTIF:\n'+(anamnese||'--')+'\n\nEXAMEN CLINIQUE:\n'+(examen||'--')+'\n\nEVOLUTION:\n'+(evolution||'--')+'\n\nDIAGNOSTIC:\n'+(diagnostic||'--')+'\n\nPRESCRIPTIONS:\n'+formatRxCompact(prescriptions)+'\n\nORDONNANCE:\n'+(ordonnance||'--')}
                     label="📋 Copier-coller complet pour DxCare"
                     fullWidth={true}
                   />
@@ -2317,6 +2317,17 @@ function DxCareField({label, value, onChange, placeholder, rows, readOnly}) {
   );
 }
 
+function formatRxCompact(prescriptions) {
+  const faits = prescriptions.filter(r=>r.fait).map(r=>r.texte);
+  const attente = prescriptions.filter(r=>!r.fait&&!r.nonRealise).map(r=>r.texte);
+  const nonReal = prescriptions.filter(r=>r.nonRealise).map(r=>r.texte+(r.motifNonRealise?' ('+r.motifNonRealise+')':''));
+  const lignes = [];
+  if (faits.length) lignes.push('Réalisé : '+faits.join(', '));
+  if (attente.length) lignes.push('En attente : '+attente.join(', '));
+  if (nonReal.length) lignes.push('Non réalisé : '+nonReal.join(', '));
+  return lignes.join('\n')||'--';
+}
+
 function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, prescriptions, pamVal, getVal, compact}) {
   const [copiedKey, setCopiedKey] = useState(null);
 
@@ -2334,7 +2345,7 @@ function DxCareButtons({p, anamnese, examen, evolution, diagnostic, ordonnance, 
   const dextro = getVal('dextro',p.dextro)||'--';
   const hb = getVal('hemocue',p.hemocue)||'--';
 
-  const rxTxt = prescriptions.map(r=>'- ['+(r.fait?'FAIT':r.nonRealise?'NON REALISE':'EN ATTENTE')+'] '+r.texte+(r.motifNonRealise?' ('+r.motifNonRealise+')':'')).join('\n');
+  const rxTxt = formatRxCompact(prescriptions);
 
   const SECTIONS = [
     {key:'motif',     label:'Motif',        text:(p.symptome?.replace(/_/g,' ')||'')+(p.autre_motif?' — '+p.autre_motif:'')},
