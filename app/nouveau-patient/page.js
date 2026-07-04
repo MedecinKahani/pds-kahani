@@ -103,11 +103,18 @@ export default function NouveauPatient() {
     douleur_zones:[], ecg_fait:false,
     vomissement:null, tache_peau:null, drepanocytose:null,
     bu_fait:false, bhcg_fait:false, bhcg_pas_regles:false, bhcg_menopausee:false,
+    bhcg_resultat:'', bu_resultat:'', bu_params:{},
     autre_motif:'', douleur_autre:'', soins_type:'',
   });
 
   const set = (k,v) => setF(prev=>({...prev,[k]:v}));
   const toggleZone = id => set('douleur_zones', f.douleur_zones.includes(id) ? f.douleur_zones.filter(z=>z!==id) : [...f.douleur_zones,id]);
+  const BU_PARAMS = [['leuco','Leuco'],['nitrite','Nitrite'],['sang','Sang'],['glucose','Glucose'],['cetone','Cétone']];
+  const setBuParam = (k,v) => setF(prev=>{
+    const params = {...prev.bu_params, [k]: prev.bu_params[k]===v ? null : v};
+    const resultat = BU_PARAMS.map(([pk,l])=>`${l} ${params[pk]||'Nég'}`).join(' / ');
+    return {...prev, bu_params:params, bu_resultat:resultat, bu_fait:true};
+  });
 
   useEffect(() => {
     const s = sessionStorage.getItem('pds_user');
@@ -216,7 +223,7 @@ export default function NouveauPatient() {
       if (!f.douleur_zones.length) return false;
       if (f.douleur_zones.includes('thorax')&&!f.ecg_fait) return false;
       if (f.douleur_zones.includes('tete')&&(f.vomissement===null||f.tache_peau===null)) return false;
-      if (f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(!f.bu_fait||(!f.bhcg_fait&&!f.bhcg_pas_regles&&!f.bhcg_menopausee))) return false;
+      if (f.sexe==='F'&&f.douleur_zones.includes('abdomen')&&(!f.bu_resultat||(!f.bhcg_resultat&&!f.bhcg_pas_regles&&!f.bhcg_menopausee))) return false;
       return true;
     }
     return true;
@@ -258,7 +265,8 @@ export default function NouveauPatient() {
       tache_peau:f.tache_peau!==null?String(f.tache_peau):'',
       drepanocytose:f.drepanocytose!==null?String(f.drepanocytose):'',
       drp_fait:f.drp_fait, autre_motif:autreMotifFinal, douleur_autre:f.douleur_autre, soins_type:f.soins_type,
-      crp_resultat:f.crp_resultat, tdr_palu_resultat:f.tdr_palu_resultat, tdr_dengue_resultat:f.tdr_dengue_resultat,
+      crp_test:f.crp_resultat, tdr_palu:f.tdr_palu_resultat, tdr_dengue:f.tdr_dengue_resultat,
+      bhcg_resultat:f.bhcg_resultat, bu_resultat:f.bu_resultat,
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
       emplacement_suggere:pl.place,
@@ -564,7 +572,7 @@ export default function NouveauPatient() {
                       )}
                       {f[k+'_fait'] && type==='posneg' && (
                         <div style={{display:'flex',gap:6,paddingLeft:4}}>
-                          {['Positif','Negatif'].map(function(r) {
+                          {['Positif','Négatif'].map(function(r) {
                             const rc = r==='Positif'?'#ef4444':'#16a34a';
                             return (
                               <Btn key={r} onClick={()=>set(k+'_resultat',r)} style={{padding:'4px 12px',borderRadius:6,fontSize:11,fontWeight:600,background:f[k+'_resultat']===r?rc:'#fff',color:f[k+'_resultat']===r?'#fff':'#374151',border:'1px solid '+(f[k+'_resultat']===r?rc:'#e5e7eb')}}>
@@ -628,28 +636,59 @@ export default function NouveauPatient() {
             {f.sexe==='F' && f.douleur_zones.includes('abdomen') && (
               <div style={{background:'#fdf4ff',borderRadius:8,padding:'10px 12px',border:'1px solid #e9d5ff',marginBottom:8}}>
                 <div style={{color:'#7c3aed',fontWeight:700,fontSize:12,marginBottom:8}}>Femme + douleur abdominale — BU et bHCG obligatoires</div>
-                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                  {[{k:'bu_fait',l:'🧪 BU'},{k:'bhcg_fait',l:'🤰 bHCG urinaire'}].map(function(item) {
+
+                <div style={{marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:700,color:'#374151',marginBottom:4}}>🧪 BU — résultat *</div>
+                  {BU_PARAMS.map(function([k,l]) {
+                    const val = f.bu_params[k]||'Nég';
                     return (
-                      <Btn key={item.k} onClick={()=>set(item.k,!f[item.k])} style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,background:f[item.k]?'#7c3aed':'#fff',color:f[item.k]?'#fff':'#7c3aed',border:'1px solid '+(f[item.k]?'#7c3aed':'#e9d5ff')}}>
-                        {f[item.k]?'Fait: '+item.l:item.l}
-                      </Btn>
+                      <div key={k} style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+                        <span style={{fontSize:11,color:'#374151',width:55,flexShrink:0}}>{l}</span>
+                        {['Nég','+','++','+++'].map(function(v) {
+                          const actif = val===v;
+                          const c = v==='Nég'?'#16a34a':'#ef4444';
+                          return (
+                            <Btn key={v} onClick={()=>setBuParam(k,v==='Nég'?null:v)}
+                              style={{padding:'3px 9px',borderRadius:5,fontSize:10,fontWeight:600,background:actif?c:'#fff',color:actif?'#fff':c,border:'1px solid '+(actif?c:'#e5e7eb')}}>
+                              {v}
+                            </Btn>
+                          );
+                        })}
+                      </div>
                     );
                   })}
-                  {age!==null && age<16 && (
-                    <Btn onClick={()=>set('bhcg_pas_regles',!f.bhcg_pas_regles)}
-                      style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
-                        background:f.bhcg_pas_regles?'#6b7280':'#fff',color:f.bhcg_pas_regles?'#fff':'#6b7280',
-                        border:'1px solid '+(f.bhcg_pas_regles?'#6b7280':'#e9d5ff')}}>
-                      {f.bhcg_pas_regles?'✓ bHCG non fait — pas encore de règles':'bHCG non fait — pas encore de règles'}
-                    </Btn>
+                </div>
+
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:'#374151',marginBottom:4}}>🤰 bHCG urinaire</div>
+                  {!f.bhcg_pas_regles && !f.bhcg_menopausee && (
+                    <div style={{display:'flex',gap:6,marginBottom:6}}>
+                      {['Positif','Négatif'].map(function(r) {
+                        const rc = r==='Positif'?'#ef4444':'#16a34a';
+                        return (
+                          <Btn key={r} onClick={()=>set('bhcg_resultat',r)} style={{padding:'5px 14px',borderRadius:6,fontSize:11,fontWeight:600,background:f.bhcg_resultat===r?rc:'#fff',color:f.bhcg_resultat===r?'#fff':'#374151',border:'1px solid '+(f.bhcg_resultat===r?rc:'#e5e7eb')}}>
+                            {r}
+                          </Btn>
+                        );
+                      })}
+                    </div>
                   )}
-                  <Btn onClick={()=>set('bhcg_menopausee',!f.bhcg_menopausee)}
-                    style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
-                      background:f.bhcg_menopausee?'#6b7280':'#fff',color:f.bhcg_menopausee?'#fff':'#6b7280',
-                      border:'1px solid '+(f.bhcg_menopausee?'#6b7280':'#e9d5ff')}}>
-                    {f.bhcg_menopausee?'✓ bHCG non fait — ménopausée':'bHCG non fait — ménopausée'}
-                  </Btn>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                    {age!==null && age<16 && (
+                      <Btn onClick={()=>{set('bhcg_pas_regles',!f.bhcg_pas_regles);set('bhcg_resultat','');}}
+                        style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                          background:f.bhcg_pas_regles?'#6b7280':'#fff',color:f.bhcg_pas_regles?'#fff':'#6b7280',
+                          border:'1px solid '+(f.bhcg_pas_regles?'#6b7280':'#e9d5ff')}}>
+                        {f.bhcg_pas_regles?'✓ bHCG non fait — pas encore de règles':'bHCG non fait — pas encore de règles'}
+                      </Btn>
+                    )}
+                    <Btn onClick={()=>{set('bhcg_menopausee',!f.bhcg_menopausee);set('bhcg_resultat','');}}
+                      style={{padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:600,
+                        background:f.bhcg_menopausee?'#6b7280':'#fff',color:f.bhcg_menopausee?'#fff':'#6b7280',
+                        border:'1px solid '+(f.bhcg_menopausee?'#6b7280':'#e9d5ff')}}>
+                      {f.bhcg_menopausee?'✓ bHCG non fait — ménopausée':'bHCG non fait — ménopausée'}
+                    </Btn>
+                  </div>
                 </div>
               </div>
             )}
