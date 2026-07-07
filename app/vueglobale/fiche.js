@@ -114,7 +114,6 @@ const EXAMENS_ROWS = [
       {label:'Gaz du sang', color:'#16a34a', note:'Seringue héparinée'},
       {label:'Tropo / D-Dimère / BNP', color:'#0284c7', note:'Tube bleu/vert — à vérifier'},
       {label:'Iono / Créatinine / BHC', color:'#0891b2', note:''},
-      {label:'Lipase', color:'#0891b2', note:''},
     ]},
     {id:'bio_mam', label:'Prélèvement Mamoudzou', color:'#0284c7', sub:[
       {label:'NFS', color:'#7c3aed', note:'Tube violet'},
@@ -493,8 +492,14 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
   async function cocherRx(idx) {
     const rx=[...prescriptions];
     const r = rx[idx];
-    // Si Prélèvement Mamoudzou → modale tél + ville d'abord
+    // Prélèvement Mamoudzou → tél + ville ne sont demandés qu'une fois par patient.
+    // Si déjà renseignés (par un examen précédent du même prélèvement), on valide
+    // directement avec ces valeurs au lieu de rouvrir la modale à chaque tube.
     if (r.texte && r.texte.includes('Mamoudzou') && !r.fait) {
+      if (p.tel && p.ville) {
+        await validerPrelevDirect(idx, p.tel, p.ville);
+        return;
+      }
       setModalePrelev({idx});
       setPrelevTel(p.tel||'');
       setPrelevVille(p.ville||'');
@@ -505,6 +510,23 @@ export default function FichePatient({ patient, p: pProp, onClose, onUpdate, use
     signalerActeDxCare(rx[idx].texte, rx[idx].categorie, p, user);
     await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+  }
+
+  // Validation d'un prélèvement Mamoudzou sans repasser par la modale (tél/ville déjà connus)
+  async function validerPrelevDirect(idx, tel, ville) {
+    const rx=[...prescriptions];
+    rx[idx]={...rx[idx],fait:true,faitPar:user?.matricule,faitNom:user?.nom,faitA:Date.now()};
+    setPrescriptions(rx);
+    signalerActeDxCare(rx[idx].texte, rx[idx].categorie, p, user);
+    await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update',id:p.id,patch:{prescriptions:JSON.stringify(rx)}})});
+    await fetch('/api/prelev',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        id:p.id, ipp:p.ipp, ddn:p.ddn, sexe:p.sexe, age:p.age,
+        tel, ville,
+        motif:p.symptome, diagnostic:diagnostic, anamnese:anamnese,
+        ts:Date.now(), faitPar:user?.nom||user?.matricule,
+      })});
   }
 
   async function validerPrelev() {
