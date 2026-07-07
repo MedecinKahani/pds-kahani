@@ -3,7 +3,7 @@ import { getUsageSemaine } from '@/lib/stats-jour';
 
 // Vue rétrospective "usage médecin par créneau" sur 7 jours — page discrète,
 // accès verrouillé sur un matricule précis, pas par rôle.
-// Règle : un créneau est "utilisé" si ≥5 patients enregistrés dessus ont eu
+// Règle : un créneau est "utilisé" si ≥4 patients enregistrés dessus ont eu
 // au moins une prescription demandée ET réalisée (cf. lib/stats-jour.js).
 const MATRICULE_AUTORISE = '023799';
 

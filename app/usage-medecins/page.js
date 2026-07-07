@@ -61,7 +61,7 @@ export default function UsageMedecins() {
 
       <div style={{maxWidth:640, margin:'0 auto', padding:'1.5rem 1rem'}}>
         <p style={{fontSize:12, color:'#9ca3af', marginBottom:16}}>
-          Vert = créneau utilisé (≥5 patients avec prescription demandée et réalisée). Rouge = pas utilisé —
+          Vert = créneau utilisé (≥4 patients avec prescription demandée et réalisée). Rouge = pas utilisé —
           les stats de passages/transferts de ce créneau sont silencieusement remplacées par la semaine précédente si possible.
         </p>
 
