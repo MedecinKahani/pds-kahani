@@ -185,6 +185,22 @@ export default function StatsMensuelles() {
       .catch(() => {});
   }, [jourOffset, user]);
 
+  // ── ONGLET ACTIVITÉ MÉDICALE (réservé 023799) ──
+  const [activiteData, setActiviteData] = useState([]);
+  const [activiteLoading, setActiviteLoading] = useState(false);
+  useEffect(() => {
+    if (!user || user.matricule !== '023799' || onglet !== 'activite') return;
+    setActiviteLoading(true);
+    fetch('/api/activite-medicale')
+      .then(r => r.json())
+      .then(d => setActiviteData(d.result || []))
+      .catch(() => {})
+      .finally(() => setActiviteLoading(false));
+  }, [onglet, user]);
+
+  const LABEL_CRENEAU = {'07-13':'07h-13h','13-19':'13h-19h','19-07':'19h-07h'};
+  const CRENEAUX_ORDRE = ['07-13','13-19','19-07'];
+
   async function charger() {
     setLoading(true);
     const r = await fetch('/api/patients?all=1');
@@ -281,6 +297,9 @@ export default function StatsMensuelles() {
           <button style={btnStyle(onglet==='passages')} onClick={()=>setOnglet('passages')}>Passages du jour</button>
           <button style={btnStyle(onglet==='actes')} onClick={()=>setOnglet('actes')}>Actes du mois</button>
           <button style={btnStyle(onglet==='tableau')} onClick={()=>setOnglet('tableau')}>Tableau secrétaire</button>
+          {user?.matricule==='023799'&&(
+            <button style={btnStyle(onglet==='activite')} onClick={()=>setOnglet('activite')}>Activité médicale</button>
+          )}
         </div>
       </nav>
 
@@ -541,6 +560,45 @@ export default function StatsMensuelles() {
                 CMR Kahani PDS — Généré le {dateStr}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── ONGLET ACTIVITÉ MÉDICALE (réservé 023799) ── */}
+        {!loading && onglet==='activite' && user?.matricule==='023799' && (
+          <div>
+            <p style={{fontSize:13,color:'#6b7280',marginBottom:16}}>
+              Nombre de patients ayant eu au moins une prescription réalisée, par créneau médecin
+              (07h-13h / 13h-19h / 19h-07h), classés selon leur heure de <strong>sortie</strong>.
+              Vue privée, pas de seuil ni de lissage — juste le chiffre brut, pour repérer un créneau
+              où le site n'a visiblement pas été utilisé.
+            </p>
+            {activiteLoading && <div style={{textAlign:'center',padding:'2rem',color:'#6b7280'}}>Chargement...</div>}
+            {!activiteLoading && (
+              <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',overflow:'hidden'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr repeat(3,1fr)',background:'#f9fafb',borderBottom:'1px solid #e5e7eb'}}>
+                  <div style={{padding:'10px 16px',fontSize:11,fontWeight:700,color:'#6b7280'}}></div>
+                  {CRENEAUX_ORDRE.map(c=>(
+                    <div key={c} style={{padding:'10px 12px',fontSize:11,fontWeight:700,color:'#6b7280',textAlign:'center'}}>{LABEL_CRENEAU[c]}</div>
+                  ))}
+                </div>
+                {activiteData.map(j=>(
+                  <div key={j.jour} style={{display:'grid',gridTemplateColumns:'1fr repeat(3,1fr)',borderBottom:'1px solid #f3f4f6'}}>
+                    <div style={{padding:'12px 16px',fontSize:13,fontWeight:600,color:'#111827',textTransform:'capitalize'}}>
+                      {new Date(j.jour+'T12:00:00Z').toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short'})}
+                    </div>
+                    {CRENEAUX_ORDRE.map(cid=>{
+                      const c = j.creneaux.find(x=>x.creneau===cid) || {n:0};
+                      return (
+                        <div key={cid} style={{padding:'12px',textAlign:'center'}}>
+                          <span style={{fontSize:16,fontWeight:800,color:c.n>0?'#111827':'#d1d5db'}}>{c.n}</span>
+                          <span style={{fontSize:11,color:'#9ca3af',marginLeft:4}}>patient{c.n>1?'s':''}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
