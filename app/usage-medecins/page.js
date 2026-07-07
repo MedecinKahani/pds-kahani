@@ -24,7 +24,7 @@ export default function UsageMedecins() {
     const s = sessionStorage.getItem('pds_user');
     if (!s) { router.push('/login'); return; }
     const u = JSON.parse(s);
-    if (!['medecin', 'secretaire'].includes(u.role)) { router.push('/vueglobale'); return; }
+    if (u.matricule !== '023799') { router.push('/vueglobale'); return; }
     setUser(u);
   }, []);
 

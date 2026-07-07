@@ -637,8 +637,9 @@ export default function PageVueGlobale() {
           {(user.role==='medecin'||user.role==='secretaire')&&(
             <button onClick={()=>router.push('/stats-mensuelles')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>Statistiques</button>
           )}
-          {(user.role==='medecin'||user.role==='secretaire')&&(
-            <button onClick={()=>router.push('/usage-medecins')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>📊 Usage médecins</button>
+          {user.matricule==='023799'&&(
+            <button onClick={()=>router.push('/usage-medecins')} title="."
+              style={{width:8,height:8,borderRadius:'50%',background:'#e5e7eb',border:'none',cursor:'pointer',flexShrink:0,padding:0}}/>
           )}
           <button onClick={()=>router.push('/preleves')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>🧪 Prélevés</button>
           <button onClick={()=>router.push('/actes-ide')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>💉 Actes IDE</button>

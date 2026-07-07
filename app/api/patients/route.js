@@ -1,6 +1,7 @@
 import { kv } from '@vercel/kv';
 import { logAudit } from '@/lib/audit';
 import { getSession } from '@/lib/auth-server';
+import { incrementerPassageJour, incrementerTransfertJour } from '@/lib/stats-jour';
 
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -51,6 +52,7 @@ export async function POST(req) {
       await kv.hset(`patient:${id}`, patient);
       await kv.expire(`patient:${id}`, 86400); // 24h en secondes — le dossier légal complet vit dans DxCare
       await logAudit(id, 'create', session.matricule, { statut: patient.statut });
+      await incrementerPassageJour(patient);
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
     }
@@ -120,6 +122,7 @@ export async function POST(req) {
         await kv.expire(`archive:${id}`, 86400); // 24h
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
+        await incrementerTransfertJour(patient);
         await logAudit(id, 'discharge', session.matricule, {
           modalite_sortie: modalite_sortie || null,
           moyen_sortie: moyen_sortie || null,

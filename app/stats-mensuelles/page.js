@@ -213,6 +213,23 @@ export default function StatsMensuelles() {
     });
   }, []);
 
+  const [statsJourMap, setStatsJourMap] = useState({});
+  useEffect(() => {
+    if (!user) return;
+    const cible = new Date();
+    cible.setDate(cible.getDate() + jourOffset);
+    const jStr = fmtLocalDate(cible);
+    const vStr = fmtLocalDate(new Date(cible.getTime() - 86400000));
+    fetch(`/api/stats-jour?debut=${vStr}&fin=${jStr}`)
+      .then(r => r.json())
+      .then(d => {
+        const map = {};
+        (d.result || []).forEach(x => { map[x.jour] = x; });
+        setStatsJourMap(prev => ({ ...prev, ...map }));
+      })
+      .catch(() => {});
+  }, [jourOffset, user]);
+
   async function charger() {
     setLoading(true);
     const r = await fetch('/api/patients?all=1');
@@ -229,18 +246,26 @@ export default function StatsMensuelles() {
   const finJour   = debutJour + 86400000 - 1;
   const jourSemaine = jourCible.getDay(); // 0=dimanche, 6=samedi
 
-  const patientsJour = allPatients.filter(p => {
-    const t = parseInt(p.arrivee);
-    return t >= debutJour && t <= finJour;
-  });
+  const jourStr = fmtLocalDate(jourCible);
+  const veilleStr = fmtLocalDate(new Date(jourCible.getTime() - 86400000));
+  const dataJour = statsJourMap[jourStr];
+  const dataVeille = statsJourMap[veilleStr];
+  // Heures du jour affiché, avec la portion 00h-07h reconstituée depuis la
+  // "veille" (c'est elle qui porte la correction du créneau médecin 19-07,
+  // qui déborde sur le jour suivant).
+  const heuresJour = dataJour ? [...dataJour.heures] : new Array(24).fill(0);
+  if (dataVeille && dataVeille.heuresLendemain) {
+    for (let h = 0; h < 7; h++) heuresJour[h] = dataVeille.heuresLendemain[h] ?? heuresJour[h];
+  }
+  const nbPassagesJour = heuresJour.reduce((a, b) => a + b, 0);
 
   function countCreneau(hDebut, hFin) {
-    return patientsJour.filter(p => {
-      const d = new Date(parseInt(p.arrivee));
-      const h = d.getHours();
-      if (hDebut <= hFin) return h >= hDebut && h < hFin;
-      return h >= hDebut || h < hFin; // créneau qui traverse minuit
-    }).length;
+    let total = 0;
+    for (let h = 0; h < 24; h++) {
+      const dans = hDebut <= hFin ? (h >= hDebut && h < hFin) : (h >= hDebut || h < hFin);
+      if (dans) total += heuresJour[h] || 0;
+    }
+    return total;
   }
 
   // Créneaux selon jour : semaine = 4 créneaux, samedi = 2, dimanche = 1
@@ -264,7 +289,7 @@ export default function StatsMensuelles() {
     ];
   }
 
-  const nbTransfertsJour = patientsJour.filter(p => p.statut==='sorti' && p.modalite_sortie==='transfert').length;
+  const nbTransfertsJour = dataJour?.transfertsTotal || 0;
 
   // ── ONGLET ACTES ──
   const mois = moisOptions[moisIdx];
@@ -324,7 +349,7 @@ export default function StatsMensuelles() {
               </button>
               <div style={{textAlign:'center'}}>
                 <div style={{fontWeight:800,fontSize:16,color:'#111827',textTransform:'capitalize'}}>{jourLabel}</div>
-                <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{patientsJour.length} passage{patientsJour.length>1?'s':''} au total</div>
+                <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{nbPassagesJour} passage{nbPassagesJour>1?'s':''} au total</div>
               </div>
               <button onClick={()=>setJourOffset(j=>Math.min(j+1,0))} disabled={jourOffset>=0}
                 style={{width:38,height:38,borderRadius:'50%',border:'1px solid #e5e7eb',background:jourOffset>=0?'#f9fafb':'#fff',cursor:jourOffset>=0?'not-allowed':'pointer',fontSize:20,color:jourOffset>=0?'#d1d5db':'#374151',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -346,7 +371,7 @@ export default function StatsMensuelles() {
                 ))}
               </div>
               <div style={{background:'#f9fafb',padding:'10px 20px',borderTop:'1px solid #e5e7eb',display:'flex',justifyContent:'center'}}>
-                <div style={{fontSize:13,color:'#374151',fontWeight:600}}>Total : <span style={{fontSize:18,fontWeight:800,color:'#111827'}}>{patientsJour.length}</span></div>
+                <div style={{fontSize:13,color:'#374151',fontWeight:600}}>Total : <span style={{fontSize:18,fontWeight:800,color:'#111827'}}>{nbPassagesJour}</span></div>
               </div>
             </div>
 
@@ -357,20 +382,20 @@ export default function StatsMensuelles() {
             </div>
 
             {/* Détail par motif */}
-            {patientsJour.length>0&&(
+            {nbPassagesJour>0&&(
               <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px 16px'}}>
                 <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',marginBottom:8}}>Détail par motif</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                   {Object.entries({
-                    'Coma':patientsJour.filter(p=>p.symptome==='coma').length,
-                    'AVC':patientsJour.filter(p=>p.symptome==='avc').length,
-                    'Détresse respi':patientsJour.filter(p=>p.symptome==='detresse_respi').length,
-                    'Plaie':patientsJour.filter(p=>p.symptome==='plaie').length,
-                    'Fièvre':patientsJour.filter(p=>p.symptome==='fievre').length,
-                    'Vertige':patientsJour.filter(p=>p.symptome==='vertige').length,
-                    'Douleur':patientsJour.filter(p=>p.symptome==='douleur').length,
-                    'Soins IDE':patientsJour.filter(p=>p.symptome==='soins_ide').length,
-                    'Autre':patientsJour.filter(p=>p.symptome==='autre'||!p.symptome).length,
+                    'Coma':(dataJour?.parMotif?.coma)||0,
+                    'AVC':(dataJour?.parMotif?.avc)||0,
+                    'Détresse respi':(dataJour?.parMotif?.detresse_respi)||0,
+                    'Plaie':(dataJour?.parMotif?.plaie)||0,
+                    'Fièvre':(dataJour?.parMotif?.fievre)||0,
+                    'Vertige':(dataJour?.parMotif?.vertige)||0,
+                    'Douleur':(dataJour?.parMotif?.douleur)||0,
+                    'Soins IDE':(dataJour?.parMotif?.soins_ide)||0,
+                    'Autre':(dataJour?.parMotif?.autre)||0,
                   }).filter(([,v])=>v>0).map(([l,v])=>(
                     <div key={l} style={{background:'#f0fdfa',border:'1px solid #99f6e4',borderRadius:8,padding:'4px 10px',fontSize:12}}>
                       <span style={{fontWeight:700,color:'#0d9488'}}>{v}</span> <span style={{color:'#374151'}}>{l}</span>
