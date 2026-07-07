@@ -1,7 +1,7 @@
 import { kv } from '@vercel/kv';
 import { logAudit } from '@/lib/audit';
 import { getSession } from '@/lib/auth-server';
-import { incrementerPassageJour, incrementerTransfertJour, incrementerUsageQualifieJour } from '@/lib/stats-jour';
+import { incrementerPassageJour, incrementerTransfertJour } from '@/lib/stats-jour';
 
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -123,7 +123,6 @@ export async function POST(req) {
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
         await incrementerTransfertJour(patient);
-        await incrementerUsageQualifieJour(patient);
         await logAudit(id, 'discharge', session.matricule, {
           modalite_sortie: modalite_sortie || null,
           moyen_sortie: moyen_sortie || null,

@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth-server';
-import { getStatsJourAvecBackfill } from '@/lib/stats-jour';
+import { getStatsJour } from '@/lib/stats-jour';
 import { jourMoinsNJours } from '@/lib/creneau';
 
 export async function GET(req) {
@@ -21,7 +21,7 @@ export async function GET(req) {
       garde++;
     }
 
-    const result = await getStatsJourAvecBackfill(joursDemandes);
+    const result = await getStatsJour(joursDemandes);
     return Response.json({ result });
   } catch (e) {
     return Response.json({ error: 'Erreur serveur', detail: String(e?.message || e) }, { status: 500 });
