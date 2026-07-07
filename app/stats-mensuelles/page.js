@@ -34,49 +34,6 @@ function fmtLocalDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-// Retourne un tableau de 24 booleens (index = heure) marquant les heures touchées par une panne déclarée
-function heuresAffectees(jourDate, pannes) {
-  const dateStr = fmtLocalDate(jourDate);
-  const prev = new Date(jourDate); prev.setDate(prev.getDate()-1);
-  const prevStr = fmtLocalDate(prev);
-  const arr = new Array(24).fill(false);
-  const hasJour = pannes.some(p=>p.date===dateStr && p.creneau==='jour');
-  const hasNuitToday = pannes.some(p=>p.date===dateStr && p.creneau==='nuit');
-  const hasNuitPrev = pannes.some(p=>p.date===prevStr && p.creneau==='nuit');
-  if (hasJour) for (let h=7;h<19;h++) arr[h]=true;
-  if (hasNuitToday) for (let h=19;h<24;h++) arr[h]=true;
-  if (hasNuitPrev) for (let h=0;h<7;h++) arr[h]=true;
-  return arr;
-}
-
-// Un créneau [hDebut,hFin) (avec passage minuit possible) est-il touché par une panne ?
-function creneauImpacte(hDebut, hFin, affected) {
-  if (hDebut < hFin) {
-    for (let h=hDebut; h<hFin; h++) if (affected[h]) return true;
-    return false;
-  }
-  if (hDebut > hFin) {
-    for (let h=hDebut; h<24; h++) if (affected[h]) return true;
-    for (let h=0; h<hFin; h++) if (affected[h]) return true;
-    return false;
-  }
-  // hDebut === hFin : créneau de 24h (ex. dimanche 7h-7h)
-  return affected.some(Boolean);
-}
-
-function PanneBanner({ pannes, debut, fin }) {
-  const surLaPeriode = pannes.filter(p=>{
-    const t = new Date(p.date+'T00:00:00').getTime();
-    return t >= debut && t <= fin;
-  });
-  if (!surLaPeriode.length) return null;
-  return (
-    <div className="no-print" style={{background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:10,padding:'10px 14px',marginBottom:12,fontSize:12,color:'#9a3412'}}>
-      ⚡ <strong>{surLaPeriode.length} panne{surLaPeriode.length>1?'s':''} informatique{surLaPeriode.length>1?'s':''}</strong> signalée{surLaPeriode.length>1?'s':''} sur cette période (créneaux 7h–19h / 19h–7h) — les totaux peuvent être sous-estimés sur ces plages horaires par manque de données, plutôt qu'une réelle baisse d'activité.
-    </div>
-  );
-}
-
 const LISTE_ACTES = [
   'Dextro','Hémocue','Test optimal','BU','T grossesse U','Tétanotop','Actim CRP','Bilan sanguin',
   'ECBU','Coprocultures','Sonde urinaire','VVP','IV','IM','Autres vaccins','Vaccins COVID-19','SC',
@@ -191,7 +148,6 @@ export default function StatsMensuelles() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allPatients, setAllPatients] = useState([]);
-  const [pannes, setPannes] = useState([]);
   const [moisIdx, setMoisIdx] = useState(0);
   const [impressions, setImpressions] = useState({});
   const [onglet, setOnglet] = useState('passages');
@@ -207,7 +163,6 @@ export default function StatsMensuelles() {
     setUser(u);
     if (u.role === 'secretaire') setOnglet('passages');
     charger();
-    fetch('/api/pannes').then(r=>r.json()).then(d=>setPannes(d.pannes||[])).catch(()=>{});
     fetch('/api/stats-alerte').then(r=>r.json()).then(d=>{
       if (d.impressions) setImpressions(d.impressions);
     });
@@ -242,8 +197,6 @@ export default function StatsMensuelles() {
   const jourCible = new Date();
   jourCible.setDate(jourCible.getDate() + jourOffset);
   const jourLabel = jourCible.toLocaleDateString('fr-FR', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  const debutJour = new Date(jourCible.getFullYear(), jourCible.getMonth(), jourCible.getDate()).getTime();
-  const finJour   = debutJour + 86400000 - 1;
   const jourSemaine = jourCible.getDay(); // 0=dimanche, 6=samedi
 
   const jourStr = fmtLocalDate(jourCible);
@@ -269,23 +222,22 @@ export default function StatsMensuelles() {
   }
 
   // Créneaux selon jour : semaine = 4 créneaux, samedi = 2, dimanche = 1
-  const affectedHours = heuresAffectees(jourCible, pannes);
   let creneaux;
   if (jourSemaine === 6) { // samedi
     creneaux = [
-      ['00h — 13h', countCreneau(0,13), '#7c3aed', creneauImpacte(0,13,affectedHours)],
-      ['13h — 07h (dim.)', countCreneau(13,7), '#ea580c', creneauImpacte(13,7,affectedHours)],
+      ['00h — 13h', countCreneau(0,13), '#7c3aed'],
+      ['13h — 07h (dim.)', countCreneau(13,7), '#ea580c'],
     ];
   } else if (jourSemaine === 0) { // dimanche
     creneaux = [
-      ['07h — 07h (lun.)', countCreneau(7,7), '#0d9488', creneauImpacte(7,7,affectedHours)],
+      ['07h — 07h (lun.)', countCreneau(7,7), '#0d9488'],
     ];
   } else { // semaine
     creneaux = [
-      ['00h — 07h', countCreneau(0,7), '#7c3aed', creneauImpacte(0,7,affectedHours)],
-      ['07h — 17h', countCreneau(7,17), '#0d9488', creneauImpacte(7,17,affectedHours)],
-      ['17h — 00h', countCreneau(17,24), '#ea580c', creneauImpacte(17,24,affectedHours)],
-      ['22h — 07h', countCreneau(22,7), '#dc2626', creneauImpacte(22,7,affectedHours)],
+      ['00h — 07h', countCreneau(0,7), '#7c3aed'],
+      ['07h — 17h', countCreneau(7,17), '#0d9488'],
+      ['17h — 00h', countCreneau(17,24), '#ea580c'],
+      ['22h — 07h', countCreneau(22,7), '#dc2626'],
     ];
   }
 
@@ -339,8 +291,6 @@ export default function StatsMensuelles() {
         {/* ── ONGLET PASSAGES ── */}
         {!loading && onglet==='passages' && (
           <div>
-            <PanneBanner pannes={pannes} debut={debutJour} fin={finJour}/>
-
             {/* Navigation jour */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'14px 20px',marginBottom:16}}>
               <button onClick={()=>setJourOffset(j=>j-1)}
@@ -360,13 +310,11 @@ export default function StatsMensuelles() {
             {/* Tableau créneaux */}
             <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',overflow:'hidden',marginBottom:16}}>
               <div style={{display:'grid',gridTemplateColumns:`repeat(${creneaux.length},1fr)`,textAlign:'center'}}>
-                {creneaux.map(([label,count,color,impacte])=>(
-                  <div key={label} style={{padding:'20px 12px',borderRight:'1px solid #e5e7eb',position:'relative',background:impacte?'#fff7ed':'transparent'}}>
-                    {impacte && <div title="Panne informatique déclarée sur ce créneau" style={{position:'absolute',top:8,right:10,fontSize:15}}>⚡</div>}
+                {creneaux.map(([label,count,color])=>(
+                  <div key={label} style={{padding:'20px 12px',borderRight:'1px solid #e5e7eb',position:'relative'}}>
                     <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:8}}>{label}</div>
                     <div style={{fontSize:42,fontWeight:800,color:count>0?color:'#e5e7eb',lineHeight:1}}>{count}</div>
                     <div style={{fontSize:11,color:'#9ca3af',marginTop:4}}>passage{count>1?'s':''}</div>
-                    {impacte && <div style={{fontSize:9,color:'#c2410c',fontWeight:700,marginTop:4}}>Panne — données incomplètes</div>}
                   </div>
                 ))}
               </div>
@@ -422,7 +370,6 @@ export default function StatsMensuelles() {
                 style={{width:36,height:36,borderRadius:'50%',border:'1px solid #e5e7eb',background:moisIdx<=0?'#f9fafb':'#fff',cursor:moisIdx<=0?'not-allowed':'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',color:moisIdx<=0?'#d1d5db':'#374151'}}>→</button>
             </div>
 
-            <PanneBanner pannes={pannes} debut={mois.debut} fin={mois.fin}/>
 
             <div className="no-print" style={{display:'flex',alignItems:'center',justifyContent:'flex-end',marginBottom:12,gap:10}}>
               <button onClick={()=>{
@@ -483,7 +430,6 @@ export default function StatsMensuelles() {
               <button onClick={()=>setMoisIdx(i=>Math.max(i-1,0))} disabled={moisIdx<=0}
                 style={{width:36,height:36,borderRadius:'50%',border:'1px solid #e5e7eb',background:moisIdx<=0?'#f9fafb':'#fff',cursor:moisIdx<=0?'not-allowed':'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',color:moisIdx<=0?'#d1d5db':'#374151'}}>→</button>
             </div>
-            <PanneBanner pannes={pannes} debut={mois.debut} fin={mois.fin}/>
 
             <div className="no-print" style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
               <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}}>

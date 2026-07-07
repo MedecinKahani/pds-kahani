@@ -54,90 +54,6 @@ function fmtLocalDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function BoutonPanne({ router, user }) {
-  const [open, setOpen] = React.useState(false);
-  const [pannes, setPannes] = React.useState([]);
-  const [date, setDate] = React.useState(fmtLocalDate(new Date()));
-  const [loading, setLoading] = React.useState(false);
-
-  const charger = React.useCallback(()=>{
-    fetch('/api/pannes').then(r=>r.json()).then(d=>setPannes(d.pannes||[])).catch(()=>{});
-  },[]);
-
-  React.useEffect(()=>{ charger(); const iv=setInterval(charger,30000); return()=>clearInterval(iv); },[charger]);
-
-  const today = fmtLocalDate(new Date());
-  const hier = fmtLocalDate(new Date(Date.now()-86400000));
-  const heureActuelle = new Date().getHours();
-  const panneActive = pannes.some(p=>
-    (p.date===today && p.creneau==='jour' && heureActuelle>=7 && heureActuelle<19) ||
-    (p.date===today && p.creneau==='nuit' && heureActuelle>=19) ||
-    (p.date===hier && p.creneau==='nuit' && heureActuelle<7)
-  );
-
-  async function declarer(creneau) {
-    setLoading(true);
-    await fetch('/api/pannes', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({date, creneau, par: user?.nom||user?.matricule})});
-    await charger();
-    setLoading(false);
-  }
-  async function supprimer(p) {
-    await fetch('/api/pannes', {method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({date:p.date, creneau:p.creneau})});
-    charger();
-  }
-
-  const style = panneActive
-    ? {padding:'7px 14px',borderRadius:8,background:'#ea580c',color:'#fff',fontSize:12,fontWeight:700,border:'none',cursor:'pointer',animation:'pulsePanne 1.5s infinite'}
-    : {padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer'};
-
-  return (
-    <div style={{position:'relative'}}>
-      <button onClick={()=>setOpen(o=>!o)} style={style}>
-        {panneActive ? '⚡ Panne en cours' : '⚡ Panne'}
-      </button>
-      {open && (
-        <>
-          <div onClick={()=>setOpen(false)} style={{position:'fixed',inset:0,zIndex:40}}/>
-          <div style={{position:'absolute',top:44,right:0,zIndex:50,background:'#fff',border:'1px solid #e5e7eb',borderRadius:12,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',padding:16,width:320}}>
-            <div style={{fontWeight:700,fontSize:13,color:'#111827',marginBottom:4}}>Signaler une panne informatique</div>
-            <div style={{fontSize:11,color:'#6b7280',marginBottom:12,lineHeight:1.4}}>
-              Marque le créneau concerné pour lisser les statistiques (données manquantes plutôt qu'une vraie baisse d'activité). Pensez à noter à la main le téléphone et l'adresse des patients prélevés — utilisez le bouton « + Ajouter » dans Prélevés.
-            </div>
-            <label style={{fontSize:11,fontWeight:600,color:'#374151'}}>Date de la panne</label>
-            <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-              style={{width:'100%',padding:'7px 10px',borderRadius:7,border:'1px solid #e5e7eb',fontSize:13,margin:'4px 0 10px',boxSizing:'border-box'}}/>
-            <div style={{display:'flex',gap:8,marginBottom:12}}>
-              <button disabled={loading} onClick={()=>declarer('jour')}
-                style={{flex:1,padding:'10px 8px',borderRadius:8,border:'1px solid #fed7aa',background:'#fff7ed',color:'#9a3412',fontWeight:700,fontSize:12,cursor:'pointer'}}>
-                ☀️ 7h – 19h
-              </button>
-              <button disabled={loading} onClick={()=>declarer('nuit')}
-                style={{flex:1,padding:'10px 8px',borderRadius:8,border:'1px solid #ddd6fe',background:'#f5f3ff',color:'#5b21b6',fontWeight:700,fontSize:12,cursor:'pointer'}}>
-                🌙 19h – 7h
-              </button>
-            </div>
-            {pannes.length>0 && (
-              <div style={{borderTop:'1px solid #f3f4f6',paddingTop:10}}>
-                <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',marginBottom:6}}>Pannes déclarées récemment</div>
-                <div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:160,overflowY:'auto'}}>
-                  {pannes.slice(0,15).map((p,i)=>(
-                    <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:11,color:'#374151',background:'#f9fafb',borderRadius:6,padding:'5px 8px'}}>
-                      <span>{new Date(p.date+'T00:00:00').toLocaleDateString('fr-FR')} · {p.creneau==='jour'?'7h–19h':'19h–7h'} <span style={{color:'#9ca3af'}}>({p.par})</span></span>
-                      <button onClick={()=>supprimer(p)} title="Retirer cette panne" style={{border:'none',background:'none',color:'#ef4444',cursor:'pointer',fontSize:13,padding:'0 4px'}}>✕</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <button onClick={()=>setOpen(false)} style={{marginTop:12,width:'100%',padding:'7px',borderRadius:7,background:'#f3f4f6',color:'#6b7280',border:'none',fontSize:12,cursor:'pointer'}}>Fermer</button>
-          </div>
-        </>
-      )}
-      <style>{`@keyframes pulsePanne{0%,100%{opacity:1}50%{opacity:0.7}}`}</style>
-    </div>
-  );
-}
-
 function GuideSortiePopup({ prenom, onFermer }) {
   return (
     <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:10001,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
@@ -643,8 +559,7 @@ export default function PageVueGlobale() {
           )}
           <button onClick={()=>router.push('/preleves')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>🧪 Prélevés</button>
           <button onClick={()=>router.push('/actes-ide')} style={{padding:'7px 14px',borderRadius:8,background:'#f3f4f6',color:'#374151',fontSize:12,fontWeight:500,border:'1px solid #e5e7eb',cursor:'pointer',flexShrink:0}}>💉 Actes IDE</button>
-          <BoutonPanne router={router} user={user}/>
-          <button onClick={async()=>{
+                    <button onClick={async()=>{
             setShowSortis(true);
             const r=await fetch('/api/patients?all=1');
             const d=await r.json();

@@ -1,5 +1,4 @@
 import { getSession } from '@/lib/auth-server';
-import { scanActiviteAudit } from '@/lib/audit-usage';
 import { getStatsJourAvecBackfill } from '@/lib/stats-jour';
 import { jourMoinsNJours } from '@/lib/creneau';
 
@@ -22,13 +21,7 @@ export async function GET(req) {
       garde++;
     }
 
-    // Il faut l'activité médecin sur toute la période demandée + 8 jours avant
-    // (pour la référence "semaine précédente" du tout premier jour demandé).
-    const depuis = jourMoinsNJours(debut, 9);
-    const depuisTs = new Date(depuis + 'T00:00:00Z').getTime();
-    const { activiteMedecin } = await scanActiviteAudit(depuisTs);
-
-    const result = await getStatsJourAvecBackfill(joursDemandes, activiteMedecin);
+    const result = await getStatsJourAvecBackfill(joursDemandes);
     return Response.json({ result });
   } catch (e) {
     return Response.json({ error: 'Erreur serveur', detail: String(e?.message || e) }, { status: 500 });
