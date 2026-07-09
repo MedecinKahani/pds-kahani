@@ -104,7 +104,7 @@ export default function NouveauPatient() {
     vomissement:null, tache_peau:null, drepanocytose:null,
     bu_fait:false, bhcg_fait:false, bhcg_pas_regles:false, bhcg_menopausee:false,
     bhcg_resultat:'', bu_resultat:'', bu_params:{},
-    autre_motif:'', douleur_autre:'', soins_type:'',
+    autre_motif:'', douleur_autre:'', soins_type:'', prioritaire:false,
   });
 
   const set = (k,v) => setF(prev=>({...prev,[k]:v}));
@@ -270,6 +270,7 @@ export default function NouveauPatient() {
       statut:pl.place!=='dehors'?'attente_medecin':'dehors',
       emplacement:pl.place!=='dehors'?pl.place:null,
       emplacement_suggere:pl.place,
+      prioritaire:(pl.place==='dehors'&&f.prioritaire)?'1':'',
       prescriptions:rxAuto.length?JSON.stringify(rxAuto):'[]',
       creePar:user?.matricule||'',
     };
@@ -745,6 +746,14 @@ export default function NouveauPatient() {
               {placement.urgence?'Urgence: ':'Placement suggere: '}{placement.label}
             </div>
             {placement.msg && <div style={{fontSize:13,color:placement.urgence?'#991b1b':'#065f46'}}>{placement.msg}</div>}
+            {placement.place==='dehors' && (
+              <Btn onClick={()=>set('prioritaire',!f.prioritaire)}
+                style={{marginTop:10,width:'100%',padding:'10px',borderRadius:8,fontSize:12,fontWeight:700,
+                  background:f.prioritaire?'#dc2626':'#fff',color:f.prioritaire?'#fff':'#dc2626',
+                  border:'2px solid #dc2626'}}>
+                {f.prioritaire?'⚡ Prioritaire — sera vu en premier':'⚡ Marquer prioritaire'}
+              </Btn>
+            )}
           </div>
         )}
 
@@ -761,7 +770,7 @@ export default function NouveauPatient() {
           {canSubmit && !saving && showAutreEmplacement && (
             <div style={{background:'#fff',borderRadius:12,border:'1.5px solid #e5e7eb',padding:'12px'}}>
               <div style={{fontSize:12,fontWeight:700,color:'#6b7280',marginBottom:8}}>Choisir un autre emplacement:</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+              <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:f.prioritaire?8:0}}>
                 {EMPLACEMENTS.map(function(e) {
                   const libre = e.id==='dehors'||!occupees.includes(e.id);
                   return (
@@ -775,6 +784,12 @@ export default function NouveauPatient() {
                   Annuler
                 </Btn>
               </div>
+              <Btn onClick={()=>set('prioritaire',!f.prioritaire)}
+                style={{width:'100%',padding:'8px',borderRadius:8,fontSize:11,fontWeight:700,
+                  background:f.prioritaire?'#dc2626':'#fff',color:f.prioritaire?'#fff':'#dc2626',
+                  border:'2px solid #dc2626'}}>
+                {f.prioritaire?'⚡ Prioritaire (si envoyé dehors)':'⚡ Marquer prioritaire (si envoyé dehors)'}
+              </Btn>
             </div>
           )}
         </div>

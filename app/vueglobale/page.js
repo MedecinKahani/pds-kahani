@@ -304,7 +304,8 @@ export default function PageVueGlobale() {
   }
 
   if(!user)return null;
-  const preau=patients.filter(p=>p.statut==='dehors'&&p.symptome!=='soins_ide');
+  const preau=patients.filter(p=>p.statut==='dehors'&&p.symptome!=='soins_ide')
+    .sort((a,b)=>(b.prioritaire?1:0)-(a.prioritaire?1:0)||(a.arrivee||0)-(b.arrivee||0));
   const soinsIDE=patients.filter(p=>p.statut==='dehors'&&p.symptome==='soins_ide');
   const enSalle=patients.filter(p=>p.statut!=='dehors');
 
@@ -634,7 +635,7 @@ export default function PageVueGlobale() {
             {preau.length>0&&<span style={{background:'#fef3c7',color:'#d97706',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:99}}>{preau.length}</span>}
           </div>
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column',gap:6,overflowY:'auto'}}>
-            {preau.map(p=>{
+            {preau.map((p,idx)=>{
               const placesLibres=[
                 {id:'brancard1',l:'B1'},{id:'brancard2',l:'B2'},
                 {id:'fauteuil1',l:'F1'},{id:'fauteuil2',l:'F2'},
@@ -643,10 +644,13 @@ export default function PageVueGlobale() {
               ].filter(x=>!enSalle.find(pt=>pt.emplacement===x.id));
               return(
               <div key={p.id} onClick={()=>setFicheOuverte(p)}
-                style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10,padding:'10px 12px',flexShrink:0,cursor:'pointer',transition:'box-shadow 0.15s'}}
+                style={{background:'#fffbeb',border:idx===0?'2.5px solid #d97706':'1px solid #fde68a',boxShadow:idx===0?'0 2px 10px rgba(217,119,6,0.18)':'none',borderRadius:10,padding:'10px 12px',flexShrink:0,cursor:'pointer',transition:'box-shadow 0.15s'}}
                 onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'}
-                onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-                <div style={{fontWeight:700,color:'#111827',fontSize:13}}>IPP {p.ipp||'—'} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                onMouseLeave={e=>e.currentTarget.style.boxShadow=idx===0?'0 2px 10px rgba(217,119,6,0.18)':'none'}>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  <div style={{fontWeight:700,color:'#111827',fontSize:13}}>IPP {p.ipp||'—'} <span style={{fontSize:11,fontWeight:400,color:'#6b7280'}}>{p.age} ans</span></div>
+                  {p.prioritaire&&<span style={{background:'#fee2e2',color:'#dc2626',fontSize:9,fontWeight:800,padding:'2px 6px',borderRadius:99,flexShrink:0}}>⚡ PRIO</span>}
+                </div>
                 <div style={{color:'#d97706',fontSize:11,fontWeight:600,marginTop:2}}>{labelSymptome(p)||p.symptome||p.motifPrincipal}</div>
                 <div style={{color:'#9ca3af',fontSize:10,marginTop:1}}>{p.arrivee?duree(p.arrivee):''}</div>
                 <div style={{display:'flex',gap:5,marginTop:8}} onClick={e=>e.stopPropagation()}>
