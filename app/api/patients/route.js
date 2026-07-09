@@ -123,6 +123,7 @@ export async function POST(req) {
       await kv.hset(`archive:${id}`, patient);
       await kv.expire(`archive:${id}`, 86400); // 24h
       await incrementerCompteurs(patient);
+      await incrementerPassageJour(patient);
       await logAudit(id, 'acteIdeDirect', session.matricule, { soins_type: patient.soins_type || null, ipp: patient.ipp || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
