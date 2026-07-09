@@ -59,7 +59,25 @@ export async function POST(req) {
 
     if (action === 'update') {
       const { id, patch } = body;
-      await kv.hset(`patient:${id}`, patch);
+      const patchFinal = { ...patch };
+
+      // Activité médicale : compte le patient une seule fois, dès que sa 1ère
+      // prescription est marquée faite (pas besoin d'attendre la sortie).
+      if (patch && patch.prescriptions) {
+        try {
+          const rx = JSON.parse(patch.prescriptions);
+          const auMoinsUneFaite = Array.isArray(rx) && rx.some(r => r && r.fait);
+          if (auMoinsUneFaite) {
+            const dejaCompte = await kv.hget(`patient:${id}`, 'activiteMedicaleComptee');
+            if (!dejaCompte) {
+              patchFinal.activiteMedicaleComptee = '1';
+              await incrementerActiviteMedicaleJour(Date.now());
+            }
+          }
+        } catch (e) { console.error('activite medicale (update) parse error', e); }
+      }
+
+      await kv.hset(`patient:${id}`, patchFinal);
       await logAudit(id, 'update', session.matricule, { champs: Object.keys(patch || {}) });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -123,7 +141,6 @@ export async function POST(req) {
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
         await incrementerTransfertJour(patient);
-        await incrementerActiviteMedicaleJour(patient);
         await logAudit(id, 'discharge', session.matricule, {
           modalite_sortie: modalite_sortie || null,
           moyen_sortie: moyen_sortie || null,
