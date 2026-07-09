@@ -1,7 +1,7 @@
 import { kv } from '@vercel/kv';
 import { logAudit } from '@/lib/audit';
 import { getSession } from '@/lib/auth-server';
-import { incrementerPassageJour, incrementerTransfertJour, incrementerActiviteMedicaleJour } from '@/lib/stats-jour';
+import { enregistrerEntreeJour, enregistrerSortieJour, supprimerEntreeJour } from '@/lib/stats-jour';
 
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -52,32 +52,14 @@ export async function POST(req) {
       await kv.hset(`patient:${id}`, patient);
       await kv.expire(`patient:${id}`, 86400); // 24h en secondes — le dossier légal complet vit dans DxCare
       await logAudit(id, 'create', session.matricule, { statut: patient.statut });
-      await incrementerPassageJour(patient);
+      await enregistrerEntreeJour(patient);
       const all = await getAllPatients();
       return Response.json({ ok: true, id, patients: all });
     }
 
     if (action === 'update') {
       const { id, patch } = body;
-      const patchFinal = { ...patch };
-
-      // Activité médicale : compte le patient une seule fois, dès que sa 1ère
-      // prescription est marquée faite (pas besoin d'attendre la sortie).
-      if (patch && patch.prescriptions) {
-        try {
-          const rx = JSON.parse(patch.prescriptions);
-          const auMoinsUneFaite = Array.isArray(rx) && rx.some(r => r && r.fait);
-          if (auMoinsUneFaite) {
-            const dejaCompte = await kv.hget(`patient:${id}`, 'activiteMedicaleComptee');
-            if (!dejaCompte) {
-              patchFinal.activiteMedicaleComptee = '1';
-              await incrementerActiviteMedicaleJour(Date.now());
-            }
-          }
-        } catch (e) { console.error('activite medicale (update) parse error', e); }
-      }
-
-      await kv.hset(`patient:${id}`, patchFinal);
+      await kv.hset(`patient:${id}`, patch);
       await logAudit(id, 'update', session.matricule, { champs: Object.keys(patch || {}) });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -95,6 +77,7 @@ export async function POST(req) {
         await kv.hset(`patient:${id}`, patient);
         await kv.expire(`patient:${id}`, 86400); // 24h
         await kv.del(`archive:${id}`);
+        await enregistrerSortieJour(patient, null, null);
         await logAudit(id, 'restore', session.matricule, { emplacement: patient.emplacement });
       }
       const all = await getAllPatients();
@@ -103,7 +86,9 @@ export async function POST(req) {
 
     if (action === 'delete') {
       const { id: delId } = body;
+      const patientAvant = await kv.hgetall(`patient:${delId}`);
       await kv.del(`patient:${delId}`);
+      if (patientAvant) await supprimerEntreeJour(patientAvant);
       await logAudit(delId, 'delete', session.matricule, {});
       return Response.json({ ok: true });
     }
@@ -123,7 +108,7 @@ export async function POST(req) {
       await kv.hset(`archive:${id}`, patient);
       await kv.expire(`archive:${id}`, 86400); // 24h
       await incrementerCompteurs(patient);
-      await incrementerPassageJour(patient);
+      await enregistrerEntreeJour(patient, 'soins_ide');
       await logAudit(id, 'acteIdeDirect', session.matricule, { soins_type: patient.soins_type || null, ipp: patient.ipp || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -141,7 +126,7 @@ export async function POST(req) {
         await kv.expire(`archive:${id}`, 86400); // 24h
         await kv.del(`patient:${id}`);
         await incrementerCompteurs(patient);
-        await incrementerTransfertJour(patient);
+        await enregistrerSortieJour(patient, modalite_sortie, moyen_sortie);
         await logAudit(id, 'discharge', session.matricule, {
           modalite_sortie: modalite_sortie || null,
           moyen_sortie: moyen_sortie || null,

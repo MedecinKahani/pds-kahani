@@ -150,7 +150,7 @@ export default function StatsMensuelles() {
   const [allPatients, setAllPatients] = useState([]);
   const [moisIdx, setMoisIdx] = useState(0);
   const [impressions, setImpressions] = useState({});
-  const [onglet, setOnglet] = useState('passages');
+  const [onglet, setOnglet] = useState('journal');
   const [copieFait, setCopieFait] = useState(false);
   // Onglet passages
   const [jourOffset, setJourOffset] = useState(0); // 0 = aujourd'hui, -1 = hier...
@@ -161,45 +161,45 @@ export default function StatsMensuelles() {
     if (!s) { router.push('/login'); return; }
     const u = JSON.parse(s);
     setUser(u);
-    if (u.role === 'secretaire') setOnglet('passages');
+    if (u.role === 'secretaire') setOnglet('journal');
     charger();
     fetch('/api/stats-alerte').then(r=>r.json()).then(d=>{
       if (d.impressions) setImpressions(d.impressions);
     });
   }, []);
 
-  const [statsJourMap, setStatsJourMap] = useState({});
-  useEffect(() => {
-    if (!user) return;
-    const cible = new Date();
-    cible.setDate(cible.getDate() + jourOffset);
-    const jStr = fmtLocalDate(cible);
-    const vStr = fmtLocalDate(new Date(cible.getTime() - 86400000));
-    fetch(`/api/stats-jour?debut=${vStr}&fin=${jStr}`)
-      .then(r => r.json())
-      .then(d => {
-        const map = {};
-        (d.result || []).forEach(x => { map[x.jour] = x; });
-        setStatsJourMap(prev => ({ ...prev, ...map }));
-      })
-      .catch(() => {});
-  }, [jourOffset, user]);
+  // ── ONGLET SUIVI JOURNALIER ──
+  const [jourJournalData, setJourJournalData] = useState(null);
+  const [journalLoading, setJournalLoading] = useState(false);
+  const jourCible = new Date();
+  jourCible.setDate(jourCible.getDate() + jourOffset);
+  const jourJournalLabel = jourCible.toLocaleDateString('fr-FR', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const jourJournalStr = fmtLocalDate(jourCible);
 
-  // ── ONGLET ACTIVITÉ MÉDICALE (réservé 023799) ──
-  const [activiteData, setActiviteData] = useState([]);
-  const [activiteLoading, setActiviteLoading] = useState(false);
   useEffect(() => {
-    if (!user || user.matricule !== '023799' || onglet !== 'activite') return;
-    setActiviteLoading(true);
-    fetch('/api/activite-medicale')
+    if (!user || onglet !== 'journal') return;
+    setJournalLoading(true);
+    fetch(`/api/stats-jour?jour=${jourJournalStr}`)
       .then(r => r.json())
-      .then(d => setActiviteData(d.result || []))
+      .then(d => setJourJournalData(d.result || null))
       .catch(() => {})
-      .finally(() => setActiviteLoading(false));
-  }, [onglet, user]);
+      .finally(() => setJournalLoading(false));
+  }, [jourOffset, user, onglet]);
 
-  const LABEL_CRENEAU = {'07-13':'07h-13h','13-19':'13h-19h','19-07':'19h-07h'};
-  const CRENEAUX_ORDRE = ['07-13','13-19','19-07'];
+  const SYMBOLE_SORTIE = {
+    domicile: '🏠', pse: '🚶', transfert: '🚑', gav: '🔒', deces: '🕊️', soins_ide: '💉',
+  };
+  const LABEL_SORTIE = {
+    domicile: 'Retour à domicile', pse: 'Parti sans attendre', transfert: 'Transfert',
+    gav: 'GAV — Réquisition', deces: 'Décès', soins_ide: 'Soins IDE direct',
+  };
+  function Badge({label, n}) {
+    return (
+      <div style={{padding:'6px 12px',borderRadius:8,background:n>0?'#f0fdfa':'#f9fafb',border:'1px solid '+(n>0?'#99f6e4':'#e5e7eb'),fontSize:12,fontWeight:600,color:n>0?'#0f766e':'#9ca3af'}}>
+        {label} : <strong>{n||0}</strong>
+      </div>
+    );
+  }
 
   async function charger() {
     setLoading(true);
@@ -208,56 +208,6 @@ export default function StatsMensuelles() {
     setAllPatients(d.patients || []);
     setLoading(false);
   }
-
-  // ── ONGLET PASSAGES ──
-  const jourCible = new Date();
-  jourCible.setDate(jourCible.getDate() + jourOffset);
-  const jourLabel = jourCible.toLocaleDateString('fr-FR', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  const jourSemaine = jourCible.getDay(); // 0=dimanche, 6=samedi
-
-  const jourStr = fmtLocalDate(jourCible);
-  const veilleStr = fmtLocalDate(new Date(jourCible.getTime() - 86400000));
-  const dataJour = statsJourMap[jourStr];
-  const dataVeille = statsJourMap[veilleStr];
-  // Heures du jour affiché, avec la portion 00h-07h reconstituée depuis la
-  // "veille" (c'est elle qui porte la correction du créneau médecin 19-07,
-  // qui déborde sur le jour suivant).
-  const heuresJour = dataJour ? [...dataJour.heures] : new Array(24).fill(0);
-  if (dataVeille && dataVeille.heuresLendemain) {
-    for (let h = 0; h < 7; h++) heuresJour[h] = dataVeille.heuresLendemain[h] ?? heuresJour[h];
-  }
-  const nbPassagesJour = heuresJour.reduce((a, b) => a + b, 0);
-
-  function countCreneau(hDebut, hFin) {
-    let total = 0;
-    for (let h = 0; h < 24; h++) {
-      const dans = hDebut <= hFin ? (h >= hDebut && h < hFin) : (h >= hDebut || h < hFin);
-      if (dans) total += heuresJour[h] || 0;
-    }
-    return total;
-  }
-
-  // Créneaux selon jour : semaine = 4 créneaux, samedi = 2, dimanche = 1
-  let creneaux;
-  if (jourSemaine === 6) { // samedi
-    creneaux = [
-      ['00h — 13h', countCreneau(0,13), '#7c3aed'],
-      ['13h — 07h (dim.)', countCreneau(13,7), '#ea580c'],
-    ];
-  } else if (jourSemaine === 0) { // dimanche
-    creneaux = [
-      ['07h — 07h (lun.)', countCreneau(7,7), '#0d9488'],
-    ];
-  } else { // semaine
-    creneaux = [
-      ['00h — 07h', countCreneau(0,7), '#7c3aed'],
-      ['07h — 17h', countCreneau(7,17), '#0d9488'],
-      ['17h — 00h', countCreneau(17,24), '#ea580c'],
-      ['22h — 07h', countCreneau(22,7), '#dc2626'],
-    ];
-  }
-
-  const nbTransfertsJour = dataJour?.transfertsTotal || 0;
 
   // ── ONGLET ACTES ──
   const mois = moisOptions[moisIdx];
@@ -294,12 +244,9 @@ export default function StatsMensuelles() {
           <span style={{fontWeight:700,fontSize:15,color:'#111827'}}>Statistiques</span>
         </div>
         <div style={{display:'flex',borderBottom:'none'}}>
-          <button style={btnStyle(onglet==='passages')} onClick={()=>setOnglet('passages')}>Passages du jour</button>
+          <button style={btnStyle(onglet==='journal')} onClick={()=>setOnglet('journal')}>Suivi journalier</button>
           <button style={btnStyle(onglet==='actes')} onClick={()=>setOnglet('actes')}>Actes du mois</button>
           <button style={btnStyle(onglet==='tableau')} onClick={()=>setOnglet('tableau')}>Tableau secrétaire</button>
-          {user?.matricule==='023799'&&(
-            <button style={btnStyle(onglet==='activite')} onClick={()=>setOnglet('activite')}>Activité médicale</button>
-          )}
         </div>
       </nav>
 
@@ -307,74 +254,6 @@ export default function StatsMensuelles() {
 
         {loading && <div style={{textAlign:'center',padding:'3rem',color:'#6b7280'}}>Chargement...</div>}
 
-        {/* ── ONGLET PASSAGES ── */}
-        {!loading && onglet==='passages' && (
-          <div>
-            {/* Navigation jour */}
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'14px 20px',marginBottom:16}}>
-              <button onClick={()=>setJourOffset(j=>j-1)}
-                style={{width:38,height:38,borderRadius:'50%',border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:20,color:'#374151',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                ←
-              </button>
-              <div style={{textAlign:'center'}}>
-                <div style={{fontWeight:800,fontSize:16,color:'#111827',textTransform:'capitalize'}}>{jourLabel}</div>
-                <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{nbPassagesJour} passage{nbPassagesJour>1?'s':''} au total</div>
-              </div>
-              <button onClick={()=>setJourOffset(j=>Math.min(j+1,0))} disabled={jourOffset>=0}
-                style={{width:38,height:38,borderRadius:'50%',border:'1px solid #e5e7eb',background:jourOffset>=0?'#f9fafb':'#fff',cursor:jourOffset>=0?'not-allowed':'pointer',fontSize:20,color:jourOffset>=0?'#d1d5db':'#374151',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                →
-              </button>
-            </div>
-
-            {/* Tableau créneaux */}
-            <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',overflow:'hidden',marginBottom:16}}>
-              <div style={{display:'grid',gridTemplateColumns:`repeat(${creneaux.length},1fr)`,textAlign:'center'}}>
-                {creneaux.map(([label,count,color])=>(
-                  <div key={label} style={{padding:'20px 12px',borderRight:'1px solid #e5e7eb',position:'relative'}}>
-                    <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:8}}>{label}</div>
-                    <div style={{fontSize:42,fontWeight:800,color:count>0?color:'#e5e7eb',lineHeight:1}}>{count}</div>
-                    <div style={{fontSize:11,color:'#9ca3af',marginTop:4}}>passage{count>1?'s':''}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{background:'#f9fafb',padding:'10px 20px',borderTop:'1px solid #e5e7eb',display:'flex',justifyContent:'center'}}>
-                <div style={{fontSize:13,color:'#374151',fontWeight:600}}>Total : <span style={{fontSize:18,fontWeight:800,color:'#111827'}}>{nbPassagesJour}</span></div>
-              </div>
-            </div>
-
-            {/* Transferts Mamoudzou du jour */}
-            <div style={{background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:12,padding:'14px 20px',marginBottom:16,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <div style={{fontSize:13,fontWeight:600,color:'#9a3412'}}>🚑 Transferts vers Mamoudzou</div>
-              <div style={{fontSize:28,fontWeight:800,color:'#ea580c'}}>{nbTransfertsJour}</div>
-            </div>
-
-            {/* Détail par motif */}
-            {nbPassagesJour>0&&(
-              <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px 16px'}}>
-                <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',marginBottom:8}}>Détail par motif</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                  {Object.entries({
-                    'Coma':(dataJour?.parMotif?.coma)||0,
-                    'AVC':(dataJour?.parMotif?.avc)||0,
-                    'Détresse respi':(dataJour?.parMotif?.detresse_respi)||0,
-                    'Plaie':(dataJour?.parMotif?.plaie)||0,
-                    'Fièvre':(dataJour?.parMotif?.fievre)||0,
-                    'Vertige':(dataJour?.parMotif?.vertige)||0,
-                    'Douleur':(dataJour?.parMotif?.douleur)||0,
-                    'Soins IDE':(dataJour?.parMotif?.soins_ide)||0,
-                    'Autre':(dataJour?.parMotif?.autre)||0,
-                  }).filter(([,v])=>v>0).map(([l,v])=>(
-                    <div key={l} style={{background:'#f0fdfa',border:'1px solid #99f6e4',borderRadius:8,padding:'4px 10px',fontSize:12}}>
-                      <span style={{fontWeight:700,color:'#0d9488'}}>{v}</span> <span style={{color:'#374151'}}>{l}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── ONGLET ACTES ── */}
         {!loading && onglet==='actes' && (
           <div>
             {/* Navigation mois */}
@@ -563,40 +442,76 @@ export default function StatsMensuelles() {
           </div>
         )}
 
-        {/* ── ONGLET ACTIVITÉ MÉDICALE (réservé 023799) ── */}
-        {!loading && onglet==='activite' && user?.matricule==='023799' && (
+        {/* ── ONGLET SUIVI JOURNALIER ── */}
+        {!loading && onglet==='journal' && (
           <div>
-            <p style={{fontSize:13,color:'#6b7280',marginBottom:16}}>
-              Nombre de patients ayant eu au moins une prescription réalisée, par créneau médecin
-              (07h-13h / 13h-19h / 19h-07h), classés selon leur heure de <strong>sortie</strong>.
-              Vue privée, pas de seuil ni de lissage — juste le chiffre brut, pour repérer un créneau
-              où le site n'a visiblement pas été utilisé.
+            {/* Navigation jour */}
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'14px 20px',marginBottom:16}}>
+              <button onClick={()=>setJourOffset(j=>j-1)}
+                style={{width:38,height:38,borderRadius:'50%',border:'1px solid #e5e7eb',background:'#fff',cursor:'pointer',fontSize:20,color:'#374151',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                ←
+              </button>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontWeight:800,fontSize:16,color:'#111827',textTransform:'capitalize'}}>{jourJournalLabel}</div>
+                <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{jourJournalData?.total||0} entrée{(jourJournalData?.total||0)>1?'s':''} au total</div>
+              </div>
+              <button onClick={()=>setJourOffset(j=>Math.min(j+1,0))} disabled={jourOffset>=0}
+                style={{width:38,height:38,borderRadius:'50%',border:'1px solid #e5e7eb',background:jourOffset>=0?'#f9fafb':'#fff',cursor:jourOffset>=0?'not-allowed':'pointer',fontSize:20,color:jourOffset>=0?'#d1d5db':'#374151',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                →
+              </button>
+            </div>
+
+            <p style={{fontSize:12,color:'#9ca3af',marginBottom:12}}>
+              Chaque patient enregistré dans l'appli apparaît à son heure d'arrivée, avec un symbole
+              une fois sorti : 🏠 domicile · 🚶 parti sans attendre · 🚑 transfert · 🔒 GAV · 🕊️ décès ·
+              💉 soins IDE direct · ⏳ pas encore sorti.
             </p>
-            {activiteLoading && <div style={{textAlign:'center',padding:'2rem',color:'#6b7280'}}>Chargement...</div>}
-            {!activiteLoading && (
-              <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',overflow:'hidden'}}>
-                <div style={{display:'grid',gridTemplateColumns:'1fr repeat(3,1fr)',background:'#f9fafb',borderBottom:'1px solid #e5e7eb'}}>
-                  <div style={{padding:'10px 16px',fontSize:11,fontWeight:700,color:'#6b7280'}}></div>
-                  {CRENEAUX_ORDRE.map(c=>(
-                    <div key={c} style={{padding:'10px 12px',fontSize:11,fontWeight:700,color:'#6b7280',textAlign:'center'}}>{LABEL_CRENEAU[c]}</div>
-                  ))}
-                </div>
-                {activiteData.map(j=>(
-                  <div key={j.jour} style={{display:'grid',gridTemplateColumns:'1fr repeat(3,1fr)',borderBottom:'1px solid #f3f4f6'}}>
-                    <div style={{padding:'12px 16px',fontSize:13,fontWeight:600,color:'#111827',textTransform:'capitalize'}}>
-                      {new Date(j.jour+'T12:00:00Z').toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short'})}
+
+            {journalLoading && <div style={{textAlign:'center',padding:'2rem',color:'#6b7280'}}>Chargement...</div>}
+
+            {!journalLoading && (
+              <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',overflow:'hidden',marginBottom:16}}>
+                {Array.from({length:24}).map((_,h)=>{
+                  const entrees = jourJournalData?.parHeure?.[h] || [];
+                  return (
+                    <div key={h} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 16px',borderBottom:'1px solid #f3f4f6',background:entrees.length>0?'#fff':'#fafafa'}}>
+                      <div style={{width:44,fontSize:12,fontWeight:700,color:entrees.length>0?'#111827':'#d1d5db',flexShrink:0}}>{String(h).padStart(2,'0')}h</div>
+                      <div style={{width:20,fontSize:12,fontWeight:800,color:entrees.length>0?'#0d9488':'#e5e7eb',flexShrink:0}}>{entrees.length||''}</div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:4,flex:1}}>
+                        {entrees.map((e,i)=>(
+                          <span key={i} title={LABEL_SORTIE[e.sortie]||'en cours'} style={{fontSize:16}}>
+                            {SYMBOLE_SORTIE[e.sortie] || '⏳'}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    {CRENEAUX_ORDRE.map(cid=>{
-                      const c = j.creneaux.find(x=>x.creneau===cid) || {n:0};
-                      return (
-                        <div key={cid} style={{padding:'12px',textAlign:'center'}}>
-                          <span style={{fontSize:16,fontWeight:800,color:c.n>0?'#111827':'#d1d5db'}}>{c.n}</span>
-                          <span style={{fontSize:11,color:'#9ca3af',marginLeft:4}}>patient{c.n>1?'s':''}</span>
-                        </div>
-                      );
-                    })}
+                  );
+                })}
+              </div>
+            )}
+
+            {!journalLoading && jourJournalData && (
+              <div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'16px 20px'}}>
+                <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',marginBottom:10}}>Total du jour par type de sortie</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:jourJournalData.totaux.transfert>0?12:0}}>
+                  <Badge label="🏠 Domicile (RAD)" n={jourJournalData.totaux.domicile} />
+                  <Badge label="🚶 Parti sans attendre" n={jourJournalData.totaux.pse} />
+                  <Badge label="🔒 GAV" n={jourJournalData.totaux.gav} />
+                  <Badge label="🚑 Transfert" n={jourJournalData.totaux.transfert} />
+                  <Badge label="🕊️ Décès" n={jourJournalData.totaux.deces} />
+                  <Badge label="💉 Soins IDE direct" n={jourJournalData.totaux.soins_ide} />
+                  <Badge label="⏳ Pas encore sorti" n={jourJournalData.totaux.enCours} />
+                </div>
+                {jourJournalData.totaux.transfert>0 && (
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',marginBottom:8}}>Dont moyen de transfert</div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                      <Badge label="🚑 Ambulance" n={jourJournalData.moyensTransfert.ambulance} />
+                      <Badge label="🚁 Hélicoptère" n={jourJournalData.moyensTransfert.helicoptere} />
+                      <Badge label="🚗 Moyens personnels" n={jourJournalData.moyensTransfert.personnels} />
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
