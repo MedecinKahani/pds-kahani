@@ -226,7 +226,7 @@ export default function PageVueGlobale() {
       fetch('/api/presence').then(r=>r.json()).then(d=>setAgents(d.agents||[])).catch(()=>{});
     }
     chargerAgents();
-    const ivAgents=setInterval(chargerAgents,10000);
+    const ivAgents=setInterval(chargerAgents,30000);
     return()=>clearInterval(ivAgents);
   },[]);
 
