@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
       fetch('/api/presence', { method: 'POST' }).catch(() => {});
     }
     battement();
-    const iv = setInterval(battement, 20000);
+    const iv = setInterval(battement, 60000);
     return () => clearInterval(iv);
   }, []);
 
