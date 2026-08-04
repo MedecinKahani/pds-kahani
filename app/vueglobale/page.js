@@ -199,7 +199,7 @@ export default function PageVueGlobale() {
     if(!s){router.push('/login');return;}
     const u=JSON.parse(s);
     setUser(u);load();
-    const iv=setInterval(load,8000);
+    const iv=setInterval(load,25000);
     return()=>clearInterval(iv);
   },[]);
 
