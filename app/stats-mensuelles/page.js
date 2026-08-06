@@ -207,7 +207,6 @@ export default function StatsMensuelles() {
   function BlocCreneauxMois() {
     if (creneauxMoisLoading) return <div style={{fontSize:12,color:'#9ca3af',padding:'8px 0'}}>Chargement des créneaux…</div>;
     if (!creneauxMois) return null;
-    const nbEstimesTotal = Object.values(creneauxMois).reduce((a,c)=>a+(c.nbEstimes||0),0);
     return (
       <div className="no-print" style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px 16px',marginBottom:12}}>
         <div style={{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:8}}>Passages par créneau médecin — {mois.label}</div>
@@ -223,11 +222,6 @@ export default function StatsMensuelles() {
             );
           })}
         </div>
-        {nbEstimesTotal > 0 && (
-          <div style={{marginTop:8,fontSize:11,color:'#92400e'}}>
-            ⚠️ {nbEstimesTotal} créneau{nbEstimesTotal>1?'x':''} sans donnée ce mois — estimé{nbEstimesTotal>1?'s':''} à partir de la semaine précédente.
-          </div>
-        )}
       </div>
     );
   }
@@ -523,17 +517,12 @@ export default function StatsMensuelles() {
                   const d = creneauxMedecin[c];
                   if (!d) return null;
                   return (
-                    <div key={c} style={{background:'#fff',borderRadius:12,border:'1px solid '+(d.estime?'#fde68a':'#e5e7eb'),padding:'12px 14px'}}>
+                    <div key={c} style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px 14px'}}>
                       <div style={{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:4}}>{LABEL_CRENEAU[c]}</div>
                       <div style={{display:'flex',alignItems:'baseline',gap:8}}>
                         <span style={{fontSize:26,fontWeight:800,color:'#111827'}}>{d.total}</span>
                         <span style={{fontSize:11,color:'#9ca3af'}}>patient{d.total>1?'s':''}</span>
                       </div>
-                      {d.estime && (
-                        <div style={{marginTop:6,display:'inline-block',padding:'3px 8px',borderRadius:6,background:'#fef3c7',color:'#92400e',fontSize:10,fontWeight:700}}>
-                          ⚠️ Estimé — copié du {new Date(d.jourSource).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})} (créneau vide, J-7)
-                        </div>
-                      )}
                     </div>
                   );
                 })}
