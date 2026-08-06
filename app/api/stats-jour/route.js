@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth-server';
-import { getJourDetail } from '@/lib/stats-jour';
+import { getJourDetail, getCreneauxMedecinJour } from '@/lib/stats-jour';
 
 export async function GET(req) {
   try {
@@ -10,8 +10,11 @@ export async function GET(req) {
     const jour = searchParams.get('jour'); // YYYY-MM-DD
     if (!jour) return Response.json({ error: 'jour requis (YYYY-MM-DD)' }, { status: 400 });
 
-    const result = await getJourDetail(jour);
-    return Response.json({ result });
+    const [result, creneauxMedecin] = await Promise.all([
+      getJourDetail(jour),
+      getCreneauxMedecinJour(jour),
+    ]);
+    return Response.json({ result, creneauxMedecin: creneauxMedecin.creneaux });
   } catch (e) {
     return Response.json({ error: 'Erreur serveur', detail: String(e?.message || e) }, { status: 500 });
   }
