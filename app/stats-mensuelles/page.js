@@ -176,15 +176,61 @@ export default function StatsMensuelles() {
   const jourJournalLabel = jourCible.toLocaleDateString('fr-FR', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const jourJournalStr = fmtLocalDate(jourCible);
 
+  const [creneauxMedecin, setCreneauxMedecin] = useState(null);
+
   useEffect(() => {
     if (!user || onglet !== 'journal') return;
     setJournalLoading(true);
     fetch(`/api/stats-jour?jour=${jourJournalStr}`)
       .then(r => r.json())
-      .then(d => setJourJournalData(d.result || null))
+      .then(d => { setJourJournalData(d.result || null); setCreneauxMedecin(d.creneauxMedecin || null); })
       .catch(() => {})
       .finally(() => setJournalLoading(false));
   }, [jourOffset, user, onglet]);
+
+  const LABEL_CRENEAU = { '07-13': 'Matin — 7h à 13h', '13-19': 'Après-midi — 13h à 19h', '19-07': 'Nuit — 19h à 7h' };
+
+  // ── Créneaux médecin agrégés sur le mois (avec repli J-7 par créneau vide) ──
+  const [creneauxMois, setCreneauxMois] = useState(null);
+  const [creneauxMoisLoading, setCreneauxMoisLoading] = useState(false);
+  useEffect(() => {
+    if (!user || (onglet !== 'actes' && onglet !== 'tableau')) return;
+    const m = moisOptions[moisIdx];
+    setCreneauxMoisLoading(true);
+    fetch(`/api/stats-creneaux-mois?mois=${m.key}`)
+      .then(r => r.json())
+      .then(d => setCreneauxMois(d.creneaux || null))
+      .catch(() => setCreneauxMois(null))
+      .finally(() => setCreneauxMoisLoading(false));
+  }, [user, onglet, moisIdx]);
+
+  function BlocCreneauxMois() {
+    if (creneauxMoisLoading) return <div style={{fontSize:12,color:'#9ca3af',padding:'8px 0'}}>Chargement des créneaux…</div>;
+    if (!creneauxMois) return null;
+    const nbEstimesTotal = Object.values(creneauxMois).reduce((a,c)=>a+(c.nbEstimes||0),0);
+    return (
+      <div className="no-print" style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'12px 16px',marginBottom:12}}>
+        <div style={{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:8}}>Passages par créneau médecin — {mois.label}</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10}}>
+          {['07-13','13-19','19-07'].map(c => {
+            const d = creneauxMois[c];
+            if (!d) return null;
+            return (
+              <div key={c} style={{padding:'8px 10px',borderRadius:8,background:'#f9fafb',border:'1px solid #f3f4f6'}}>
+                <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase'}}>{LABEL_CRENEAU[c]}</div>
+                <div style={{fontSize:20,fontWeight:800,color:'#111827'}}>{d.total}</div>
+              </div>
+            );
+          })}
+        </div>
+        {nbEstimesTotal > 0 && (
+          <div style={{marginTop:8,fontSize:11,color:'#92400e'}}>
+            ⚠️ {nbEstimesTotal} créneau{nbEstimesTotal>1?'x':''} sans donnée ce mois — estimé{nbEstimesTotal>1?'s':''} à partir de la semaine précédente.
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const SYMBOLE_SORTIE = {
     domicile: '🏠', pse: '🚶', transfert: '🚑', gav: '🔒', deces: '🕊️', soins_ide: '💉',
@@ -269,6 +315,8 @@ export default function StatsMensuelles() {
             </div>
 
 
+            <BlocCreneauxMois/>
+
             <div className="no-print" style={{display:'flex',alignItems:'center',justifyContent:'flex-end',marginBottom:12,gap:10}}>
               <button onClick={()=>{
                 const lignes = LISTE_ACTES.map((l,i)=>{
@@ -281,6 +329,9 @@ export default function StatsMensuelles() {
                 setTimeout(()=>setCopieFait(false), 3000);
               }} style={{padding:'9px 14px',borderRadius:8,background:copieFait?'#16a34a':'#374151',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0,transition:'background 0.2s'}}>
                 {copieFait ? '✓ Copié — Coller dans Excel' : '📋 Copier colonne'}
+              </button>
+              <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
+                🖨️ Imprimer
               </button>
             </div>
 
@@ -326,7 +377,12 @@ export default function StatsMensuelles() {
                 style={{width:36,height:36,borderRadius:'50%',border:'1px solid #e5e7eb',background:moisIdx<=0?'#f9fafb':'#fff',cursor:moisIdx<=0?'not-allowed':'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',color:moisIdx<=0?'#d1d5db':'#374151'}}>→</button>
             </div>
 
+            <BlocCreneauxMois/>
+
             <div className="no-print" style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+              <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}}>
+                🖨️ Imprimer
+              </button>
             </div>
 
             <div id="print-zone-sec" style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,overflow:'hidden'}}>
@@ -460,6 +516,29 @@ export default function StatsMensuelles() {
               une fois sorti : 🏠 domicile · 🚶 parti sans attendre · 🚑 transfert · 🔒 GAV · 🕊️ décès ·
               💉 soins IDE direct · ⏳ pas encore sorti.
             </p>
+
+            {!journalLoading && creneauxMedecin && (
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:10,marginBottom:16}}>
+                {['07-13','13-19','19-07'].map(c => {
+                  const d = creneauxMedecin[c];
+                  if (!d) return null;
+                  return (
+                    <div key={c} style={{background:'#fff',borderRadius:12,border:'1px solid '+(d.estime?'#fde68a':'#e5e7eb'),padding:'12px 14px'}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',marginBottom:4}}>{LABEL_CRENEAU[c]}</div>
+                      <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+                        <span style={{fontSize:26,fontWeight:800,color:'#111827'}}>{d.total}</span>
+                        <span style={{fontSize:11,color:'#9ca3af'}}>patient{d.total>1?'s':''}</span>
+                      </div>
+                      {d.estime && (
+                        <div style={{marginTop:6,display:'inline-block',padding:'3px 8px',borderRadius:6,background:'#fef3c7',color:'#92400e',fontSize:10,fontWeight:700}}>
+                          ⚠️ Estimé — copié du {new Date(d.jourSource).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})} (créneau vide, J-7)
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {journalLoading && <div style={{textAlign:'center',padding:'2rem',color:'#6b7280'}}>Chargement...</div>}
 
