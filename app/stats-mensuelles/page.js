@@ -324,9 +324,6 @@ export default function StatsMensuelles() {
               }} style={{padding:'9px 14px',borderRadius:8,background:copieFait?'#16a34a':'#374151',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0,transition:'background 0.2s'}}>
                 {copieFait ? '✓ Copié — Coller dans Excel' : '📋 Copier colonne'}
               </button>
-              <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none',flexShrink:0}}>
-                🖨️ Imprimer
-              </button>
             </div>
 
             <div id="print-zone">
@@ -372,12 +369,6 @@ export default function StatsMensuelles() {
             </div>
 
             <BlocCreneauxMois/>
-
-            <div className="no-print" style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
-              <button onClick={()=>window.print()} style={{padding:'9px 18px',borderRadius:8,background:'#0d9488',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}}>
-                🖨️ Imprimer
-              </button>
-            </div>
 
             <div id="print-zone-sec" style={{background:'#fff',border:'1px solid #e5e7eb',borderRadius:8,overflow:'hidden'}}>
               {/* En-tête */}
