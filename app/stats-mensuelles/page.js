@@ -23,13 +23,6 @@ function getMoisOptions() {
   return opts;
 }
 
-function calcStatsPerm(patients, hDebut, hFin) {
-  return patients.filter(p => {
-    const h = new Date(parseInt(p.arrivee)).getHours();
-    return h >= hDebut && h < hFin;
-  }).length;
-}
-
 function fmtLocalDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
@@ -52,81 +45,6 @@ const ACTES_KEYS = [
   'nbTransfertUrgence','nbTransfertSMUR','nbUrgenceMoyenPropre','nbMaternite','nbRetourDomicile',
 ];
 
-function calcStats(patients) {
-  const toutesRx = patients.flatMap(p => safeJSON(p.prescriptions, []).filter(r => r.fait));
-  function countRx(needle) {
-    return toutesRx.filter(r => (r.texte||'').toLowerCase().includes(needle.toLowerCase())).length;
-  }
-  function countSuture(id) {
-    return patients.filter(p => safeJSON(p.sutures, []).includes(id)).length;
-  }
-  const sortis = patients.filter(p => p.statut === 'sorti');
-  function countSortie(modalite) {
-    return sortis.filter(p => p.modalite_sortie === modalite).length;
-  }
-  return {
-    nbPatients: patients.length,
-    // ── Ordre exact liste secrétaire (photo 1) ──
-    nbDextro: patients.filter(p=>p.dextro).length + countRx('dextro'),
-    nbHemocue: patients.filter(p=>p.hemocue).length + countRx('hémocue'),
-    nbTestOptimal: countRx('test optimal'),
-    nbBU: patients.filter(p=>p.bu_fait).length + countRx(' bu'),
-    nbTGrossesse: patients.filter(p=>p.bhcg_fait).length + countRx('grossesse'),
-    nbTetanotop: patients.filter(p=>p.quicktest).length + countRx('tétanotop'),
-    nbActimCRP: patients.filter(p=>p.crp_test).length + countRx('crp'),
-    nbBilanSanguin: countRx('bilan sanguin') + countRx('bio délocalisée'),
-    nbECBU: countRx('ecbu'),
-    nbCoprocultures: countRx('coproculture'),
-    nbSondeUrinaire: countRx('sonde urinaire'),
-    nbVVP: countRx('vvp'),
-    nbIV: toutesRx.filter(r=>r.categorie==='therapeutique'&&r.texte?.includes(' IV')).length,
-    nbIM: toutesRx.filter(r=>r.categorie==='therapeutique'&&r.texte?.includes(' IM')).length,
-    nbAutresVaccins: countRx('vaccin')-countRx('covid'),
-    nbVaccinsCovid: countRx('covid'),
-    nbSC: toutesRx.filter(r=>r.categorie==='therapeutique'&&r.texte?.includes(' SC')).length,
-    nbDRP: patients.filter(p=>p.drp).length + countRx('drp'),
-    nbOxygene: countRx('o2 '),
-    nbTensiometre: countRx('tensiomètre'),
-    nbECG: patients.filter(p=>p.ecg_fait).length + countRx('ecg'),
-    nbMEOPA: countRx('meopa'),
-    nbLavageCAE: countRx('lavage cae'),
-    nbPansementSimple: countRx('pansement simple'),
-    nbPansementComplexe: countRx('pansement complexe'),
-    nbSurveillance: countRx('reprise constantes'),
-    nbEducation: countRx('ducation'),
-    nbAerosol: countRx('érosol'),
-    nbGazSang: countRx('gaz du sang'),
-    nbDecesSurSite: countSortie('deces'),
-    // ── Sutures / actes annexes ──
-    nbSutSup5: countSuture('sut_sup5'),
-    nbSutInf5: countSuture('sut_inf5'),
-    nbSutColle: countSuture('sut_colle'),
-    nbSutAgraf: countSuture('sut_agraf'),
-    nbSutSteri: countSuture('sut_steri'),
-    nbAbces: countRx('ablation abcès'),
-    nbPoseImpl: countRx('pose implant'),
-    nbRetrImpl: countRx('retrait implant'),
-    nbHemocult: countRx('hémoculture'),
-    nbPrelevMam: toutesRx.filter(r=>r.texte?.includes('Mamoudzou')).length,
-    // ── Sorties (photo 2) ──
-    nbTransfertUrgence: countSortie('transfert'),
-    nbTransfertSMUR: toutesRx.filter(r=>r.texte?.toLowerCase().includes('hellico')||r.texte?.toLowerCase().includes('smur')).length,
-    nbUrgenceMoyenPropre: sortis.filter(p=>p.modalite_sortie==='transfert'&&p.moyen_transport==='propre').length,
-    nbMaternite: countRx('maternité'),
-    nbRetourDomicile: countSortie('domicile'),
-    nbPartiSansAttendre: countSortie('pse'),
-    nbGAV: countSortie('gav'),
-    // Ordonnances sécurisées
-    ordoSecurisees: toutesRx.filter(r=>{const t=r.texte||'';return t.includes('Tramadol')||t.includes('Morphine')||t.includes('MEOPA')||t.includes('Kétoprofène');}),
-    // Par motif
-    parMotif: ['coma','avc','detresse_respi','plaie','fievre','vertige','douleur','soins_ide','autre'].reduce((acc,m)=>{
-      acc[m]=patients.filter(p=>p.symptome===m).length;return acc;},{}),
-    // Enregistrement / consultation (onglet 3)
-    nbEnregistresParAS: patients.filter(p=>p.creePar).length,
-    nbPartiSansAttendreT3: countSortie('pse'),
-  };
-}
-
 function L({ l, v }) {
   return (
     <tr style={{borderBottom:'1px solid #f9fafb'}}>
@@ -147,7 +65,6 @@ export default function StatsMensuelles() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [allPatients, setAllPatients] = useState([]);
   const [moisIdx, setMoisIdx] = useState(0);
   const [impressions, setImpressions] = useState({});
   const [onglet, setOnglet] = useState('journal');
@@ -162,11 +79,34 @@ export default function StatsMensuelles() {
     const u = JSON.parse(s);
     setUser(u);
     if (u.role === 'secretaire') setOnglet('journal');
-    charger();
+    setLoading(false);
     fetch('/api/stats-alerte').then(r=>r.json()).then(d=>{
       if (d.impressions) setImpressions(d.impressions);
     });
   }, []);
+
+  // ── Actes cliniques du mois (compteurs persistants, incrémentés à la sortie) ──
+  const [compteursMois, setCompteursMois] = useState({});
+  useEffect(() => {
+    if (!user) return;
+    fetch('/api/stats-compteurs').then(r=>r.json()).then(d=>{
+      setCompteursMois(d.compteurs || {});
+    }).catch(()=>{});
+  }, [user]);
+
+  // ── Bilan du mois (total, tranches horaires, sorties — journal anonyme, TTL 60j) ──
+  const [bilanMois, setBilanMois] = useState(null);
+  const [bilanLoading, setBilanLoading] = useState(false);
+  useEffect(() => {
+    if (!user || (onglet !== 'actes' && onglet !== 'tableau')) return;
+    const m = moisOptions[moisIdx];
+    setBilanLoading(true);
+    fetch(`/api/stats-bilan-mois?mois=${m.key}`)
+      .then(r => r.json())
+      .then(d => setBilanMois(d.bilan || null))
+      .catch(() => setBilanMois(null))
+      .finally(() => setBilanLoading(false));
+  }, [user, onglet, moisIdx]);
 
   // ── ONGLET SUIVI JOURNALIER ──
   const [jourJournalData, setJourJournalData] = useState(null);
@@ -241,21 +181,29 @@ export default function StatsMensuelles() {
     );
   }
 
-  async function charger() {
-    setLoading(true);
-    const r = await fetch('/api/patients?all=1');
-    const d = await r.json();
-    setAllPatients(d.patients || []);
-    setLoading(false);
-  }
-
   // ── ONGLET ACTES ──
   const mois = moisOptions[moisIdx];
-  const patientsduMois = allPatients.filter(p => {
-    const t = parseInt(p.arrivee);
-    return t >= mois.debut && t <= mois.fin;
-  });
-  const s = calcStats(patientsduMois);
+  const BILAN_VIDE = { total:0, parHeure:new Array(24).fill(0), totaux:{domicile:0,pse:0,transfert:0,gav:0,deces:0,soins_ide:0,enCours:0}, moyensTransfert:{ambulance:0,helicoptere:0,personnels:0} };
+  const bilan = bilanMois || BILAN_VIDE;
+  function permSlice(hDebut, hFin) {
+    let n = 0;
+    for (let h = hDebut; h < hFin; h++) n += bilan.parHeure[h] || 0;
+    return n;
+  }
+  const s = {
+    ...(compteursMois[mois.key] || {}),
+    // Total patients et sorties : toujours dérivés du journal (source persistante, pas de TTL 24h)
+    nbPatients: bilan.total,
+    nbEnregistresParAS: bilan.total,
+    nbPartiSansAttendreT3: bilan.totaux.pse,
+    nbPartiSansAttendre: bilan.totaux.pse,
+    nbGAV: bilan.totaux.gav,
+    nbDecesSurSite: bilan.totaux.deces,
+    nbRetourDomicile: bilan.totaux.domicile,
+    nbTransfertUrgence: bilan.moyensTransfert.ambulance,
+    nbTransfertSMUR: bilan.moyensTransfert.helicoptere,
+    nbUrgenceMoyenPropre: bilan.moyensTransfert.personnels,
+  };
   const imprime = impressions[mois.key];
   const dateStr = new Date().toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
 
@@ -452,15 +400,15 @@ export default function StatsMensuelles() {
                   <tr style={{background:'#fef3c7'}}>
                     <td rowSpan={5} style={{padding:'6px 10px',fontWeight:700,color:'#92400e',fontSize:11,textTransform:'uppercase',textAlign:'center',border:'1px solid #fde68a',writingMode:'vertical-rl',transform:'rotate(180deg)'}}>PERM</td>
                     <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb passages perm 07h00 à 17h00</td>
-                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{calcStatsPerm(patientsduMois,7,17)}</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{permSlice(7,17)}</td>
                   </tr>
                   <tr style={{background:'#fffbeb'}}>
                     <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb passages perm 17h00 à 00h00</td>
-                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{calcStatsPerm(patientsduMois,17,24)}</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{permSlice(17,24)}</td>
                   </tr>
                   <tr style={{background:'#fef3c7'}}>
                     <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb passages perm 00h00 à 07h00</td>
-                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{calcStatsPerm(patientsduMois,0,7)}</td>
+                    <td style={{padding:'6px 12px',border:'1px solid #fde68a',fontWeight:700,textAlign:'center'}}>{permSlice(0,7)}</td>
                   </tr>
                   <tr style={{background:'#fffbeb'}}>
                     <td style={{padding:'6px 12px',border:'1px solid #fde68a',color:'#374151'}}>Nb total passages perm</td>
