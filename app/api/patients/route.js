@@ -3,8 +3,39 @@ import { logAudit } from '@/lib/audit';
 import { getSession } from '@/lib/auth-server';
 import { enregistrerEntreeJour, enregistrerSortieJour, supprimerEntreeJour } from '@/lib/stats-jour';
 
+// Identifiant du dispensaire. Un seul site actif pour l'instant (Kahani),
+// mais préparé pour l'ouverture à d'autres centres (Mrama, etc.) sans
+// migration de données a posteriori.
+const SITE = 'kahani';
+
 function genId() {
   return 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+// Migration transparente des anciennes clés (sans site) vers les nouvelles
+// (préfixées par site). Ne s'applique qu'une fois par dossier : dès qu'un
+// dossier est lu sous l'ancien format, il est basculé vers le nouveau et
+// l'ancienne clé est supprimée. Garde le TTL existant (24h) s'il y en a un.
+async function migrerClesLegacy(prefix) {
+  const legacyKeys = await kv.keys(`${prefix}:*`);
+  const aMigrer = legacyKeys.filter(k => {
+    const parts = k.split(':');
+    return parts.length === 2; // ex: "patient:pt_123" (ancien) vs "patient:kahani:pt_123" (nouveau)
+  });
+  for (const oldKey of aMigrer) {
+    try {
+      const data = await kv.hgetall(oldKey);
+      if (!data) continue;
+      const id = oldKey.split(':')[1];
+      const newKey = `${prefix}:${SITE}:${id}`;
+      const ttl = await kv.ttl(oldKey);
+      await kv.hset(newKey, data);
+      if (ttl && ttl > 0) await kv.expire(newKey, ttl);
+      await kv.del(oldKey);
+    } catch (e) {
+      console.error('migrerClesLegacy error', oldKey, e);
+    }
+  }
 }
 
 export async function GET(req) {
@@ -15,11 +46,14 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const all = searchParams.get('all');
 
-    const activeKeys = await kv.keys('patient:*');
+    await migrerClesLegacy('patient');
+    if (all) await migrerClesLegacy('archive');
+
+    const activeKeys = await kv.keys(`patient:${SITE}:*`);
     const active = activeKeys.length ? await Promise.all(activeKeys.map(k => kv.hgetall(k))) : [];
 
     if (all) {
-      const archiveKeys = await kv.keys('archive:*');
+      const archiveKeys = await kv.keys(`archive:${SITE}:*`);
       const archives = archiveKeys.length ? await Promise.all(archiveKeys.map(k => kv.hgetall(k))) : [];
       const tous = [...active, ...archives].filter(Boolean).sort((a,b)=>(a.arrivee||0)-(b.arrivee||0));
       return Response.json({ patients: tous });
@@ -40,6 +74,11 @@ export async function POST(req) {
     const body = await req.json();
     const { action } = body;
 
+    if (action !== 'create' && action !== 'acteIdeDirect') {
+      await migrerClesLegacy('patient');
+      await migrerClesLegacy('archive');
+    }
+
     if (action === 'create') {
       const id = genId();
       const patient = {
@@ -49,8 +88,8 @@ export async function POST(req) {
         statut: body.patient?.statut || 'attente_medecin',
         emplacement: body.patient?.emplacement || null,
       };
-      await kv.hset(`patient:${id}`, patient);
-      await kv.expire(`patient:${id}`, 86400); // 24h en secondes — le dossier légal complet vit dans DxCare
+      await kv.hset(`patient:${SITE}:${id}`, patient);
+      await kv.expire(`patient:${SITE}:${id}`, 86400); // 24h en secondes — le dossier légal complet vit dans DxCare
       await logAudit(id, 'create', session.matricule, { statut: patient.statut });
       await enregistrerEntreeJour(patient);
       const all = await getAllPatients();
@@ -59,7 +98,7 @@ export async function POST(req) {
 
     if (action === 'update') {
       const { id, patch } = body;
-      await kv.hset(`patient:${id}`, patch);
+      await kv.hset(`patient:${SITE}:${id}`, patch);
       await logAudit(id, 'update', session.matricule, { champs: Object.keys(patch || {}) });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -67,16 +106,16 @@ export async function POST(req) {
 
     if (action === 'restore') {
       const { id, emplacement } = body;
-      const patient = await kv.hgetall(`archive:${id}`);
+      const patient = await kv.hgetall(`archive:${SITE}:${id}`);
       if (patient) {
         patient.statut = emplacement ? 'attente_medecin' : 'dehors';
         patient.emplacement = emplacement || null;
         delete patient.sortie;
         delete patient.modalite_sortie;
         delete patient.moyen_sortie;
-        await kv.hset(`patient:${id}`, patient);
-        await kv.expire(`patient:${id}`, 86400); // 24h
-        await kv.del(`archive:${id}`);
+        await kv.hset(`patient:${SITE}:${id}`, patient);
+        await kv.expire(`patient:${SITE}:${id}`, 86400); // 24h
+        await kv.del(`archive:${SITE}:${id}`);
         await enregistrerSortieJour(patient, null, null);
         await logAudit(id, 'restore', session.matricule, { emplacement: patient.emplacement });
       }
@@ -86,8 +125,8 @@ export async function POST(req) {
 
     if (action === 'delete') {
       const { id: delId } = body;
-      const patientAvant = await kv.hgetall(`patient:${delId}`);
-      await kv.del(`patient:${delId}`);
+      const patientAvant = await kv.hgetall(`patient:${SITE}:${delId}`);
+      await kv.del(`patient:${SITE}:${delId}`);
       if (patientAvant) await supprimerEntreeJour(patientAvant);
       await logAudit(delId, 'delete', session.matricule, {});
       return Response.json({ ok: true });
@@ -105,8 +144,8 @@ export async function POST(req) {
         statut: 'sorti',
         symptome: 'soins_ide',
       };
-      await kv.hset(`archive:${id}`, patient);
-      await kv.expire(`archive:${id}`, 86400); // 24h
+      await kv.hset(`archive:${SITE}:${id}`, patient);
+      await kv.expire(`archive:${SITE}:${id}`, 86400); // 24h
       await incrementerCompteurs(patient);
       await enregistrerEntreeJour(patient, 'soins_ide');
       await logAudit(id, 'acteIdeDirect', session.matricule, { soins_type: patient.soins_type || null, ipp: patient.ipp || null });
@@ -116,15 +155,15 @@ export async function POST(req) {
 
     if (action === 'discharge') {
       const { id, modalite_sortie, moyen_sortie } = body;
-      const patient = await kv.hgetall(`patient:${id}`);
+      const patient = await kv.hgetall(`patient:${SITE}:${id}`);
       if (patient) {
         patient.sortie = Date.now();
         patient.statut = 'sorti';
         if (modalite_sortie) patient.modalite_sortie = modalite_sortie;
         if (moyen_sortie) patient.moyen_sortie = moyen_sortie;
-        await kv.hset(`archive:${id}`, patient);
-        await kv.expire(`archive:${id}`, 86400); // 24h
-        await kv.del(`patient:${id}`);
+        await kv.hset(`archive:${SITE}:${id}`, patient);
+        await kv.expire(`archive:${SITE}:${id}`, 86400); // 24h
+        await kv.del(`patient:${SITE}:${id}`);
         await incrementerCompteurs(patient);
         await enregistrerSortieJour(patient, modalite_sortie, moyen_sortie);
         await logAudit(id, 'discharge', session.matricule, {
@@ -138,10 +177,10 @@ export async function POST(req) {
 
     if (action === 'addActe') {
       const { id, acte } = body;
-      const patient = await kv.hgetall(`patient:${id}`);
+      const patient = await kv.hgetall(`patient:${SITE}:${id}`);
       const actes = patient.actes ? JSON.parse(patient.actes) : [];
       actes.push({ ...acte, heure: Date.now() });
-      await kv.hset(`patient:${id}`, { actes: JSON.stringify(actes) });
+      await kv.hset(`patient:${SITE}:${id}`, { actes: JSON.stringify(actes) });
       await logAudit(id, 'addActe', session.matricule, { acte: acte?.texte || acte?.type || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -149,12 +188,12 @@ export async function POST(req) {
 
     if (action === 'addPrescription') {
       const { id, prescription } = body;
-      const patient = await kv.hgetall(`patient:${id}`);
+      const patient = await kv.hgetall(`patient:${SITE}:${id}`);
       const prescriptions = patient.prescriptions ? JSON.parse(patient.prescriptions) : [];
       // L'auteur vient de la session vérifiée, jamais de ce que le client déclare
       // (avant, un soignant aurait pu signer une prescription au nom d'un autre).
       prescriptions.push({ ...prescription, auteur: session.matricule, heure: Date.now() });
-      await kv.hset(`patient:${id}`, { prescriptions: JSON.stringify(prescriptions) });
+      await kv.hset(`patient:${SITE}:${id}`, { prescriptions: JSON.stringify(prescriptions) });
       await logAudit(id, 'addPrescription', session.matricule, { texte: prescription?.texte || null });
       const all = await getAllPatients();
       return Response.json({ ok: true, patients: all });
@@ -237,7 +276,7 @@ async function incrementerCompteurs(patient) {
 }
 
 async function getAllPatients() {
-  const keys = await kv.keys('patient:*');
+  const keys = await kv.keys(`patient:${SITE}:*`);
   if (!keys.length) return [];
   const patients = await Promise.all(keys.map(k => kv.hgetall(k)));
   return patients.filter(Boolean).sort((a, b) => (a.arrivee || 0) - (b.arrivee || 0));
