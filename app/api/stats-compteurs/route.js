@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { kv } from '@vercel/kv';
 
 // Anciens noms de compteurs (avant le renommage du 18/08/2026) → nouveaux noms.
