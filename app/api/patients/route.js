@@ -182,6 +182,7 @@ async function incrementerCompteurs(patient) {
     // qui n'existent que sur le dossier patient complet — donc au moment du discharge,
     // avant la purge TTL 24h.
     if (patient.fc || patient.sat || patient.tas || patient.temp) inc('nbConstStd');
+    if (patient.tas || patient.tad) inc('nbTensiometre');
     if (patient.dextro) inc('nbDextro');
     if (patient.hemocue) inc('nbHemocue');
     if (patient.cetonemie) inc('nbCetonem');
