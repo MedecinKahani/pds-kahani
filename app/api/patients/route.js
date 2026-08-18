@@ -139,7 +139,7 @@ export async function POST(req) {
     if (action === 'addActe') {
       const { id, acte } = body;
       const patient = await kv.hgetall(`patient:${id}`);
-      const actes = patient.actes ? JSON.parse(patient.actes) : [];
+      const actes = patient.actes ? (typeof patient.actes === 'object' ? patient.actes : JSON.parse(patient.actes)) : [];
       actes.push({ ...acte, heure: Date.now() });
       await kv.hset(`patient:${id}`, { actes: JSON.stringify(actes) });
       await logAudit(id, 'addActe', session.matricule, { acte: acte?.texte || acte?.type || null });
@@ -150,7 +150,7 @@ export async function POST(req) {
     if (action === 'addPrescription') {
       const { id, prescription } = body;
       const patient = await kv.hgetall(`patient:${id}`);
-      const prescriptions = patient.prescriptions ? JSON.parse(patient.prescriptions) : [];
+      const prescriptions = patient.prescriptions ? (typeof patient.prescriptions === 'object' ? patient.prescriptions : JSON.parse(patient.prescriptions)) : [];
       // L'auteur vient de la session vérifiée, jamais de ce que le client déclare
       // (avant, un soignant aurait pu signer une prescription au nom d'un autre).
       prescriptions.push({ ...prescription, auteur: session.matricule, heure: Date.now() });
@@ -175,6 +175,17 @@ async function incrementerCompteurs(patient) {
 
     function inc(k, n=1) { existing[k] = (existing[k]||0) + n; }
 
+    // @vercel/kv redéserialise automatiquement les champs JSON d'un hgetall :
+    // patient.sutures / patient.prescriptions arrivent déjà en array/objet, pas en
+    // string. Un JSON.parse() direct dessus plante (silencieusement, absorbé par le
+    // catch englobant) et annule TOUT l'incrément du patient, pas seulement la partie
+    // prescriptions — cause racine du bug "compteurs à 0" malgré des patients réels.
+    function safeParse(val, fallback=[]) {
+      if (!val) return fallback;
+      if (typeof val === 'object') return val;
+      try { return JSON.parse(val); } catch { return fallback; }
+    }
+
     // NB: nbPatients / nbRetourDomicile / nbGAV / nbDecesSurSite / nbPartiSansAttendre /
     // nbTransfertUrgence / nbTransfertSMUR / nbUrgenceMoyenPropre ne sont PAS comptés ici :
     // ils viennent de getBilanPeriode() (journal anonyme stats-jour, TTL 60j), qui est la
@@ -198,7 +209,7 @@ async function incrementerCompteurs(patient) {
     if (patient.educ_drp) inc('nbEducDRP');
 
     // Sutures
-    const sutures = patient.sutures ? JSON.parse(patient.sutures) : [];
+    const sutures = safeParse(patient.sutures);
     if (sutures.includes('sut_sup5')) inc('nbSutSup5');
     if (sutures.includes('sut_inf5')) inc('nbSutInf5');
     if (sutures.includes('sut_colle')) inc('nbSutColle');
@@ -206,7 +217,7 @@ async function incrementerCompteurs(patient) {
     if (sutures.includes('sut_steri')) inc('nbSutSteri');
 
     // Prescriptions réalisées
-    const prescriptions = patient.prescriptions ? JSON.parse(patient.prescriptions) : [];
+    const prescriptions = safeParse(patient.prescriptions);
     prescriptions.filter(r=>r.fait).forEach(r => {
       const t = (r.texte||'').toLowerCase();
       if (t.includes('test optimal')) inc('nbTestOptimal');
