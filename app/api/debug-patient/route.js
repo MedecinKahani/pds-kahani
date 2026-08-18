@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { kv } from '@vercel/kv';
 
 // Endpoint de diagnostic TEMPORAIRE — à supprimer une fois le bug résolu.
@@ -24,7 +27,10 @@ export async function GET() {
       }
       if (samples.length >= 5) break;
     }
-    return Response.json({ nbActive: activeKeys.length, nbArchive: archiveKeys.length, nbAvecDonnees: samples.length, samples });
+    return Response.json(
+      { nbActive: activeKeys.length, nbArchive: archiveKeys.length, nbAvecDonnees: samples.length, samples },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
   } catch (e) {
     return Response.json({ error: String(e?.message || e), stack: e?.stack }, { status: 500 });
   }
